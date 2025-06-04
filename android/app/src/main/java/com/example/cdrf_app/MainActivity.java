@@ -1,4 +1,4 @@
-package com.example.cdrf_app;
+package in.ac.bits_hyderabad.nariudyam;
 
 import io.flutter.embedding.android.FlutterActivity;
 
