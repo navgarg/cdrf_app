@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../services/api/auth_service.dart';
 import '../services/general/messenger.dart';
 
@@ -88,34 +89,67 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  void _goBack() {
+    context.go('/auth');
+  }
+
   @override
   Widget build(BuildContext context) {
     final loginState = ref.watch(loginStateProvider);
+    final ThemeData theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        leading: loginState == LoginState.verificationCode
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _resetToPhoneInput,
-              )
-            : null,
-      ),
-      body: SafeArea(
-        child: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            _buildPhoneInputPage(),
-            _buildVerificationCodePage(),
-          ],
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
         ),
+      ),
+      child: Column(
+        children: [
+          // Back button header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: loginState == LoginState.verificationCode
+                      ? _resetToPhoneInput
+                      : _goBack,
+                ),
+                const Text(
+                  'Phone Login',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Login form
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _buildPhoneInputPage(),
+                _buildVerificationCodePage(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPhoneInputPage() {
+    final theme = Theme.of(context);
+
     return Form(
       key: _formKey,
       child: Padding(
@@ -156,10 +190,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ElevatedButton(
               onPressed: _isLoading ? null : _verifyPhone,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                minimumSize: const Size(double.infinity, 54),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: _isLoading
-                  ? const CircularProgressIndicator()
+                  ? const CircularProgressIndicator(color: Colors.white)
                   : const Text('Continue', style: TextStyle(fontSize: 16)),
             ),
           ],
@@ -169,6 +210,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildVerificationCodePage() {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -203,10 +246,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ElevatedButton(
             onPressed: _isLoading ? null : _verifyCode,
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              minimumSize: const Size(double.infinity, 54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: _isLoading
-                ? const CircularProgressIndicator()
+                ? const CircularProgressIndicator(color: Colors.white)
                 : const Text('Verify', style: TextStyle(fontSize: 16)),
           ),
         ],

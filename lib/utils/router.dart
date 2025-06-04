@@ -1,49 +1,77 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../screens/login.dart';
 import '../screens/dashboard.dart';
 import '../screens/welcome.dart';
+import '../screens/shell_layout.dart';
 import '../services/api/auth_service.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
-    initialLocation: '/welcome',
+    initialLocation: '/auth',
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      // Loading auth state
       final isLoading = authState.isLoading;
       if (isLoading) return null;
 
-      // Check if the user is authenticated
       final isAuthenticated = authState.valueOrNull != null;
 
-      // Auth paths that don't require redirection
-      final isAuthRoute = state.matchedLocation == '/login';
-      final isWelcomeRoute = state.matchedLocation == '/welcome';
+      final isAuthRoute = state.matchedLocation.startsWith('/auth');
 
-      // If not logged in and trying to access protected route, redirect to login
-      if (!isAuthenticated && !isAuthRoute && !isWelcomeRoute) {
-        return '/welcome';
+      if (!isAuthenticated && !isAuthRoute) {
+        return '/auth';
       }
 
-      // If logged in and on an auth route, redirect to home
-      if (isAuthenticated && (isAuthRoute || isWelcomeRoute)) {
+      if (isAuthenticated && isAuthRoute) {
         return '/dashboard';
       }
 
-      // No redirection needed
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/welcome',
-        builder: (context, state) => const WelcomeScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
+      ShellRoute(
+        builder: (context, state, child) {
+          return ShellLayout(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: '/auth',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const WelcomeScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            ),
+          ),
+          GoRoute(
+            path: '/auth/phone',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const LoginScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/dashboard',
