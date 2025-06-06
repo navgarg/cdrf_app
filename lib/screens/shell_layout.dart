@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class ShellLayout extends StatelessWidget {
+class OnboardingLayout extends StatelessWidget {
   final Widget child;
 
-  const ShellLayout({
+  const OnboardingLayout({
     super.key,
     required this.child,
   });
@@ -11,6 +11,7 @@ class ShellLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
+    final ThemeData theme = Theme.of(context);
 
     return Scaffold(
       body: Stack(
@@ -18,7 +19,7 @@ class ShellLayout extends StatelessWidget {
           // Replace with video/whatever
           Container(
             width: double.infinity,
-            height: size.height * 0.45,
+            height: size.height * 0.50,
             color: Colors.black45, // If image, keep it darkened like this
             child: Opacity(
               opacity: 0.3,
@@ -62,7 +63,20 @@ class ShellLayout extends StatelessWidget {
                   ),
                 ),
 
-                Expanded(child: child),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: child
+                  )
+                ),
               ],
             ),
           ),

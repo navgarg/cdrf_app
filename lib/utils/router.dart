@@ -34,7 +34,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       ShellRoute(
         builder: (context, state, child) {
-          return ShellLayout(child: child);
+          return OnboardingLayout(child: child);
         },
         routes: [
           GoRoute(
@@ -44,9 +44,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const WelcomeScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
+                final isPopDirection =
+                    secondaryAnimation.status == AnimationStatus.forward;
+
                 return SlideTransition(
                   position: Tween<Offset>(
-                    begin: const Offset(1.0, 0.0),
+                    begin: isPopDirection
+                        ? const Offset(-1.0, 0.0)
+                        : const Offset(1.0, 0.0),
                     end: Offset.zero,
                   ).animate(animation),
                   child: child,
@@ -61,9 +66,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const LoginScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
+                final isPopDirection =
+                    secondaryAnimation.status == AnimationStatus.forward;
+
                 return SlideTransition(
                   position: Tween<Offset>(
-                    begin: const Offset(1.0, 0.0),
+                    begin: isPopDirection
+                        ? const Offset(-1.0, 0.0)
+                        : const Offset(1.0, 0.0),
                     end: Offset.zero,
                   ).animate(animation),
                   child: child,

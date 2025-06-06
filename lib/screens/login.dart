@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nariudyam/components/regular_button.dart';
 import '../services/api/auth_service.dart';
 import '../services/general/messenger.dart';
 
@@ -90,28 +91,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _goBack() {
-    context.go('/auth');
+    context.replace('/auth');
   }
 
   @override
   Widget build(BuildContext context) {
     final loginState = ref.watch(loginStateProvider);
-    final ThemeData theme = Theme.of(context);
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-      ),
-      child: Column(
+    return Column(
         children: [
           // Back button header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
             child: Row(
               children: [
                 IconButton(
@@ -143,8 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildPhoneInputPage() {
@@ -153,7 +143,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Form(
       key: _formKey,
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -187,21 +177,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               },
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            RegularButton(
               onPressed: _isLoading ? null : _verifyPhone,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                minimumSize: const Size(double.infinity, 54),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Continue', style: TextStyle(fontSize: 16)),
+              text: _isLoading ? "Loading..." : "Continue"
             ),
           ],
         ),
@@ -213,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
