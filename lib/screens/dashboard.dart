@@ -10,57 +10,77 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userModel = ref.watch(userProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authServiceProvider).signOut(),
-          ),
-        ],
-      ),
-      body: userModel == null
-          ? const Center(child: CircularProgressIndicator())
-          : _buildDashboard(context, userModel),
-    );
+    return userModel == null
+        ? const Center(child: CircularProgressIndicator())
+        : _buildDashboard(context, userModel);
   }
 
   Widget _buildDashboard(BuildContext context, UserModel user) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: user.profilePicUrl != null
-                    ? NetworkImage(user.profilePicUrl!)
-                    : null,
-                backgroundColor: Colors.grey.shade200,
-                child: user.profilePicUrl == null
-                    ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                    : null,
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Welcome card
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.waving_hand,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Welcome text
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hello!',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        'Welcome back',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 16),
-            _buildInfoItem(Icons.phone, 'Phone Number', user.phoneNumber),
-            _buildInfoItem(
-              Icons.calendar_today,
-              'Member since',
-              _formatDate(user.createdAt),
-            ),
-            _buildInfoItem(
-              Icons.access_time,
-              'Last login',
-              _formatDate(user.lastLoginAt),
-            ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+          _buildInfoItem(Icons.phone, 'Phone Number', user.phoneNumber),
+          _buildInfoItem(
+            Icons.calendar_today,
+            'Account created on:',
+            _formatDate(user.createdAt),
+          ),
+          _buildInfoItem(
+            Icons.access_time,
+            'Last login: ',
+            _formatDate(user.lastLoginAt),
+          ),
+        ],
       ),
     );
   }

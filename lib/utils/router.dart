@@ -5,6 +5,10 @@ import '../screens/login.dart';
 import '../screens/dashboard.dart';
 import '../screens/welcome.dart';
 import '../screens/shell_layout.dart';
+import '../screens/app_shell_layout.dart';
+import '../screens/inventory.dart';
+import '../screens/schedule.dart';
+import '../screens/profile.dart';
 import '../services/api/auth_service.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -32,6 +36,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // Authentication Shell Route (Onboarding)
       ShellRoute(
         builder: (context, state, child) {
           return OnboardingLayout(child: child);
@@ -83,9 +88,33 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(
-        path: '/dashboard',
-        builder: (context, state) => const DashboardScreen(),
+
+      // Main App Shell Route
+      ShellRoute(
+        builder: (context, state, child) {
+          return AppShellLayout(
+            child: child,
+            currentPath: state.matchedLocation,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: '/inventory',
+            builder: (context, state) => const InventoryScreen(),
+          ),
+          GoRoute(
+            path: '/schedule',
+            builder: (context, state) => const ScheduleScreen(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
       ),
     ],
   );

@@ -99,47 +99,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final loginState = ref.watch(loginStateProvider);
 
     return Column(
-        children: [
-          // Back button header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: loginState == LoginState.verificationCode
-                      ? _resetToPhoneInput
-                      : _goBack,
+      children: [
+        // Back button header
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: loginState == LoginState.verificationCode
+                    ? _resetToPhoneInput
+                    : _goBack,
+              ),
+              const Text(
+                'Phone Login',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                const Text(
-                  'Phone Login',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
 
-          // Login form
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _buildPhoneInputPage(),
-                _buildVerificationCodePage(),
-              ],
-            ),
+        // Login form
+        Expanded(
+          child: PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildPhoneInputPage(),
+              _buildVerificationCodePage(),
+            ],
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 
   Widget _buildPhoneInputPage() {
-    final theme = Theme.of(context);
-
     return Form(
       key: _formKey,
       child: Padding(
@@ -178,9 +176,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: 20),
             RegularButton(
-              onPressed: _isLoading ? null : _verifyPhone,
-              text: _isLoading ? "Loading..." : "Continue"
-            ),
+                onPressed: _isLoading ? null : _verifyPhone,
+                text: _isLoading ? "Loading..." : "Continue"),
           ],
         ),
       ),
