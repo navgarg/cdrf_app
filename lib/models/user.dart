@@ -9,6 +9,12 @@ class UserModel {
   final DateTime createdAt;
   final DateTime lastLoginAt;
 
+  final String? language;
+  final String? education;
+  final String? ageRange;
+  final String? businessDomain;
+  final bool onboardingCompleted;
+
   UserModel({
     required this.uid,
     required this.phoneNumber,
@@ -17,6 +23,12 @@ class UserModel {
     this.deviceToken,
     required this.createdAt,
     required this.lastLoginAt,
+
+    this.language,
+    this.education,
+    this.ageRange,
+    this.businessDomain,
+    this.onboardingCompleted = false
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -30,6 +42,12 @@ class UserModel {
       deviceToken: data['deviceToken'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       lastLoginAt: (data['lastLoginAt'] as Timestamp).toDate(),
+
+      language: data['language'],
+      education: data['education'],
+      ageRange: data['ageRange'],
+      businessDomain: data['businessDomain'],
+      onboardingCompleted: data['onboardingCompleted'] ?? false
     );
   }
 
@@ -41,6 +59,12 @@ class UserModel {
       'deviceToken': deviceToken,
       'createdAt': createdAt,
       'lastLoginAt': lastLoginAt,
+
+      'language': language,
+      'education': education,
+      'ageRange': ageRange,
+      'businessDomain': businessDomain,
+      'onboardingCompleted': onboardingCompleted,
     };
   }
 
@@ -52,6 +76,12 @@ class UserModel {
     String? deviceToken,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+
+    String? language,
+    String? education,
+    String? ageRange,
+    String? businessDomain,
+    bool? onboardingCompleted,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -61,6 +91,12 @@ class UserModel {
       deviceToken: deviceToken ?? this.deviceToken,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+
+      language: language ?? this.language,
+      education: education ?? this.education,
+      ageRange: ageRange ?? this.ageRange,
+      businessDomain: businessDomain ?? this.businessDomain,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 }

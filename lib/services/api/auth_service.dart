@@ -118,6 +118,8 @@ class AuthService {
         createdAt: now,
         lastLoginAt: now,
         deviceToken: fcmToken,
+
+        onboardingCompleted: false,
       );
 
       await userRef.set(newUser.toMap());

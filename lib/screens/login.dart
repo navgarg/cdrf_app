@@ -156,7 +156,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               controller: _phoneController,
               decoration: const InputDecoration(
                 labelText: 'Phone Number',
-                hintText: '+1234567890',
+                hintText: '911234567890',
                 prefixText: '+',
                 border: OutlineInputBorder(),
               ),
