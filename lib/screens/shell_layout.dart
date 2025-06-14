@@ -34,7 +34,7 @@ class OnboardingLayout extends StatelessWidget {
               children: [
                 // Top section with logo and tagline - common for all screens
                 SizedBox(
-                  height: size.height * 0.4,
+                  height: size.height * 0.35,
                   child: const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
