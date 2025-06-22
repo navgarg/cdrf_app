@@ -26,7 +26,7 @@ class BusinessDomainScreen extends ConsumerWidget {
       _BusinessDomainInfo('Grocery Seller', 'assets/icons/onboarding/grocery_seller.png'),
       _BusinessDomainInfo('Convenience Store', 'assets/icons/onboarding/convenience_store.png'),
       _BusinessDomainInfo('Other Business', 'assets/icons/onboarding/other_business.png'),
-    ];
+    ]; //todo: make other business button functional
 
     Future<void> selectDomain(String domain) async {
       final user = ref.read(userProvider);

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class AppShellLayout extends StatelessWidget {
+final fabProvider = StateProvider<Widget?>((ref) => null);
+
+class AppShellLayout extends ConsumerWidget {
   final Widget child;
   final String currentPath;
 
@@ -20,10 +23,12 @@ class AppShellLayout extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final String pageTitle = routeTitles[currentPath] ?? 'Nari Udyam';
     final bool canPop = GoRouter.of(context).canPop();
+
+    final fab = ref.watch(fabProvider);
 
     return Scaffold(
       body: Column(
@@ -132,6 +137,7 @@ class AppShellLayout extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: fab,
     );
   }
 
