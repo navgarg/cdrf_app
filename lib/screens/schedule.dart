@@ -8,12 +8,11 @@ import 'package:nariudyam/services/general/messenger.dart';
 
 import '../components/add_appointment_form.dart';
 import 'app_shell_layout.dart';
-// Helper function to check for the same month, as it's not in the package
+
 bool isSameMonth(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month;
 }
 
-// Enum to manage which of the three distinct views is active
 enum ScheduleView { Day, Week, Month }
 
 class ScheduleScreen extends ConsumerStatefulWidget {
@@ -24,10 +23,7 @@ class ScheduleScreen extends ConsumerStatefulWidget {
 }
 
 class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
-  // State for the main view control
   ScheduleView _scheduleView = ScheduleView.Month;
-
-  // State for the calendar's data and selection
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
@@ -51,7 +47,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     super.dispose();
   }
 
-  // This function is called when the Floating Action Button is tapped
+  // Called when the Floating Action Button is tapped
   void _showAddAppointmentDialog() {
     showGeneralDialog(
       context: context,
@@ -127,7 +123,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     );
   }
 
-  // Builder for the Top Toggle Buttons
   Widget _buildToggleButtons() {
     final theme = Theme.of(context);
     return Padding(
@@ -159,10 +154,46 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     );
   }
 
-  // Builder for the "Month" view, which contains the calendar and a preview list
   Widget _buildMonthView(List<Appointment> allAppointments) {
-    List<Appointment> getAppointmentsForDay(DateTime day) {
-      return allAppointments.where((a) => isSameDay(a.dateTime, day)).toList();
+    final theme = Theme.of(context);
+
+    //Analyse event density for relatively sized bubbles
+    final Map<DateTime, int> eventCountPerDay = {};
+    for (final appointment in allAppointments) {
+      final day = DateTime.utc(appointment.dateTime.year, appointment.dateTime.month, appointment.dateTime.day);
+      eventCountPerDay[day] = (eventCountPerDay[day] ?? 0) + 1;
+    }
+
+    // Find the min and max number of events for any day in the map
+    final eventCounts = eventCountPerDay.values;
+    final minEvents = eventCounts.isNotEmpty ? eventCounts.reduce((a, b) => a < b ? a : b) : 1;
+    final maxEvents = eventCounts.isNotEmpty ? eventCounts.reduce((a, b) => a > b ? a : b) : 1;
+    final eventRange = (maxEvents - minEvents).toDouble();
+
+    Widget buildDensityBubble(DateTime day, {required int eventCount}) {
+      // Define our 5 levels of styling
+      const List<double> sizes = [22.0, 25.0, 28.0, 31.0, 34.0];
+      const List<double> opacities = [0.4, 0.55, 0.7, 0.85, 1.0];
+      int level = 0; // Default to the smallest size
+
+      // Calculate the relative level (0-4)
+      if (eventRange > 0) {
+        // Normalize the count to a 0.0-1.0 scale
+        double normalized = (eventCount - minEvents) / eventRange;
+        // Scale to our 5 levels and round to get an integer level
+        level = (normalized * 4).round();
+      }
+
+      final color = theme.colorScheme.primary.withAlpha((opacities[level]*255).round());
+      final size = sizes[level];
+
+      return Container(
+        width: size,
+        height: size,
+        margin: const EdgeInsets.all(4.0),
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        child: Center(child: Text('${day.day}', style: const TextStyle(color: Colors.white, fontSize: 12))),
+      );
     }
 
     return Column(
@@ -173,7 +204,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           focusedDay: _focusedDay,
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           calendarFormat: CalendarFormat.month,
-          eventLoader: getAppointmentsForDay,
+          eventLoader: (day) => allAppointments.where((a) => isSameDay(a.dateTime, day)).toList(),
           availableCalendarFormats: const {CalendarFormat.month: 'Month'},
           onDaySelected: (selectedDay, focusedDay) {
             setState(() {
@@ -183,36 +214,76 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             });
           },
           onPageChanged: (focusedDay) {
-            setState(() {
-              _focusedDay = focusedDay;
-            });
+            setState(() { _focusedDay = focusedDay; });
           },
+
           headerStyle: HeaderStyle(
             formatButtonVisible: false,
             titleCentered: true,
             titleTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            leftChevronIcon: Icon(Icons.arrow_back_ios, size: 18, color: Theme.of(context).colorScheme.primary),
-            rightChevronIcon: Icon(Icons.arrow_forward_ios, size: 18, color: Theme.of(context).colorScheme.primary),
+            leftChevronIcon: Icon(
+              Icons.arrow_back_ios,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
+            rightChevronIcon: Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
           ),
-          calendarStyle: CalendarStyle(
-            selectedDecoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
-            selectedTextStyle: const TextStyle(color: Colors.white),
-            todayDecoration: BoxDecoration(color: Theme.of(context).colorScheme.primary.withAlpha((0.3*255).round()), shape: BoxShape.circle),
-            todayTextStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+          calendarStyle: const CalendarStyle(
+            markersMaxCount: 0, //Hide dot markers
           ),
+
           calendarBuilders: CalendarBuilders(
-            markerBuilder: (context, date, events) {
-              if (events.isNotEmpty) {
-                return Positioned(
-                  right: 1, bottom: 1,
-                  child: Container(
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.primary.withOpacity(0.8)),
-                    width: 8.0, height: 8.0,
+            selectedBuilder: (context, day, focusedDay) {
+              final utcDay = DateTime.utc(day.year, day.month, day.day);
+              final count = eventCountPerDay[utcDay] ?? 0;
+              Widget dayContent;
+              if (count > 0) {
+                // If the selected day has events, its content is the density bubble
+                dayContent = buildDensityBubble(day, eventCount: count);
+              } else {
+                // If the selected day is empty, its content is just the number
+                dayContent = Center(
+                  child: Text(
+                    '${day.day}',
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 );
               }
+
+              return Container(
+                margin: const EdgeInsets.all(2.0),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withAlpha((0.15*255).round()),
+                  border: Border.all(
+                    color: theme.colorScheme.primary,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(6.0),
+                ),
+                child: dayContent,
+              );
+            },
+            defaultBuilder: (context, day, focusedDay) {
+              final utcDay = DateTime.utc(day.year, day.month, day.day);
+              final count = eventCountPerDay[utcDay] ?? 0;
+              if (count > 0) {
+                return buildDensityBubble(day, eventCount: count);
+              }
               return null;
             },
+            todayBuilder: (context, day, focusedDay) {
+              final utcDay = DateTime.utc(day.year, day.month, day.day);
+              final count = eventCountPerDay[utcDay] ?? 0;
+              if (count > 0) {
+                return buildDensityBubble(day, eventCount: count);
+              }
+              return Center(child: Text('${day.day}', style: TextStyle(color: theme.colorScheme.primary)));
+            },
+            markerBuilder: (context, date, events) => null,
           ),
         ),
         const Divider(),
@@ -220,8 +291,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       ],
     );
   }
-
-  // Builder for the "Week" agenda (a vertical list for the whole week)
   Widget _buildWeekAgendaView(List<Appointment> allAppointments) {
     final weekStart = _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1));
     final weekEnd = _focusedDay.add(Duration(days: 7 - _focusedDay.weekday));
@@ -257,7 +326,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     );
   }
 
-  // Builder for the "Day" agenda (a vertical list for a single day)
   Widget _buildDayAgendaView(List<Appointment> allAppointments, {bool showHeader = true}) {
     final dayAppointments = allAppointments
         .where((a) => isSameDay(a.dateTime, _selectedDay))
