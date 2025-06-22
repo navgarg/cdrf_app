@@ -7,6 +7,7 @@ import 'package:nariudyam/services/api/schedule_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 
 import '../components/add_appointment_form.dart';
+import '../services/api/auth_service.dart';
 import 'app_shell_layout.dart';
 
 bool isSameMonth(DateTime a, DateTime b) {
@@ -287,70 +288,164 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           ),
         ),
         const Divider(),
-        Expanded(child: SingleChildScrollView(child: _buildDayAgendaView(allAppointments, showHeader: false))),
+        Expanded(child: _buildDayAgendaView(allAppointments, showHeader: false)),
       ],
     );
   }
+
   Widget _buildWeekAgendaView(List<Appointment> allAppointments) {
+    final theme = Theme.of(context);
+    final user = ref.watch(userProvider);
+
     final weekStart = _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1));
-    final weekEnd = _focusedDay.add(Duration(days: 7 - _focusedDay.weekday));
+    final weekEnd = weekStart.add(const Duration(days: 6));
+
     final weekAppointments = allAppointments
-        .where((a) => a.dateTime.isAfter(weekStart.subtract(const Duration(seconds: 1))) && a.dateTime.isBefore(weekEnd.add(const Duration(seconds: 1))))
+        .where((a) => a.dateTime.isAfter(weekStart.subtract(const Duration(seconds: 1))) && a.dateTime.isBefore(weekEnd.add(const Duration(days: 1))))
         .toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-    if (weekAppointments.isEmpty) {
-      return const Center(child: Text("No appointments this week."));
-    }
-
-    return ListView.builder(
-      itemCount: weekAppointments.length,
-      itemBuilder: (context, index) {
-        final appointment = weekAppointments[index];
-        final bool showHeader = index == 0 || !isSameDay(weekAppointments[index - 1].dateTime, appointment.dateTime);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (showHeader)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 4.0),
-                child: Text(DateFormat('EEEE, MMMM d').format(appointment.dateTime), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+                onPressed: () {
+                  setState(() {
+                    _focusedDay = _focusedDay.subtract(const Duration(days: 7));
+                  });
+                },
               ),
-            ListTile(
-              leading: Text(DateFormat('h:mm a').format(appointment.dateTime), style: const TextStyle(fontWeight: FontWeight.w500)),
-              title: Text(appointment.title),
-            ),
-          ],
-        );
-      },
+              Text(
+                '${DateFormat('MMM d').format(weekStart)} - ${DateFormat('d, yyyy').format(weekEnd)}',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+                onPressed: () {
+                  setState(() {
+                    _focusedDay = _focusedDay.add(const Duration(days: 7));
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+
+        Expanded(
+          child: weekAppointments.isEmpty
+              ? const Center(child: Text("No appointments this week."))
+              : ListView.builder(
+            itemCount: weekAppointments.length,
+            itemBuilder: (context, index) {
+              final appointment = weekAppointments[index];
+              final bool showHeader = index == 0 || !isSameDay(weekAppointments[index - 1].dateTime, appointment.dateTime);
+              final bool isFavourite = user != null &&
+                  appointment.customerId != null &&
+                  user.favouriteCustomerIds.contains(appointment.customerId);
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (showHeader)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 4.0),
+                      child: Text(DateFormat('EEEE, MMMM d').format(appointment.dateTime), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ListTile(
+                    leading: Text(DateFormat('h:mm a').format(appointment.dateTime), style: const TextStyle(fontWeight: FontWeight.w500)),
+                    title: Text(appointment.title),
+                    trailing: isFavourite ? Icon(Icons.star_rounded, color: Colors.amber.shade700) : null,
+                    onTap: () {
+                      if (isFavourite) {
+                        ref.read(messengerProvider).showInfo('Tapped on favourite customer: ${appointment.customerId}');
+                      }
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildDayAgendaView(List<Appointment> allAppointments, {bool showHeader = true}) {
+    final theme = Theme.of(context);
+    final user = ref.watch(userProvider);
+
     final dayAppointments = allAppointments
         .where((a) => isSameDay(a.dateTime, _selectedDay))
         .toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-    if (dayAppointments.isEmpty) {
-      return const Center(child: Text("No appointments for this day."));
-    }
-
     return Column(
       children: [
         if (showHeader)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Text(DateFormat('EEEE, MMMM d').format(_selectedDay!), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+                  onPressed: () {
+                    setState(() {
+                      _selectedDay = _selectedDay?.subtract(const Duration(days: 1));
+                    });
+                  },
+                ),
+                Text(
+                  DateFormat('MMMM d, yyyy').format(_selectedDay!),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+                  onPressed: () {
+                    setState(() {
+                      _selectedDay = _selectedDay?.add(const Duration(days: 1));
+                    });
+                  },
+                ),
+              ],
+            ),
           ),
+
         Expanded(
-          child: ListView.builder(
+          child: dayAppointments.isEmpty
+              ? const Center(child: Text("No appointments for this day."))
+              : ListView.builder(
             itemCount: dayAppointments.length,
             itemBuilder: (context, index) {
               final appointment = dayAppointments[index];
+              final bool isFavourite = user != null &&
+                  appointment.customerId != null &&
+                  user.favouriteCustomerIds.contains(appointment.customerId);
+
               return ListTile(
                 leading: Text(DateFormat('h:mm a').format(appointment.dateTime), style: const TextStyle(fontWeight: FontWeight.w500)),
                 title: Text(appointment.title),
+                trailing: isFavourite ? Icon(Icons.star_rounded, color: Colors.amber.shade700) : null, //todo: change this icon
+                onTap: () {
+                  if (isFavourite) {
+                    ref.read(messengerProvider).showInfo('Tapped on favourite customer: ${appointment.customerId}');
+                  }
+                },
               );
             },
           ),

@@ -14,6 +14,7 @@ class UserModel {
   final String? ageRange;
   final String? businessDomain;
   final bool onboardingCompleted;
+  final List<String> favouriteCustomerIds;
 
   UserModel({
     required this.uid,
@@ -28,7 +29,8 @@ class UserModel {
     this.education,
     this.ageRange,
     this.businessDomain,
-    this.onboardingCompleted = false
+    this.onboardingCompleted = false,
+    this.favouriteCustomerIds = const [],
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -47,7 +49,8 @@ class UserModel {
       education: data['education'],
       ageRange: data['ageRange'],
       businessDomain: data['businessDomain'],
-      onboardingCompleted: data['onboardingCompleted'] ?? false
+      onboardingCompleted: data['onboardingCompleted'] ?? false,
+      favouriteCustomerIds: List<String>.from(data['favouriteCustomerIds'] ?? []),
     );
   }
 
@@ -65,6 +68,7 @@ class UserModel {
       'ageRange': ageRange,
       'businessDomain': businessDomain,
       'onboardingCompleted': onboardingCompleted,
+      'favouriteCustomerIds': favouriteCustomerIds,
     };
   }
 
@@ -82,6 +86,7 @@ class UserModel {
     String? ageRange,
     String? businessDomain,
     bool? onboardingCompleted,
+    List<String>? favouriteCustomerIds,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -97,6 +102,7 @@ class UserModel {
       ageRange: ageRange ?? this.ageRange,
       businessDomain: businessDomain ?? this.businessDomain,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      favouriteCustomerIds: favouriteCustomerIds ?? this.favouriteCustomerIds,
     );
   }
 }

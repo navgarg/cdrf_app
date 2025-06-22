@@ -95,6 +95,10 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
                     value: _selectedFavouriteCustomer,
                     hint: const Text('Link a Favourite Customer (Optional)'),
                     isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Link Favourite Customer',
+                      border: OutlineInputBorder(),
+                    ),
                     // The items list includes a "None" option at the top
                     items: [
                       const DropdownMenuItem<FavouriteCustomer?>(
