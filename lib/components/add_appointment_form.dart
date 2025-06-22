@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../models/favourite_customer.dart';
+import '../services/api/fav_customer_service.dart';
 import '../services/api/schedule_service.dart';
+import '../services/general/messenger.dart';
 
 class AddAppointmentForm extends ConsumerStatefulWidget {
   final DateTime selectedDate;
@@ -13,6 +16,7 @@ class AddAppointmentForm extends ConsumerStatefulWidget {
 
 //todo: add customer id to track fav customers
 class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
+  FavouriteCustomer? _selectedFavouriteCustomer;
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   late DateTime _selectedDate;
@@ -36,10 +40,18 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
+      final domain = ref.read(currentDomainProvider);
+      if (domain == null) {
+        ref.read(messengerProvider).showError('No business domain selected.');
+        return;
+      }
+
       final success = await ref.read(scheduleServiceProvider).addAppointment(
         title: _titleController.text,
         date: _selectedDate,
         time: _selectedTime,
+        businessDomain: domain,
+        customerId: _selectedFavouriteCustomer?.id,
       );
 
       setState(() => _isLoading = false);
@@ -52,6 +64,8 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
 
   @override
   Widget build(BuildContext context) {
+    final favouriteCustomersAsync = ref.watch(favouriteCustomersProvider);
+
     return Padding(
       padding: EdgeInsets.only(
         left: 24, right: 24, top: 24,
@@ -70,6 +84,37 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Appointment Title'),
                 validator: (value) => value!.isEmpty ? 'Please enter a title' : null,
+              ),
+              const SizedBox(height: 16),
+
+              favouriteCustomersAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => const Text('Could not load customers.'),
+                data: (customerList) {
+                  return DropdownButtonFormField<FavouriteCustomer?>(
+                    value: _selectedFavouriteCustomer,
+                    hint: const Text('Link a Favourite Customer (Optional)'),
+                    isExpanded: true,
+                    // The items list includes a "None" option at the top
+                    items: [
+                      const DropdownMenuItem<FavouriteCustomer?>(
+                        value: null,
+                        child: Text("None"),
+                      ),
+                      ...customerList.map((customer) {
+                        return DropdownMenuItem<FavouriteCustomer?>(
+                          value: customer,
+                          child: Text(customer.name),
+                        );
+                      }),
+                    ],
+                    onChanged: (FavouriteCustomer? newValue) {
+                      setState(() {
+                        _selectedFavouriteCustomer = newValue;
+                      });
+                    },
+                  );
+                },
               ),
               const SizedBox(height: 16),
               OutlinedButton.icon(

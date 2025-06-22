@@ -287,7 +287,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           ),
         ),
         const Divider(),
-        Expanded(child: _buildDayAgendaView(allAppointments, showHeader: false)),
+        Expanded(child: SingleChildScrollView(child: _buildDayAgendaView(allAppointments, showHeader: false))),
       ],
     );
   }

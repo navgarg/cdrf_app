@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../components/domain_card.dart';
 import '../../components/regular_button.dart';
+import '../../models/business_domain.dart';
 import '../../services/api/auth_service.dart';
+import '../../services/api/schedule_service.dart';
 import '../../services/general/messenger.dart';
 
 class _BusinessDomainInfo {
@@ -37,6 +39,8 @@ class BusinessDomainScreen extends ConsumerWidget {
             .collection('users')
             .doc(user.uid)
             .update({'businessDomain': domain});
+
+        ref.read(currentDomainProvider.notifier).state = BusinessDomainExtension.fromString(domain);
 
         context.go('/dashboard');
       } catch (e) {
