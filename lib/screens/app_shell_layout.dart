@@ -22,13 +22,35 @@ class AppShellLayout extends ConsumerWidget {
     '/profile': 'Profile',
   };
 
+  Widget? _buildFab(BuildContext context, String path) {
+    switch (path) {
+      case '/schedule':
+        return FloatingActionButton(
+          onPressed: () {
+            // Send a notification that the schedule screen's FAB was pressed.
+            ScheduleFabPressed().dispatch(context);
+          },
+          child: const Icon(Icons.add),
+        );
+      case '/profile/favourite_customers':
+        return FloatingActionButton(
+          onPressed: () {
+            // Send a notification that the favourite customers screen's FAB was pressed.
+            FavouriteCustomerFabPressed().dispatch(context);
+          },
+          child: const Icon(Icons.add),
+        );
+    // For any other path, show no FAB
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final String pageTitle = routeTitles[currentPath] ?? 'Nari Udyam';
     final bool canPop = GoRouter.of(context).canPop();
-
-    final fab = ref.watch(fabProvider);
 
     return Scaffold(
       body: Column(
@@ -137,7 +159,7 @@ class AppShellLayout extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: fab,
+      floatingActionButton: _buildFab(context, currentPath),
     );
   }
 
@@ -176,3 +198,6 @@ class AppShellLayout extends ConsumerWidget {
     }
   }
 }
+
+class ScheduleFabPressed extends Notification {}
+class FavouriteCustomerFabPressed extends Notification {}

@@ -5,6 +5,7 @@ import 'package:nariudyam/screens/onboarding/business_domain.dart';
 import 'package:nariudyam/screens/onboarding/multi_step_onboarding.dart';
 import '../screens/login.dart';
 import '../screens/dashboard.dart';
+import '../screens/profile/fav_customers_screen.dart';
 import '../screens/welcome.dart';
 import '../screens/shell_layout.dart';
 import '../screens/app_shell_layout.dart';
@@ -156,9 +157,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Main App Shell Route
       ShellRoute(
         builder: (context, state, child) {
-          return AppShellLayout(
-            child: child,
-            currentPath: state.matchedLocation,
+          return NotificationListener(
+            onNotification: (Notification notification) {
+              if (notification is ScheduleFabPressed) {
+                print("Schedule FAB Pressed!");
+                return true;
+              }
+              if (notification is FavouriteCustomerFabPressed) {
+                print("Favourite Customer FAB Pressed!");
+                return true;
+              }
+              return false;
+            },
+            child: AppShellLayout(
+              currentPath: state.matchedLocation,
+              child: child,
+            ),
           );
         },
         routes: [
@@ -177,6 +191,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
+          ),
+
+          GoRoute(
+            path: '/profile/favourite_customers',
+            builder: (context, state) => const FavouriteCustomersScreen(),
           ),
         ],
       ),

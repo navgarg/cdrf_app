@@ -15,6 +15,7 @@ class UserModel {
   final String? businessDomain;
   final bool onboardingCompleted;
   final List<String> favouriteCustomerIds;
+  final bool financialTransactionsEnabled;
 
   UserModel({
     required this.uid,
@@ -31,6 +32,7 @@ class UserModel {
     this.businessDomain,
     this.onboardingCompleted = false,
     this.favouriteCustomerIds = const [],
+    this.financialTransactionsEnabled = true,
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -51,6 +53,7 @@ class UserModel {
       businessDomain: data['businessDomain'],
       onboardingCompleted: data['onboardingCompleted'] ?? false,
       favouriteCustomerIds: List<String>.from(data['favouriteCustomerIds'] ?? []),
+      financialTransactionsEnabled: data['financialTransactionsEnabled'] ?? true,
     );
   }
 
@@ -69,6 +72,7 @@ class UserModel {
       'businessDomain': businessDomain,
       'onboardingCompleted': onboardingCompleted,
       'favouriteCustomerIds': favouriteCustomerIds,
+      'financialTransactionsEnabled': financialTransactionsEnabled,
     };
   }
 
@@ -87,6 +91,7 @@ class UserModel {
     String? businessDomain,
     bool? onboardingCompleted,
     List<String>? favouriteCustomerIds,
+    bool? financialTransactionsEnabled,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -103,6 +108,7 @@ class UserModel {
       businessDomain: businessDomain ?? this.businessDomain,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       favouriteCustomerIds: favouriteCustomerIds ?? this.favouriteCustomerIds,
+      financialTransactionsEnabled: financialTransactionsEnabled ?? this.financialTransactionsEnabled,
     );
   }
 }

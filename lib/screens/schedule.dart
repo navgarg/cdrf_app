@@ -31,26 +31,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedDay = _focusedDay;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fabProvider.notifier).state = FloatingActionButton(
-        onPressed: _showAddAppointmentDialog,
-        child: const Icon(Icons.add),
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fabProvider.notifier).state = null;
-    });
-    super.dispose();
-  }
-
   // Called when the Floating Action Button is tapped
   void _showAddAppointmentDialog() {
     showGeneralDialog(

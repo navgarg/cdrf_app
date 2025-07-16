@@ -25,11 +25,18 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  Future<void> verifyPhoneNumber({
-    required String phoneNumber,
-    required Function(String, int?) onCodeSent,
-    required Function(String) onError,
-  }) async {
+  // Future<void> _refreshUserProvider() async {
+  //   final user = currentUser;
+  //   if (user == null) return;
+  //
+  //   final userDoc = await _firestore.collection('users').doc(user.uid).get();
+  //   if (userDoc.exists) {
+  //     final userModel = UserModel.fromFirestore(userDoc);
+  //     _ref.read(userProvider.notifier).state = userModel;
+  //   }
+  // }
+
+  Future<void> verifyPhoneNumber({required String phoneNumber, required Function(String, int?) onCodeSent, required Function(String) onError,}) async {
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
@@ -125,6 +132,8 @@ class AuthService {
       await userRef.set(newUser.toMap());
       _ref.read(userProvider.notifier).state = newUser;
     }
+
+    // await _refreshUserProvider();
   }
 
   Future<void> signOut() async {
@@ -139,4 +148,16 @@ class AuthService {
   }
 
   User? get currentUser => _auth.currentUser;
+
+  Future<void> updateUserProfile(Map<String, dynamic> data) async {
+    final user = currentUser;
+    if (user == null) return;
+
+    try {
+      await _firestore.collection('users').doc(user.uid).update(data);
+      // await _refreshUserProvider();
+    } catch (e) {
+      _ref.read(messengerProvider).showError('Failed to update profile: ${e.toString()}');
+    }
+  }
 }

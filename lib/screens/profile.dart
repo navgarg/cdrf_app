@@ -1,44 +1,183 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-class ProfileScreen extends StatelessWidget {
+import '../components/profile_option_tile.dart';
+import '../components/regular_button.dart';
+import '../services/api/auth_service.dart';
+import '../services/general/messenger.dart';
+import 'app_shell_layout.dart';
+
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          const SizedBox(height: 24),
-          Text(
-            'User Profile',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 32),
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
 
-          // User information sections
-          _buildInfoSection(context, 'Personal Information'),
-          _buildInfoRow('Name', 'Someone'),
-          _buildInfoRow('Phone', '+91 98765 43210'),
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
-          const SizedBox(height: 24),
-          _buildInfoSection(context, 'Business Details'),
-          _buildInfoRow('Business Name', 'Artistic Crafts'),
-          _buildInfoRow('Category', 'Handicrafts'),
-          _buildInfoRow('Location', 'Delhi, India'),
+  void _showLanguagesDialog(BuildContext context) {
+    const List<String> languages = ['English', 'हिन्दी', 'తెలుగు', 'മലയാളം', 'ಕನ್ನಡ', 'தமிழ்'];
 
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              // Sign out logic would go here
-            },
-            icon: const Icon(Icons.logout),
-            label: const Text('Sign Out'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    showGeneralDialog(
+      context: context,
+      barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
+      barrierDismissible: true,
+      barrierLabel: 'Select Language',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.5,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Select Language',
+                      style: TextStyle(
+                      fontSize: 36,
+                      fontFamily: 'PatrickHand',
+                      fontWeight: FontWeight.w800,
+
+                    ),),
+                    const SizedBox(height: 24),
+                    ...languages.map((lang) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6.0),
+                      child: RegularButton(
+                        text: lang,
+                        onPressed: () {
+                          ref.read(authServiceProvider).updateUserProfile({'language': lang});
+                          Navigator.of(context).pop();
+                          ref.read(messengerProvider).showSuccess('Language updated to $lang');
+                        },
+                      ),
+                    )),
+                  ],
+                ),
+              ),
             ),
           ),
-        ],
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0)).animate(animation),
+          child: child,
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final user = ref.watch(userProvider);
+
+    // Show a loading indicator if user data isn't available yet
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Use a SingleChildScrollView to prevent overflow
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.black12,
+              child: Icon(Icons.person, size: 60, color: Colors.black45),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              user.name ?? "User",
+              style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              user.phoneNumber,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                  color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 9),
+
+            _buildInfoSection(context, 'Business Information'),
+            _buildInfoRow('Business Name', user.name ?? 'N/A'),
+            _buildInfoRow('Business Domain', user.businessDomain ?? 'N/A'),
+
+            const SizedBox(height: 16),
+            _buildInfoSection(context, 'Settings'),
+
+            ProfileOptionTile(
+              icon: Icons.translate,
+              title: 'Languages',
+              onTap: () {
+                _showLanguagesDialog(context);
+              },
+            ),
+            ProfileOptionTile(
+              icon: Icons.notifications_none_outlined,
+              title: 'Notifications',
+              onTap: () {},
+            ),
+            ProfileOptionTile(
+              icon: Icons.favorite_border_rounded,
+              title: 'Favourite Customers',
+              onTap: () => context.push('/profile/favourite_customers'),
+            ),
+            ProfileOptionTile(
+              icon: Icons.request_quote_outlined,
+              title: 'Financial Transactions',
+              trailing: Switch(
+                value: user.financialTransactionsEnabled,
+                onChanged: (value) {
+                  // ref.read(authServiceProvider).updateUserProfile({
+                  //   'financialTransactionsEnabled': value,
+                  // });
+                },
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () {
+                  ref.read(authServiceProvider).signOut();
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Sign Out'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  foregroundColor: Colors.white,
+                  backgroundColor: theme.colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -52,7 +191,10 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme
+                .of(context)
+                .textTheme
+                .titleLarge,
           ),
           const Divider(),
         ],
@@ -81,4 +223,5 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
 }
