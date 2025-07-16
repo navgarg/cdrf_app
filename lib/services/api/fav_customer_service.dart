@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/favourite_customer.dart';
+import '../general/messenger.dart';
 import 'auth_service.dart';
 
 final favouriteCustomerServiceProvider = Provider((ref) => FavouriteCustomerService(ref));
@@ -32,4 +33,29 @@ class FavouriteCustomerService {
     final snapshot = await _getCollection().get();
     return snapshot.docs.map((doc) => doc.data()).toList();
   }
+
+  Future<bool> addFavouriteCustomer(String name) async {
+    if (name.isEmpty) return false;
+    try {
+      final newCustomer = FavouriteCustomer(id: '', name: name);
+      await _getCollection().add(newCustomer);
+      _ref.read(messengerProvider).showSuccess('"$name" added to favourites.');
+      return true;
+    } catch (e) {
+      _ref.read(messengerProvider).showError('Failed to add customer: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteFavouriteCustomer(String customerId) async {
+    try {
+      await _getCollection().doc(customerId).delete();
+      _ref.read(messengerProvider).showSuccess('Customer removed from favourites.');
+      return true;
+    } catch (e) {
+      _ref.read(messengerProvider).showError('Failed to remove customer: $e');
+      return false;
+    }
+  }
+
 }
