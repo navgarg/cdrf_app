@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/screens/onboarding/business_domain.dart';
 import 'package:nariudyam/screens/onboarding/multi_step_onboarding.dart';
 import '../screens/login.dart';
+import '../screens/shell_layout.dart';
 import '../screens/dashboard.dart';
 import '../screens/profile/fav_customers_screen.dart';
 import '../screens/welcome.dart';
-import '../screens/shell_layout.dart';
 import '../screens/app_shell_layout.dart';
 import '../screens/inventory.dart';
 import '../screens/schedule.dart';
@@ -65,92 +65,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/auth',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
+            pageBuilder: (context, state) => _buildPageWithSlideTransition(
+              path: state.matchedLocation,
               child: const WelcomeScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                final isPopDirection =
-                    secondaryAnimation.status == AnimationStatus.forward;
-
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: isPopDirection
-                        ? const Offset(-1.0, 0.0)
-                        : const Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                );
-              },
             ),
           ),
           GoRoute(
             path: '/auth/phone',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
+            pageBuilder: (context, state) => _buildPageWithSlideTransition(
+              path: state.matchedLocation,
               child: const LoginScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                final isPopDirection =
-                    secondaryAnimation.status == AnimationStatus.forward;
-
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: isPopDirection
-                        ? const Offset(-1.0, 0.0)
-                        : const Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                );
-              },
             ),
           ),
           GoRoute(
             path: '/onboarding/multi_step',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
+            pageBuilder: (context, state) => _buildPageWithSlideTransition(
+              path: state.matchedLocation,
               child: const MultiStepOnboardingScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                final isPopDirection =
-                    secondaryAnimation.status == AnimationStatus.forward;
-
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: isPopDirection
-                        ? const Offset(-1.0, 0.0)
-                        : const Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                );
-              },
             ),
           ),
           GoRoute(
             path: '/onboarding/business_domain',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
+            pageBuilder: (context, state) => _buildPageWithSlideTransition(
+              path: state.matchedLocation,
               child: const BusinessDomainScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                final isPopDirection =
-                    secondaryAnimation.status == AnimationStatus.forward;
-
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: isPopDirection
-                        ? const Offset(-1.0, 0.0)
-                        : const Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                );
-              },
             ),
           ),
+
         ],
       ),
 
@@ -160,11 +101,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           return NotificationListener(
             onNotification: (Notification notification) {
               if (notification is ScheduleFabPressed) {
-                print("Schedule FAB Pressed!");
+                print("Schedule FAB Pressed");
                 return true;
               }
               if (notification is FavouriteCustomerFabPressed) {
-                print("Favourite Customer FAB Pressed!");
+                print("Favourite Customer FAB Pressed");
                 return true;
               }
               return false;
@@ -202,3 +143,26 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+CustomTransitionPage<void> _buildPageWithSlideTransition({
+  required String path,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: ValueKey(path),
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final isPopDirection = secondaryAnimation.status == AnimationStatus.forward;
+
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: isPopDirection
+              ? const Offset(-1.0, 0.0)
+              : const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(animation),
+        child: child,
+      );
+    },
+  );
+}

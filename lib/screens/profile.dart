@@ -6,7 +6,6 @@ import '../components/profile_option_tile.dart';
 import '../components/regular_button.dart';
 import '../services/api/auth_service.dart';
 import '../services/general/messenger.dart';
-import 'app_shell_layout.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});

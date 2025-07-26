@@ -4,12 +4,14 @@ class RegularButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
   final IconData? icon;
+  final bool isLoading;
 
   const RegularButton({
     super.key,
     required this.onPressed,
     required this.text,
     this.icon,
+    this.isLoading = false,
   });
 
   @override
@@ -26,7 +28,20 @@ class RegularButton extends StatelessWidget {
         ),
     );
 
-    if (icon != null) {
+    if (isLoading) {
+      return ElevatedButton(
+        onPressed: null, // Disable button when loading
+        style: buttonStyle,
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            color: theme.colorScheme.onPrimary,
+            strokeWidth: 3,
+          ),
+        ),
+      );
+    } else if (icon != null) {
       return ElevatedButton.icon(
         onPressed: onPressed,
         style: buttonStyle,

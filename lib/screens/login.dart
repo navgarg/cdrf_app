@@ -176,8 +176,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: 20),
             RegularButton(
-                onPressed: _isLoading ? null : _verifyPhone,
-                text: _isLoading ? "Loading..." : "Continue"),
+              onPressed: _verifyPhone,
+              text: "Continue",
+              isLoading: _isLoading,
+            ),
           ],
         ),
       ),
@@ -185,8 +187,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildVerificationCodePage() {
-    final theme = Theme.of(context);
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
       child: Column(
@@ -218,20 +218,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _isLoading ? null : _verifyCode,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-              minimumSize: const Size(double.infinity, 54),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text('Verify', style: TextStyle(fontSize: 16)),
+            RegularButton(
+              onPressed: _verifyCode,
+              text: "Verify",
+              isLoading: _isLoading,
           ),
         ],
       ),

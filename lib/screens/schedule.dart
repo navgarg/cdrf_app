@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:nariudyam/screens/schedule/day_view.dart';
 import 'package:nariudyam/screens/schedule/month_view.dart';
 import 'package:nariudyam/screens/schedule/week_view.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:nariudyam/models/appointment.dart';
 import 'package:nariudyam/services/api/schedule_service.dart';
-import 'package:nariudyam/services/general/messenger.dart';
-
 import '../components/add_appointment_form.dart';
-import '../services/api/auth_service.dart';
-import 'app_shell_layout.dart';
 
 bool isSameMonth(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month;
 }
 
-enum ScheduleView { Day, Week, Month }
+enum ScheduleView {day, week, month }
 
 class ScheduleScreen extends ConsumerStatefulWidget {
   const ScheduleScreen({super.key});
@@ -27,7 +20,7 @@ class ScheduleScreen extends ConsumerStatefulWidget {
 }
 
 class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
-  ScheduleView _scheduleView = ScheduleView.Month;
+  ScheduleView _scheduleView = ScheduleView.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
@@ -92,7 +85,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               error: (err, stack) => Center(child: Text('Error: $err')),
               data: (allAppointments) {
                 switch (_scheduleView) {
-                  case ScheduleView.Month:
+                  case ScheduleView.month:
                     return MonthView(
                       allAppointments: allAppointments,
                       focusedDay: _focusedDay,
@@ -101,14 +94,14 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                         setState(() {
                           _selectedDay = selectedDay;
                           _focusedDay = focusedDay;
-                          _scheduleView = ScheduleView.Day;
+                          _scheduleView = ScheduleView.day;
                         });
                       },
                       onPageChanged: (focusedDay) {
                         setState(() { _focusedDay = focusedDay; });
                       },
                     );
-                  case ScheduleView.Week:
+                  case ScheduleView.week:
                     return WeekView(
                       allAppointments: allAppointments,
                       focusedDay: _focusedDay,
@@ -116,7 +109,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                         setState(() { _focusedDay = newFocusedDay; });
                       },
                     );
-                  case ScheduleView.Day:
+                  case ScheduleView.day:
                     return DayView(
                       allAppointments: allAppointments,
                       selectedDay: _selectedDay,
@@ -139,15 +132,15 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ToggleButtons(
         isSelected: [
-          _scheduleView == ScheduleView.Day,
-          _scheduleView == ScheduleView.Week,
-          _scheduleView == ScheduleView.Month,
+          _scheduleView == ScheduleView.day,
+          _scheduleView == ScheduleView.week,
+          _scheduleView == ScheduleView.month,
         ],
         onPressed: (int index) {
           setState(() {
-            if (index == 0) _scheduleView = ScheduleView.Day;
-            if (index == 1) _scheduleView = ScheduleView.Week;
-            if (index == 2) _scheduleView = ScheduleView.Month;
+            if (index == 0) _scheduleView = ScheduleView.day;
+            if (index == 1) _scheduleView = ScheduleView.week;
+            if (index == 2) _scheduleView = ScheduleView.month;
           });
         },
         borderRadius: BorderRadius.circular(20.0),

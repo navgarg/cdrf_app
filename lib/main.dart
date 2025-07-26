@@ -62,6 +62,7 @@ class _MyAppState extends ConsumerState<NariUdyam> {
     final theme = ref.watch(themeProvider);
 
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: AppInfo.name,
       scaffoldMessengerKey: messenger.scaffoldMessengerKey,
       theme: theme,

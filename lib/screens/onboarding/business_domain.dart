@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/domain_card.dart';
-import '../../components/regular_button.dart';
 import '../../models/business_domain.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/api/schedule_service.dart';
