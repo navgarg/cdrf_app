@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/api/fav_customer_service.dart';
+
+final favouriteCustomerFabPressedProvider = StateProvider<bool>((ref) => false);
 
 class FavouriteCustomersScreen extends ConsumerStatefulWidget {
   const FavouriteCustomersScreen({super.key});

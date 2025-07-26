@@ -6,6 +6,9 @@ import 'package:nariudyam/screens/schedule/week_view.dart';
 import 'package:nariudyam/services/api/schedule_service.dart';
 import '../components/add_appointment_form.dart';
 
+
+final scheduleFabPressedProvider = StateProvider<bool>((ref) => false);
+
 bool isSameMonth(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month;
 }
@@ -46,6 +49,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   topRight: Radius.circular(30),
                 ),
               ),
+
+
               child: Material(
                 color: Colors.transparent,
                 child: AddAppointmentForm(
@@ -72,57 +77,65 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   }
 
   Widget _buildScreenContent() {
-    final appointmentsAsyncValue = ref.watch(appointmentsProvider);
+    return Consumer(builder: (context, ref, child) {
+        ref.listen<bool>(scheduleFabPressedProvider, (prev, next) {
+          if (next) {
+            _showAddAppointmentDialog();
+            ref.read(scheduleFabPressedProvider.notifier).state = false;
+          }
+        });
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          _buildToggleButtons(),
-          Expanded(
-            child: appointmentsAsyncValue.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-              data: (allAppointments) {
-                switch (_scheduleView) {
-                  case ScheduleView.month:
-                    return MonthView(
-                      allAppointments: allAppointments,
-                      focusedDay: _focusedDay,
-                      selectedDay: _selectedDay,
-                      onDaySelected: (selectedDay, focusedDay) {
-                        setState(() {
-                          _selectedDay = selectedDay;
-                          _focusedDay = focusedDay;
-                          _scheduleView = ScheduleView.day;
-                        });
-                      },
-                      onPageChanged: (focusedDay) {
-                        setState(() { _focusedDay = focusedDay; });
-                      },
-                    );
-                  case ScheduleView.week:
-                    return WeekView(
-                      allAppointments: allAppointments,
-                      focusedDay: _focusedDay,
-                      onWeekNavigate: (newFocusedDay) {
-                        setState(() { _focusedDay = newFocusedDay; });
-                      },
-                    );
-                  case ScheduleView.day:
-                    return DayView(
-                      allAppointments: allAppointments,
-                      selectedDay: _selectedDay,
-                      onDayNavigate: (newSelectedDay) {
-                        setState(() { _selectedDay = newSelectedDay; });
-                      },
-                    );
-                }
-              },
+          final appointmentsAsyncValue = ref.watch(appointmentsProvider);
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: [
+                _buildToggleButtons(),
+                Expanded(
+                  child: appointmentsAsyncValue.when(
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
+                    data: (allAppointments) {
+                      return switch (_scheduleView) {
+                        ScheduleView.month => MonthView(
+                            allAppointments: allAppointments,
+                            focusedDay: _focusedDay,
+                            selectedDay: _selectedDay,
+                            onDaySelected: (selectedDay, focusedDay) {
+                              setState(() {
+                                _selectedDay = selectedDay;
+                                _focusedDay = focusedDay;
+                                _scheduleView = ScheduleView.day;
+                              });
+                            },
+                            onPageChanged: (focusedDay) {
+                              setState(() { _focusedDay = focusedDay; });
+                            },
+                          ),
+                        ScheduleView.week => WeekView(
+                            allAppointments: allAppointments,
+                            focusedDay: _focusedDay,
+                            onWeekNavigate: (newFocusedDay) {
+                              setState(() { _focusedDay = newFocusedDay; });
+                            },
+                          ),
+                        ScheduleView.day => DayView(
+                            allAppointments: allAppointments,
+                            selectedDay: _selectedDay,
+                            onDayNavigate: (newSelectedDay) {
+                              setState(() { _selectedDay = newSelectedDay; });
+                            },
+                          ),
+                      };
+                    },
+                  )
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        },
+      // ),
     );
   }
 

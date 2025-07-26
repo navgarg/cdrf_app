@@ -14,6 +14,7 @@ import '../screens/schedule.dart';
 import '../screens/profile.dart';
 import '../services/api/auth_service.dart';
 
+
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
   final user = ref.watch(userProvider);
@@ -98,22 +99,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Main App Shell Route
       ShellRoute(
         builder: (context, state, child) {
-          return NotificationListener(
-            onNotification: (Notification notification) {
-              if (notification is ScheduleFabPressed) {
-                print("Schedule FAB Pressed");
-                return true;
-              }
-              if (notification is FavouriteCustomerFabPressed) {
-                print("Favourite Customer FAB Pressed");
-                return true;
-              }
-              return false;
-            },
-            child: AppShellLayout(
-              currentPath: state.matchedLocation,
-              child: child,
-            ),
+          return AppShellLayout(
+            currentPath: state.matchedLocation,
+            child: child,
           );
         },
         routes: [

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
+import 'package:nariudyam/screens/schedule.dart';
+
 
 final fabProvider = StateProvider<Widget?>((ref) => null);
 
@@ -22,13 +25,13 @@ class AppShellLayout extends ConsumerWidget {
     '/profile': 'Profile',
   };
 
-  Widget? _buildFab(BuildContext context, String path) {
+  Widget? _buildFab(BuildContext context, String path, WidgetRef ref) {
     switch (path) {
       case '/schedule':
         return FloatingActionButton(
           onPressed: () {
             // Send a notification that the schedule screen's FAB was pressed.
-            ScheduleFabPressed().dispatch(context);
+            ref.read(scheduleFabPressedProvider.notifier).state = true;
           },
           child: const Icon(Icons.add),
         );
@@ -36,7 +39,7 @@ class AppShellLayout extends ConsumerWidget {
         return FloatingActionButton(
           onPressed: () {
             // Send a notification that the favourite customers screen's FAB was pressed.
-            FavouriteCustomerFabPressed().dispatch(context);
+            ref.read(favouriteCustomerFabPressedProvider.notifier).state = true;
           },
           child: const Icon(Icons.add),
         );
@@ -159,7 +162,7 @@ class AppShellLayout extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: _buildFab(context, currentPath),
+      floatingActionButton: _buildFab(context, currentPath, ref),
     );
   }
 
