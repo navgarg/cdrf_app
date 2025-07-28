@@ -100,7 +100,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) {
           return AppShellLayout(
-            currentPath: state.matchedLocation,
+            currentPath: state.fullPath ?? '',
             child: child,
           );
         },

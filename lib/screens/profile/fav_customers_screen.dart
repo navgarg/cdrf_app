@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../services/api/fav_customer_service.dart';
 
 final favouriteCustomerFabPressedProvider = StateProvider<bool>((ref) => false);
@@ -14,6 +12,7 @@ class FavouriteCustomersScreen extends ConsumerStatefulWidget {
 }
 
 class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScreen> {
+
 
   void _showAddCustomerDialog() {
     final nameController = TextEditingController();
@@ -66,7 +65,7 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
                                 .addFavouriteCustomer(nameController.text);
 
                             if (success && mounted) {
-                              ref.refresh(favouriteCustomersProvider);
+                              final _ = ref.refresh(favouriteCustomersProvider);
                               Navigator.of(context).pop();
                             }
                           }
@@ -92,6 +91,12 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(favouriteCustomerFabPressedProvider, (_, isPressed) {
+      if (isPressed) {
+        _showAddCustomerDialog();
+        ref.read(favouriteCustomerFabPressedProvider.notifier).state = false;
+      }
+    });
     final favCustomersAsync = ref.watch(favouriteCustomersProvider);
     final theme = Theme.of(context);
 
@@ -152,7 +157,7 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
                                 .read(favouriteCustomerServiceProvider)
                                 .deleteFavouriteCustomer(customer.id);
                             if (success) {
-                              ref.refresh(favouriteCustomersProvider);
+                              final _ = ref.refresh(favouriteCustomersProvider);
                             }
                           },
                         ),

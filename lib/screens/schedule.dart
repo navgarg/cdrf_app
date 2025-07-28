@@ -23,6 +23,8 @@ class ScheduleScreen extends ConsumerStatefulWidget {
 }
 
 class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
+
+
   ScheduleView _scheduleView = ScheduleView.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;

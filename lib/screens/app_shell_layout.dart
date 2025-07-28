@@ -4,20 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import 'package:nariudyam/screens/schedule.dart';
 
-
-final fabProvider = StateProvider<Widget?>((ref) => null);
-
 class AppShellLayout extends ConsumerWidget {
   final Widget child;
-  final String currentPath;
+  final String? currentPath;
 
   const AppShellLayout({
     super.key,
     required this.child,
-    required this.currentPath,
+    this.currentPath,
   });
 
-  // Map of routes to page titles
   static const Map<String, String> routeTitles = {
     '/dashboard': 'Dashboard',
     '/inventory': 'Inventory',
@@ -25,40 +21,17 @@ class AppShellLayout extends ConsumerWidget {
     '/profile': 'Profile',
   };
 
-  Widget? _buildFab(BuildContext context, String path, WidgetRef ref) {
-    switch (path) {
-      case '/schedule':
-        return FloatingActionButton(
-          onPressed: () {
-            // Send a notification that the schedule screen's FAB was pressed.
-            ref.read(scheduleFabPressedProvider.notifier).state = true;
-          },
-          child: const Icon(Icons.add),
-        );
-      case '/profile/favourite_customers':
-        return FloatingActionButton(
-          onPressed: () {
-            // Send a notification that the favourite customers screen's FAB was pressed.
-            ref.read(favouriteCustomerFabPressedProvider.notifier).state = true;
-          },
-          child: const Icon(Icons.add),
-        );
-    // For any other path, show no FAB
-      default:
-        return null;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
-    final String pageTitle = routeTitles[currentPath] ?? 'Nari Udyam';
+    final String pageTitle = routeTitles[currentPath ?? ''] ?? 'Nari Udyam';
     final bool canPop = GoRouter.of(context).canPop();
 
     return Scaffold(
       body: Column(
         children: [
-          // Custom App Bar with rounded bottom corners
           Container(
             decoration: BoxDecoration(
               color: theme.colorScheme.primary,
@@ -80,7 +53,6 @@ class AppShellLayout extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    // Back button if there's a page to go back to
                     if (canPop)
                       IconButton(
                         icon: const Icon(Icons.arrow_back_ios_new,
@@ -91,9 +63,8 @@ class AppShellLayout extends ConsumerWidget {
                       )
                     else
                       const SizedBox(
-                          width: 48), // Space equivalent to the button
+                          width: 48),
 
-                    // Page title and app subtitle
                     Expanded(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -120,7 +91,6 @@ class AppShellLayout extends ConsumerWidget {
                       ),
                     ),
 
-                    // Right-side spacing to balance the UI
                     const SizedBox(width: 48),
                   ],
                 ),
@@ -128,14 +98,12 @@ class AppShellLayout extends ConsumerWidget {
             ),
           ),
 
-          // Main content
           Expanded(
             child: child,
           ),
         ],
       ),
 
-      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: theme.colorScheme.surface,
@@ -162,20 +130,39 @@ class AppShellLayout extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: _buildFab(context, currentPath, ref),
+      floatingActionButton: _buildFab(context, ref),
     );
   }
 
-  // Helper method to get the selected index for the bottom navigation
-  int _getSelectedIndex(String path) {
-    if (path.startsWith('/dashboard')) return 0;
+  int _getSelectedIndex(String? path) {
+    if (path!.startsWith('/dashboard')) return 0;
     if (path.startsWith('/inventory')) return 1;
     if (path.startsWith('/schedule')) return 2;
     if (path.startsWith('/profile')) return 3;
     return 0; // Default to home
   }
 
-  // Navigation handler for bottom navigation bar
+  FloatingActionButton? _buildFab(BuildContext context, WidgetRef ref) {
+    switch (currentPath ?? '') {
+      case String path when path.startsWith('/profile/favourite_customers'):
+        return FloatingActionButton(
+          onPressed: () {
+            ref.read(favouriteCustomerFabPressedProvider.notifier).state = true;
+          },
+          child: const Icon(Icons.add),
+        );
+      case String path when path.startsWith('/schedule'):
+        return FloatingActionButton(
+          onPressed: () {
+            ref.read(scheduleFabPressedProvider.notifier).state = true;
+          },
+          child: const Icon(Icons.add),
+        );
+      default:
+        return null;
+    }
+  }
+
   void _onItemTapped(BuildContext context, int index) {
     final String destination;
 
@@ -196,11 +183,8 @@ class AppShellLayout extends ConsumerWidget {
         destination = '/dashboard';
     }
 
-    if (currentPath != destination) {
+    if ((currentPath ?? '') != destination) {
       context.go(destination);
     }
   }
 }
-
-class ScheduleFabPressed extends Notification {}
-class FavouriteCustomerFabPressed extends Notification {}
