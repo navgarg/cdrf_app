@@ -27,7 +27,9 @@ class AppShellLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final String pageTitle = routeTitles[currentPath ?? ''] ?? 'Nari Udyam';
-    final bool canPop = GoRouter.of(context).canPop();
+    final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
+    final bool showBackButton = GoRouter.of(context).canPop() && !isTopLevelRoute;
+
 
     return Scaffold(
       body: Column(
@@ -53,7 +55,7 @@ class AppShellLayout extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    if (canPop)
+                    if (showBackButton)
                       IconButton(
                         icon: const Icon(Icons.arrow_back_ios_new,
                             color: Colors.white),

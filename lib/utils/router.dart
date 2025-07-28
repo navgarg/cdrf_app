@@ -6,20 +6,24 @@ import 'package:nariudyam/screens/onboarding/multi_step_onboarding.dart';
 import '../screens/login.dart';
 import '../screens/shell_layout.dart';
 import '../screens/dashboard.dart';
-import '../screens/profile/fav_customers_screen.dart';
+
 import '../screens/welcome.dart';
 import '../screens/app_shell_layout.dart';
 import '../screens/inventory.dart';
 import '../screens/schedule.dart';
 import '../screens/profile.dart';
 import '../services/api/auth_service.dart';
+import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
   final user = ref.watch(userProvider);
 
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/auth',
     debugLogDiagnostics: true,
     redirect: (context, state) {
@@ -98,6 +102,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Main App Shell Route
       ShellRoute(
+        navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
           return AppShellLayout(
             currentPath: state.fullPath ?? '',
@@ -120,11 +125,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
-          ),
-
-          GoRoute(
-            path: '/profile/favourite_customers',
-            builder: (context, state) => const FavouriteCustomersScreen(),
+            routes: [
+              GoRoute(
+                path: 'favourite_customers',
+                builder: (context, state) => const FavouriteCustomersScreen(),
+                parentNavigatorKey: _shellNavigatorKey,
+              ),
+            ],
           ),
         ],
       ),

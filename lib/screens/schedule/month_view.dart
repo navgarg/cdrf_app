@@ -52,9 +52,7 @@ class MonthView extends ConsumerWidget {
       return Container(
         width: size,
         height: size,
-        margin: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: Center(child: Text('${day.day}', style: const TextStyle(color: Colors.white, fontSize: 12))),
       );
     }
 
@@ -62,7 +60,7 @@ class MonthView extends ConsumerWidget {
       children: [
         TableCalendar<Appointment>(
           firstDay: DateTime.utc(2020, 1, 1),
-          lastDay: DateTime.utc(2030, 12, 31),
+          lastDay: DateTime.utc(2030, 1, 1),
           focusedDay: focusedDay,
           selectedDayPredicate: (day) => isSameDay(selectedDay, day),
           calendarFormat: CalendarFormat.month,
@@ -76,36 +74,76 @@ class MonthView extends ConsumerWidget {
             leftChevronIcon: Icon(Icons.arrow_back_ios, size: 18, color: theme.colorScheme.primary),
             rightChevronIcon: Icon(Icons.arrow_forward_ios, size: 18, color: theme.colorScheme.primary),
           ),
-          calendarStyle: const CalendarStyle(markersMaxCount: 0),
+
+          calendarStyle: CalendarStyle(
+            markersMaxCount: 0,
+            defaultTextStyle: TextStyle(color: theme.colorScheme.onSurface),
+            weekendTextStyle: TextStyle(color: theme.colorScheme.onSurface.withAlpha(150)), // Slightly dimmer
+          ),
+
           calendarBuilders: CalendarBuilders(
             selectedBuilder: (context, day, focusedDay) {
               final utcDay = DateTime.utc(day.year, day.month, day.day);
               final count = eventCountPerDay[utcDay] ?? 0;
-              Widget dayContent = (count > 0)
-                  ? buildDensityBubble(day, eventCount: count)
-                  : Center(child: Text('${day.day}', style: TextStyle(color: theme.colorScheme.primary)));
-
               return Container(
-                margin: const EdgeInsets.all(2.0),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withAlpha((0.15 * 255).round()),
                   border: Border.all(color: theme.colorScheme.primary, width: 1.5),
                   borderRadius: BorderRadius.circular(6.0),
                 ),
-                child: dayContent,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (count > 0) buildDensityBubble(day, eventCount: count),
+                    Center(
+                      child: Text(
+                        '${day.day}',
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
+                    ),
+                  ],
+                ),
               );
-            },
+             },
+
             defaultBuilder: (context, day, focusedDay) {
               final utcDay = DateTime.utc(day.year, day.month, day.day);
               final count = eventCountPerDay[utcDay] ?? 0;
-              return (count > 0) ? buildDensityBubble(day, eventCount: count) : null;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (count > 0) buildDensityBubble(day, eventCount: count),
+                  Center(
+                    child: Text(
+                      '${day.day}',
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                  ),
+                ],
+              );
             },
             todayBuilder: (context, day, focusedDay) {
               final utcDay = DateTime.utc(day.year, day.month, day.day);
               final count = eventCountPerDay[utcDay] ?? 0;
-              return (count > 0)
-                  ? buildDensityBubble(day, eventCount: count)
-                  : Center(child: Text('${day.day}', style: TextStyle(color: theme.colorScheme.primary)));
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (count > 0) buildDensityBubble(day, eventCount: count),
+                  if (count == 0)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withAlpha(50),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  Center(
+                    child: Text(
+                      '${day.day}',
+                      style: TextStyle(color: count > 0 ? Colors.white : theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              );
             },
             markerBuilder: (context, date, events) => null,
           ),
