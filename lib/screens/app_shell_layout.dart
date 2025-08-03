@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import 'package:nariudyam/screens/schedule/schedule.dart';
 
+final inventoryFabPressedProvider = StateProvider<bool>((ref) => false);
+
 class AppShellLayout extends ConsumerWidget {
   final Widget child;
   final String? currentPath;
@@ -161,6 +163,13 @@ class AppShellLayout extends ConsumerWidget {
         return FloatingActionButton(
           onPressed: () {
             ref.read(scheduleFabPressedProvider.notifier).state = true;
+          },
+          child: const Icon(Icons.add),
+        );
+      case String path when path.startsWith('/inventory'):
+        return FloatingActionButton(
+          onPressed: () {
+            ref.read(inventoryFabPressedProvider.notifier).state = true;
           },
           child: const Icon(Icons.add),
         );
