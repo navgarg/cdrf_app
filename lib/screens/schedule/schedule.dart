@@ -4,7 +4,7 @@ import 'package:nariudyam/screens/schedule/day_view.dart';
 import 'package:nariudyam/screens/schedule/month_view.dart';
 import 'package:nariudyam/screens/schedule/week_view.dart';
 import 'package:nariudyam/services/api/schedule_service.dart';
-import '../components/add_appointment_form.dart';
+import '../../components/add_appointment_form.dart';
 
 
 final scheduleFabPressedProvider = StateProvider<bool>((ref) => false);

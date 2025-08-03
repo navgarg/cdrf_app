@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nariudyam/components/regular_button.dart';
-import '../services/api/auth_service.dart';
-import '../services/general/messenger.dart';
+import '../../services/api/auth_service.dart';
+import '../../services/general/messenger.dart';
 
 final loginStateProvider =
     StateProvider<LoginState>((ref) => LoginState.phoneInput);

@@ -3,15 +3,15 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/screens/onboarding/business_domain.dart';
 import 'package:nariudyam/screens/onboarding/multi_step_onboarding.dart';
-import '../screens/login.dart';
+import '../screens/onboarding/login.dart';
 import '../screens/shell_layout.dart';
 import '../screens/dashboard.dart';
 
 import '../screens/welcome.dart';
 import '../screens/app_shell_layout.dart';
-import '../screens/inventory.dart';
-import '../screens/schedule.dart';
-import '../screens/profile.dart';
+import '../screens/inventory/inventory.dart';
+import '../screens/schedule/schedule.dart';
+import '../screens/profile/profile.dart';
 import '../services/api/auth_service.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 

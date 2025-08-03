@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../components/profile_option_tile.dart';
-import '../components/regular_button.dart';
-import '../services/api/auth_service.dart';
-import '../services/general/messenger.dart';
+import '../../components/profile_option_tile.dart';
+import '../../components/regular_button.dart';
+import '../../services/api/auth_service.dart';
+import '../../services/general/messenger.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/inventory_item.dart';
+import '../../models/inventory_item.dart';
 
 class InventoryItemDetailScreen extends StatefulWidget {
   final InventoryItem item;

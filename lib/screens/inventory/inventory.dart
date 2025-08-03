@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/inventory_item.dart';
-import '../services/general/inventory_service.dart';
-import '../components/inventory_item_tile.dart';
+import '../../models/inventory_item.dart';
+import '../../services/general/inventory_service.dart';
+import '../../components/inventory_item_tile.dart';
 import 'inventory_item_detail_screen.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
