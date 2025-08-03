@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-class ProfileOptionTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback? onTap;
+class GenericListTile extends StatelessWidget {
+  final Widget leading;
+  final Widget titleWidget;
   final Widget? trailing;
+  final VoidCallback? onTap;
 
-  const ProfileOptionTile({
+  const GenericListTile({
     super.key,
-    required this.icon,
-    required this.title,
-    this.onTap,
+    required this.leading,
+    required this.titleWidget,
     this.trailing,
+    this.onTap,
   });
 
   @override
@@ -29,18 +29,12 @@ class ProfileOptionTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             child: Row(
               children: [
-                Icon(icon, color: theme.colorScheme.primary, size: 28),
+                leading,
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
+                  child: titleWidget,
                 ),
-                if (trailing != null)
-                  trailing!
-                else
-                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+                if (trailing != null) trailing!,
               ],
             ),
           ),

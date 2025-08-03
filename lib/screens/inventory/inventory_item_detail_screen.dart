@@ -54,6 +54,16 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildActionButton(
+                        context, Icons.shopping_cart, 'Purchase'),
+                    _buildActionButton(context, Icons.swap_horiz, 'Transfer'),
+                    _buildActionButton(context, Icons.delete, 'Consume'),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
                 _buildDetailRow('Amount',
                     '${widget.item.stockQuantity} ${widget.item.unit}'),
                 _buildDetailRow('Reorder Threshold',
@@ -70,16 +80,6 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                       '₹${widget.item.price.toStringAsFixed(2)} per ${widget.item.unit}'),
                 _buildDetailRow('Average price',
                       '₹${widget.item.cost.toStringAsFixed(2)} per ${widget.item.unit}'),
-                const SizedBox(height: 24.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildActionButton(
-                        context, Icons.shopping_cart, 'Purchase'),
-                    _buildActionButton(context, Icons.swap_horiz, 'Transfer'),
-                    _buildActionButton(context, Icons.delete, 'Consume'),
-                  ],
-                ),
               ],
             ),
           ),

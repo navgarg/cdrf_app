@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../components/profile_option_tile.dart';
+import '../../components/generic_list_tile.dart';
 import '../../components/regular_button.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/general/messenger.dart';
@@ -125,26 +125,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 16),
             _buildInfoSection(context, 'Settings'),
 
-            ProfileOptionTile(
-              icon: Icons.translate,
-              title: 'Languages',
+            GenericListTile(
+              leading: Icon(Icons.translate, color: theme.colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Languages',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
               onTap: () {
                 _showLanguagesDialog(context);
               },
             ),
-            ProfileOptionTile(
-              icon: Icons.notifications_none_outlined,
-              title: 'Notifications',
+            GenericListTile(
+              leading: Icon(Icons.notifications_none_outlined, color: theme.colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Notifications',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
               onTap: () {},
             ),
-            ProfileOptionTile(
-              icon: Icons.favorite_border_rounded,
-              title: 'Favourite Customers',
+            GenericListTile(
+              leading: Icon(Icons.favorite_border_rounded, color: theme.colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Favourite Customers',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
               onTap: () => context.push('/profile/favourite_customers'),
             ),
-            ProfileOptionTile(
-              icon: Icons.request_quote_outlined,
-              title: 'Financial Transactions',
+            GenericListTile(
+              leading: Icon(Icons.request_quote_outlined, color: theme.colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Financial Transactions',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
               trailing: Switch(
                 value: user.financialTransactionsEnabled,
                 onChanged: (value) {
@@ -153,6 +168,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   // });
                 },
               ),
+              onTap: () {},
             ),
 
             const SizedBox(height: 32),
