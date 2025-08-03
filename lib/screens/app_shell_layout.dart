@@ -7,11 +7,13 @@ import 'package:nariudyam/screens/schedule.dart';
 class AppShellLayout extends ConsumerWidget {
   final Widget child;
   final String? currentPath;
+  final String? subtitle;
 
   const AppShellLayout({
     super.key,
     required this.child,
     this.currentPath,
+    this.subtitle,
   });
 
   static const Map<String, String> routeTitles = {
@@ -80,15 +82,17 @@ class AppShellLayout extends ConsumerWidget {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          Text(
-                            'Nari Udyam',
-                            style: TextStyle(
-                              fontFamily: 'Rochester',
-                              fontSize: 16,
-                              color: Colors.white.withValues(alpha: 0.9),
+                          if (subtitle != null)
+                            Text(
+                              subtitle!,
+                              style: TextStyle(
+                                fontFamily: 'Rochester',
+                                fontSize: 16,
+                                color: Colors.white.withAlpha((255 * 0.9).round()),
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
+
                         ],
                       ),
                     ),

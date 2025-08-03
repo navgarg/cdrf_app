@@ -96,7 +96,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const BusinessDomainScreen(),
             ),
           ),
-
         ],
       ),
 
@@ -104,8 +103,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
+          String? currentSubtitle;
+          if (state.matchedLocation.startsWith('/inventory')) {
+            currentSubtitle = 'Stock Overview';
+          } else {
+            currentSubtitle = 'Nari Udyam'; // Default subtitle
+          }
           return AppShellLayout(
             currentPath: state.fullPath ?? '',
+            subtitle: currentSubtitle,
             child: child,
           );
         },
@@ -147,13 +153,13 @@ CustomTransitionPage<void> _buildPageWithSlideTransition({
     key: ValueKey(path),
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final isPopDirection = secondaryAnimation.status == AnimationStatus.forward;
+      final isPopDirection =
+          secondaryAnimation.status == AnimationStatus.forward;
 
       return SlideTransition(
         position: Tween<Offset>(
-          begin: isPopDirection
-              ? const Offset(-1.0, 0.0)
-              : const Offset(1.0, 0.0),
+          begin:
+              isPopDirection ? const Offset(-1.0, 0.0) : const Offset(1.0, 0.0),
           end: Offset.zero,
         ).animate(animation),
         child: child,
