@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/inventory_item.dart';
-import '../../services/general/inventory_service.dart';
-import '../../components/generic_list_tile.dart';
+import 'package:nariudyam/components/generic_list_tile.dart';
+import 'package:nariudyam/models/inventory_item.dart';
+import 'package:nariudyam/services/api/inventory_service.dart';
 import '../app_shell_layout.dart';
 import 'add_inventory_item_form.dart';
 import 'inventory_item_detail_screen.dart';
+
+final inventoryItemsProvider = StreamProvider.autoDispose<List<InventoryItem>>((ref) {
+  return ref.watch(inventoryServiceProvider).streamInventoryItems();
+});
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -63,60 +67,61 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         ref.read(inventoryFabPressedProvider.notifier).state = false;
       }
     });
-    final inventoryService = ref.watch(inventoryServiceProvider);
+    return Consumer(
+      builder: (context, watch, child) {
+        final inventoryItemsAsyncValue = watch.watch(inventoryItemsProvider);
 
-    return FutureBuilder<List<InventoryItem>>(
-      future: inventoryService.getInventoryItems(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No inventory items found.'));
-        } else {
-          final inventoryItems = snapshot.data!;
-          return ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: inventoryItems.length,
-            itemBuilder: (context, index) {
-              final item = inventoryItems[index];
-              return GenericListTile(
-                leading: const Icon(Icons.inventory_2, color: Colors.black, size: 28),
-                titleWidget: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      '${item.stockQuantity} ${item.unit}',
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '₹${item.price.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                  ],
-                ),
-                onTap: () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
-                  builder: (context) => InventoryItemDetailScreen(item: item),
-                ),
+        return inventoryItemsAsyncValue.when(
+          data: (items) {
+            if (items.isEmpty) {
+              return const Center(
+                child: Text('No inventory items found. Add some!'),
               );
-            },
-          );
-        }
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return GenericListTile(
+                  leading: const Icon(Icons.inventory_2, color: Colors.black, size: 28),
+                  titleWidget: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        '${item.stockQuantity} ${item.unit}',
+                        style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '₹${item.price.toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                    ],
+                  ),
+                  onTap: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
+                    builder: (context) => InventoryItemDetailScreen(itemId: item.id),
+                  ),
+                );
+              },
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => const Center(child: Text('Error: \$error')),
+        );
       },
     );
   }

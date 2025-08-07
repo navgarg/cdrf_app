@@ -25,10 +25,7 @@ class DashboardService {
   }
 
   List<DailySummary> getWeeklyData() {
-    // In a real application, this would involve querying the database for daily summaries
-    // within the last week and aggregating them. For now, we'll aggregate the dummy daily data.
     final dailyData = getDailyData();
-    // Simple aggregation for demonstration purposes
     double totalSales = 0;
     double totalProfit = 0;
     for (var summary in dailyData) {
@@ -41,10 +38,7 @@ class DashboardService {
   }
 
   List<DailySummary> getMonthlyData() {
-    // In a real application, this would involve querying the database for daily summaries
-    // within the last month and aggregating them. For now, we'll aggregate the dummy daily data.
     final dailyData = getDailyData();
-    // Simple aggregation for demonstration purposes
     double totalSales = 0;
     double totalProfit = 0;
     for (var summary in dailyData) {

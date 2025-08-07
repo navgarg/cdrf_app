@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class InventoryItem {
   final String id;
   final String name;
@@ -7,6 +9,9 @@ class InventoryItem {
   final int stockQuantity;
   final int reorderThreshold;
   final String unit;
+  final DateTime? lastPurchasedDate;
+  final DateTime? lastUsedDate;
+  final String? location;
 
   InventoryItem({
     required this.id,
@@ -17,6 +22,9 @@ class InventoryItem {
     required this.stockQuantity,
     required this.reorderThreshold,
     required this.unit,
+    this.lastPurchasedDate,
+    this.lastUsedDate,
+    this.location,
   });
 
   // Factory constructor for creating an InventoryItem from a map (e.g., Firestore document)
@@ -30,6 +38,9 @@ class InventoryItem {
       stockQuantity: data['stockQuantity'] ?? 0,
       reorderThreshold: data['reorderThreshold'] ?? 0,
       unit: data['unit'] ?? 'Packs',
+      lastPurchasedDate: (data['lastPurchasedDate'] as Timestamp?)?.toDate(),
+      lastUsedDate: (data['lastUsedDate'] as Timestamp?)?.toDate(),
+      location: data['location'],
     );
   }
 
@@ -43,6 +54,9 @@ class InventoryItem {
       'stockQuantity': stockQuantity,
       'reorderThreshold': reorderThreshold,
       'unit': unit,
+      'lastPurchasedDate': lastPurchasedDate != null ? Timestamp.fromDate(lastPurchasedDate!) : null,
+      'lastUsedDate': lastUsedDate != null ? Timestamp.fromDate(lastUsedDate!) : null,
+      'location': location,
     };
   }
 }
