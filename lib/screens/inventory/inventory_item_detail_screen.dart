@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
 import 'package:nariudyam/services/api/transaction_service.dart';
@@ -87,8 +86,8 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                             .split(' ')[0] ??
                         'N/A'),
                 _buildDetailRow(
-                    context, 'Last used',
-                    item.lastUsedDate
+                    context, 'Last Sold',
+                    item.lastSoldDate
                             ?.toLocal()
                             .toString()
                             .split(' ')[0] ??

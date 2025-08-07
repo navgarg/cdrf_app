@@ -10,7 +10,7 @@ class InventoryItem {
   final int reorderThreshold;
   final String unit;
   final DateTime? lastPurchasedDate;
-  final DateTime? lastUsedDate;
+  final DateTime? lastSoldDate;
   final String? location;
 
   InventoryItem({
@@ -23,7 +23,7 @@ class InventoryItem {
     required this.reorderThreshold,
     required this.unit,
     this.lastPurchasedDate,
-    this.lastUsedDate,
+    this.lastSoldDate,
     this.location,
   });
 
@@ -39,7 +39,7 @@ class InventoryItem {
       reorderThreshold: data['reorderThreshold'] ?? 0,
       unit: data['unit'] ?? 'Packs',
       lastPurchasedDate: (data['lastPurchasedDate'] as Timestamp?)?.toDate(),
-      lastUsedDate: (data['lastUsedDate'] as Timestamp?)?.toDate(),
+      lastSoldDate: (data['lastSoldDate'] as Timestamp?)?.toDate(),
       location: data['location'],
     );
   }
@@ -55,7 +55,7 @@ class InventoryItem {
       'reorderThreshold': reorderThreshold,
       'unit': unit,
       'lastPurchasedDate': lastPurchasedDate != null ? Timestamp.fromDate(lastPurchasedDate!) : null,
-      'lastUsedDate': lastUsedDate != null ? Timestamp.fromDate(lastUsedDate!) : null,
+      'lastSoldDate': lastSoldDate != null ? Timestamp.fromDate(lastSoldDate!) : null,
       'location': location,
     };
   }
