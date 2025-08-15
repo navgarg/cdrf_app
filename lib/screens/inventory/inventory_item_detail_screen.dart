@@ -210,6 +210,7 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                       productId: item.id,
                       quantity: quantityToSell,
                       price: item.price,
+                      cost: item.cost,
                       transactionType: TransactionType.sale,
                     );
                     Navigator.of(dialogContext).pop();

@@ -11,6 +11,7 @@ class Transaction {
   final String productId;
   final int quantity;
   final double price;
+  final double cost;
   final TransactionType transactionType;
   final DateTime timestamp;
   final String businessId;
@@ -20,6 +21,7 @@ class Transaction {
     required this.productId,
     required this.quantity,
     required this.price,
+    required this.cost,
     required this.transactionType,
     required this.timestamp,
     required this.businessId,
@@ -31,6 +33,7 @@ class Transaction {
       productId: data['productId'] ?? '',
       quantity: data['quantity'] ?? 0,
       price: data['price'] ?? 0.0,
+      cost: data['cost'] ?? 0.0,
       transactionType: TransactionType.values.firstWhere(
           (e) => e.toString() == 'TransactionType.${data['transactionType']}',
           orElse: () => TransactionType.sale),
@@ -44,6 +47,7 @@ class Transaction {
       'productId': productId,
       'quantity': quantity,
       'price': price,
+      'cost': cost,
       'transactionType': transactionType.toString().split('.').last,
       'timestamp': Timestamp.fromDate(timestamp),
       'businessId': businessId,

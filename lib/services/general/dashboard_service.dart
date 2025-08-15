@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/services/api/transaction_service.dart';
 
 class DailySummary {
   final DateTime date;
@@ -8,45 +9,67 @@ class DailySummary {
   DailySummary({required this.date, required this.sales, required this.profit});
 }
 
-final dashboardServiceProvider = Provider((ref) => DashboardService());
+final dashboardServiceProvider = Provider((ref) => DashboardService(ref));
 
 class DashboardService {
-  // Dummy data for demonstration
-  List<DailySummary> getDailyData() {
-    return [
-      DailySummary(date: DateTime(2023, 10, 26), sales: 100, profit: 20),
-      DailySummary(date: DateTime(2023, 10, 27), sales: 120, profit: 25),
-      DailySummary(date: DateTime(2023, 10, 28), sales: 90, profit: 15),
-      DailySummary(date: DateTime(2023, 10, 29), sales: 150, profit: 30),
-      DailySummary(date: DateTime(2023, 10, 30), sales: 110, profit: 22),
-      DailySummary(date: DateTime(2023, 10, 31), sales: 130, profit: 28),
-      DailySummary(date: DateTime(2023, 11, 1), sales: 160, profit: 35),
-    ];
+  final Ref _ref;
+
+  DashboardService(this._ref);
+  Stream<List<DailySummary>> getDailyData(DateTime focusedDate) {
+    return _ref.read(transactionServiceProvider).streamTransactions().map((transactions) {
+      final Map<DateTime, double> dailySales = {};
+      final Map<DateTime, double> dailyProfits = {};
+      for (var transaction in transactions) {
+        final date = DateTime(transaction.timestamp.year, transaction.timestamp.month, transaction.timestamp.day);
+        dailySales.update(date, (value) => value + transaction.price, ifAbsent: () => transaction.price);
+        dailyProfits.update(date, (value) => value + (transaction.price - transaction.cost), ifAbsent: () => (transaction.price - transaction.cost));
+      }
+
+      final List<DailySummary> data = [];
+      for (int i = -3; i <= 3; i++) {
+        final date = DateTime(focusedDate.year, focusedDate.month, focusedDate.day).add(Duration(days: i));
+        data.add(DailySummary(date: date, sales: dailySales[date] ?? 0.0, profit: dailyProfits[date] ?? 0.0));
+      }
+      return data;
+    });
   }
 
-  List<DailySummary> getWeeklyData() {
-    final dailyData = getDailyData();
-    double totalSales = 0;
-    double totalProfit = 0;
-    for (var summary in dailyData) {
-      totalSales += summary.sales;
-      totalProfit += summary.profit;
-    }
-    return [
-      DailySummary(date: DateTime.now(), sales: totalSales, profit: totalProfit)
-    ];
+  Stream<List<DailySummary>> getWeeklyData(DateTime focusedDate) {
+    return _ref.read(transactionServiceProvider).streamTransactions().map((transactions) {
+      final Map<DateTime, double> weeklySales = {};
+      final Map<DateTime, double> weeklyProfits = {};
+      for (var transaction in transactions) {
+        final date = DateTime(transaction.timestamp.year, transaction.timestamp.month, transaction.timestamp.day);
+        final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+        weeklySales.update(startOfWeek, (value) => value + transaction.price, ifAbsent: () => transaction.price);
+        weeklyProfits.update(startOfWeek, (value) => value + (transaction.price - transaction.cost), ifAbsent: () => (transaction.price - transaction.cost));
+      }
+
+      final List<DailySummary> data = [];
+      for (int i = -2; i <= 2; i++) {
+        final date = focusedDate.subtract(Duration(days: focusedDate.weekday - 1)).add(Duration(days: 7 * i));
+        data.add(DailySummary(date: date, sales: weeklySales[date] ?? 0.0, profit: weeklyProfits[date] ?? 0.0));
+      }
+      return data;
+    });
   }
 
-  List<DailySummary> getMonthlyData() {
-    final dailyData = getDailyData();
-    double totalSales = 0;
-    double totalProfit = 0;
-    for (var summary in dailyData) {
-      totalSales += summary.sales;
-      totalProfit += summary.profit;
-    }
-    return [
-      DailySummary(date: DateTime.now(), sales: totalSales, profit: totalProfit)
-    ];
+  Stream<List<DailySummary>> getMonthlyData(DateTime focusedDate) {
+    return _ref.read(transactionServiceProvider).streamTransactions().map((transactions) {
+      final Map<DateTime, double> monthlySales = {};
+      final Map<DateTime, double> monthlyProfits = {};
+      for (var transaction in transactions) {
+        final date = DateTime(transaction.timestamp.year, transaction.timestamp.month, 1);
+        monthlySales.update(date, (value) => value + transaction.price, ifAbsent: () => transaction.price);
+        monthlyProfits.update(date, (value) => value + (transaction.price - transaction.cost), ifAbsent: () => (transaction.price - transaction.cost));
+      }
+
+      final List<DailySummary> data = [];
+      for (int i = -2; i <= 2; i++) {
+        final date = DateTime(focusedDate.year, focusedDate.month + i, 1);
+        data.add(DailySummary(date: date, sales: monthlySales[date] ?? 0.0, profit: monthlyProfits[date] ?? 0.0));
+      }
+      return data;
+    });
   }
 }
