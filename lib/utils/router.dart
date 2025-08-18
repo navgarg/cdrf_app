@@ -167,3 +167,6 @@ CustomTransitionPage<void> _buildPageWithSlideTransition({
     },
   );
 }
+
+//add financial info to onboarding
+//barcode scanning for info
