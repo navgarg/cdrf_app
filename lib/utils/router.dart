@@ -170,3 +170,7 @@ CustomTransitionPage<void> _buildPageWithSlideTransition({
 
 //add financial info to onboarding
 //barcode scanning for info
+
+//todo:
+//for barcode, connect to api?
+//database: firebase or supabase?

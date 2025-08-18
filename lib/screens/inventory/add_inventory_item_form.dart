@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AddInventoryItemForm extends ConsumerStatefulWidget {
   const AddInventoryItemForm({super.key});
@@ -30,6 +33,37 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
     _reorderThresholdController.dispose();
     _unitController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchProductDetails(String barcode) async {
+    final url = Uri.parse('https://api.upcitemdb.com/prod/trial/lookup?upc=$barcode');
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['items'] != null && data['items'].isNotEmpty) {
+          final item = data['items'][0];
+          setState(() {
+            _nameController.text = item['title'] ?? '';
+            _descriptionController.text = item['description'] ?? '';
+            _priceController.text = (item['lowest_recorded_price'] ?? 0.0).toString();
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Product details not found.')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load product details: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching product details: $e')),
+      );
+    }
   }
 
   Future<void> _submitForm() async {
@@ -68,11 +102,28 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('New Inventory Item', style: Theme.of(context).textTheme.headlineSmall),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('New Inventory Item', style: Theme.of(context).textTheme.headlineSmall),
+                  IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: () async {
+                      var res = await Navigator.push(context, MaterialPageRoute(builder: (context) => const SimpleBarcodeScannerPage()));
+                      if (res is String) {
+                        _nameController.text = res;
+                        _fetchProductDetails(res);
+                      }
+                    },
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Item Name'),
+                decoration: const InputDecoration(
+                  labelText: 'Item Name',
+                ),
                 validator: (value) => value!.isEmpty ? 'Please enter a name' : null,
               ),
               const SizedBox(height: 16),

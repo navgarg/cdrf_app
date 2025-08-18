@@ -68,6 +68,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             _buildToggleButtons(),
             const SizedBox(height: 24),
+
             StreamBuilder<List<DailySummary>>(
               stream: dataStream,
               builder: (context, snapshot) {
@@ -89,8 +90,63 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: DashboardChart(
                   dataStream: dataStream, dashboardView: _dashboardView),
             ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Column(
+                children: [
+                  _buildSummaryRow('Today', '0'),
+                  const Divider(),
+                  _buildSummaryRow('Best', '0'),
+                  const Divider(),
+                  _buildSummaryRow('Total', '0'),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
-            const Divider(),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        'Revenue',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        '₹ 0',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              color: Colors.green,
+                            ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        'Expenses',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        '₹ 0',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              color: Colors.red,
+                            ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -179,6 +235,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           return '${DateFormat('MMM yyyy').format(firstDate)} - ${DateFormat('MMM yyyy').format(lastDate)}';
         }
     }
+  }
+
+  Widget _buildSummaryRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              '₹ $value',
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ],
+      ),
+    );
   }
 
   Widget _buildToggleButtons() {
