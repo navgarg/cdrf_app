@@ -1,42 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/item.dart';
 
-class CustomerOrderScreen extends StatelessWidget {
+final cartProvider = StateNotifierProvider<CartNotifier, Map<String, int>>(
+    (ref) => CartNotifier());
+
+class CartNotifier extends StateNotifier<Map<String, int>> {
+  CartNotifier() : super({});
+
+  void addToCart(String itemName) {
+    state = {
+      ...state,
+      itemName: (state[itemName] ?? 0) + 1,
+    };
+  }
+
+  void removeFromCart(String itemName) {
+    if (state[itemName] != null && state[itemName]! > 1) {
+      state = {
+        ...state,
+        itemName: state[itemName]! - 1,
+      };
+    } else {
+      final newState = {...state};
+      newState.remove(itemName);
+      state = newState;
+    }
+  }
+
+  void clearCart() {
+    state = {};
+  }
+}
+
+class CustomerOrderScreen extends ConsumerWidget {
   const CustomerOrderScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final items = [
-      {
-        'icon': Icons.circle, // Placeholder for Oranges
-        'name': 'Oranges',
-        'price': '₹ 70/kg',
-      },
-      {
-        'icon': Icons.apple,
-        'name': 'Apples',
-        'price': '₹ 90/kg',
-      },
-      {
-        'icon': Icons.spa,
-        'name': 'Potatoes',
-        'price': '₹ 40/kg',
-      },
-      {
-        'icon': Icons.emoji_food_beverage,
-        'name': 'Onions',
-        'price': '₹ 45/kg',
-      },
-      {
-        'icon': Icons.local_pizza,
-        'name': 'Tomatoes',
-        'price': '₹ 55/kg',
-      },
-      {
-        'icon': Icons.grain,
-        'name': 'Grapes',
-        'price': '₹ 65/kg',
-      },
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = ItemData.items;
 
     const searchBarColor = Color(0xFFFFE3C1);
     const itemBlockColor = Color(0xFFFFC897); // #ffc897
@@ -46,16 +48,27 @@ class CustomerOrderScreen extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search for an item...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: const Icon(Icons.mic),
-              filled: true,
-              fillColor: searchBarColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
+          child: Container(
+            decoration: BoxDecoration(
+              color: searchBarColor,
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search for an item...',
+                hintStyle: TextStyle(color: Colors.black.withOpacity(0.6)),
+                prefixIcon:
+                    Icon(Icons.search, color: Colors.black.withOpacity(0.6)),
+                suffixIcon:
+                    Icon(Icons.mic, color: Colors.black.withOpacity(0.6)),
+                filled: true,
+                fillColor: Colors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
             ),
           ),
@@ -67,31 +80,142 @@ class CustomerOrderScreen extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = items[index];
+              final cart = ref.watch(cartProvider);
+              final qty = cart[item.name] ?? 0;
+
               return Container(
                 decoration: BoxDecoration(
                   color: itemBlockColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withOpacity(0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: ListTile(
-                  leading: Icon(item['icon'] as IconData, size: 32),
-                  title: Text(item['name'] as String),
-                  subtitle: Text(item['price'] as String),
-                  trailing: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: addButtonColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 12.0),
+                  child: Row(
+                    children: [
+                      // Emoji icon
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Center(
+                          child: Text(
+                            item.icon,
+                            style: const TextStyle(fontSize: 32),
+                          ),
+                        ),
                       ),
-                    ),
-                    onPressed: () {},
-                    child: const Text('Add'),
+                      const SizedBox(width: 12),
+                      // Name and price
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item.price,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black.withOpacity(0.6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Add button or quantity controls
+                      if (qty == 0)
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: addButtonColor,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 8),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            ref
+                                .read(cartProvider.notifier)
+                                .addToCart(item.name);
+                          },
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          decoration: BoxDecoration(
+                            color: addButtonColor,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(cartProvider.notifier)
+                                      .removeFromCart(item.name);
+                                },
+                                child: const Icon(
+                                  Icons.remove,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                              Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  '$qty kg',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(cartProvider.notifier)
+                                      .addToCart(item.name);
+                                },
+                                child: const Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               );
