@@ -22,18 +22,17 @@ class AppShellLayout extends ConsumerWidget {
     '/dashboard': 'Dashboard',
     '/inventory': 'Inventory',
     '/schedule': 'Schedule',
+    '/customer_order': 'Customer Order',
     '/profile': 'Profile',
   };
-
-
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final String pageTitle = routeTitles[currentPath ?? ''] ?? 'Nari Udyam';
     final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
-    final bool showBackButton = GoRouter.of(context).canPop() && !isTopLevelRoute;
-
+    final bool showBackButton =
+        GoRouter.of(context).canPop() && !isTopLevelRoute;
 
     return Scaffold(
       body: Column(
@@ -68,9 +67,7 @@ class AppShellLayout extends ConsumerWidget {
                         iconSize: 22,
                       )
                     else
-                      const SizedBox(
-                          width: 48),
-
+                      const SizedBox(width: 48),
                     Expanded(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -90,28 +87,25 @@ class AppShellLayout extends ConsumerWidget {
                               style: TextStyle(
                                 fontFamily: 'Rochester',
                                 fontSize: 16,
-                                color: Colors.white.withAlpha((255 * 0.9).round()),
+                                color:
+                                    Colors.white.withAlpha((255 * 0.9).round()),
                               ),
                               textAlign: TextAlign.center,
                             ),
-
                         ],
                       ),
                     ),
-
                     const SizedBox(width: 48),
                   ],
                 ),
               ),
             ),
           ),
-
           Expanded(
             child: child,
           ),
         ],
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: theme.colorScheme.surface,
@@ -133,6 +127,10 @@ class AppShellLayout extends ConsumerWidget {
             label: 'Schedule',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Order',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
           ),
@@ -146,7 +144,8 @@ class AppShellLayout extends ConsumerWidget {
     if (path!.startsWith('/dashboard')) return 0;
     if (path.startsWith('/inventory')) return 1;
     if (path.startsWith('/schedule')) return 2;
-    if (path.startsWith('/profile')) return 3;
+    if (path.startsWith('/customer_order')) return 3;
+    if (path.startsWith('/profile')) return 4;
     return 0; // Default to home
   }
 
@@ -180,7 +179,6 @@ class AppShellLayout extends ConsumerWidget {
 
   void _onItemTapped(BuildContext context, int index) {
     final String destination;
-
     switch (index) {
       case 0:
         destination = '/dashboard';
@@ -192,12 +190,14 @@ class AppShellLayout extends ConsumerWidget {
         destination = '/schedule';
         break;
       case 3:
+        destination = '/customer_order';
+        break;
+      case 4:
         destination = '/profile';
         break;
       default:
         destination = '/dashboard';
     }
-
     if ((currentPath ?? '') != destination) {
       context.go(destination);
     }
