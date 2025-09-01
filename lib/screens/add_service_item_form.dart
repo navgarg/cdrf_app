@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/services/api/services_service.dart';
 
 class AddServiceItemForm extends ConsumerStatefulWidget {
   const AddServiceItemForm({super.key});
@@ -30,7 +30,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    final success = await ref.read(inventoryServiceProvider).addServiceItem(
+    final success = await ref.read(servicesServiceProvider).addServiceItem(
           name: _nameController.text.trim(),
           description: _descriptionController.text.trim().isEmpty
               ? null

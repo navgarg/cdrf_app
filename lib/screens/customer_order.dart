@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/models/service_item.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/services/api/services_service.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 
 final productsProvider = StreamProvider.autoDispose<List<ProductItem>>((ref) {
@@ -10,7 +11,7 @@ final productsProvider = StreamProvider.autoDispose<List<ProductItem>>((ref) {
 });
 
 final servicesProvider = StreamProvider.autoDispose<List<ServiceItem>>((ref) {
-  return ref.watch(inventoryServiceProvider).streamServiceItems();
+  return ref.watch(servicesServiceProvider).streamServiceItems();
 });
 
 // Cart stores quantity as double to support fractional (e.g. 0.5 kg) quantities.
