@@ -6,6 +6,8 @@ import '../../components/generic_list_tile.dart';
 import '../../components/regular_button.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/general/messenger.dart';
+import '../../services/general/excel_service.dart';
+import '../../services/general/onboarding_excel_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -169,6 +171,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 },
               ),
               onTap: () {},
+            ),
+            GenericListTile(
+              leading: Icon(Icons.download, color: theme.colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Export Transactions to Excel',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              onTap: () async {
+                await ref.read(excelServiceProvider).exportTransactionsToExcel();
+                ref.read(messengerProvider).showSuccess('Transactions exported to Excel!');
+              },
+            ),
+            GenericListTile(
+              leading: Icon(Icons.upload_file, color: theme.colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Export Onboarding Data to Excel',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              onTap: () async {
+                await ref.read(onboardingExcelServiceProvider).exportOnboardingDataToExcel();
+                ref.read(messengerProvider).showSuccess('Onboarding data exported to Excel!');
+              },
             ),
 
             const SizedBox(height: 32),

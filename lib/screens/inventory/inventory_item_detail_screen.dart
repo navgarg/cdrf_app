@@ -86,7 +86,7 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                             .split(' ')[0] ??
                         'N/A'),
                 _buildDetailRow(
-                    context, 'Last Sold',
+                    context, 'Last used',
                     item.lastSoldDate
                             ?.toLocal()
                             .toString()
