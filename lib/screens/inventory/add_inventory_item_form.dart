@@ -9,7 +9,8 @@ class AddInventoryItemForm extends ConsumerStatefulWidget {
   const AddInventoryItemForm({super.key});
 
   @override
-  ConsumerState<AddInventoryItemForm> createState() => _AddInventoryItemFormState();
+  ConsumerState<AddInventoryItemForm> createState() =>
+      _AddInventoryItemFormState();
 }
 
 class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
@@ -36,7 +37,8 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
   }
 
   Future<void> _fetchProductDetails(String barcode) async {
-    final url = Uri.parse('https://api.upcitemdb.com/prod/trial/lookup?upc=$barcode');
+    final url =
+        Uri.parse('https://api.upcitemdb.com/prod/trial/lookup?upc=$barcode');
 
     try {
       final response = await http.get(url);
@@ -47,7 +49,8 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
           setState(() {
             _nameController.text = item['title'] ?? '';
             _descriptionController.text = item['description'] ?? '';
-            _priceController.text = (item['lowest_recorded_price'] ?? 0.0).toString();
+            _priceController.text =
+                (item['lowest_recorded_price'] ?? 0.0).toString();
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -56,7 +59,9 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load product details: ${response.statusCode}')),
+          SnackBar(
+              content: Text(
+                  'Failed to load product details: ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -70,15 +75,16 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final success = await ref.read(inventoryServiceProvider).addInventoryItem(
-        name: _nameController.text,
-        description: _descriptionController.text,
-        price: double.tryParse(_priceController.text) ?? 0.0,
-        cost: double.tryParse(_costController.text) ?? 0.0,
-        stockQuantity: int.tryParse(_stockQuantityController.text) ?? 0,
-        reorderThreshold: int.tryParse(_reorderThresholdController.text) ?? 0,
-        unit: _unitController.text,
-      );
+      final success = await ref.read(inventoryServiceProvider).addProductItem(
+            name: _nameController.text,
+            description: _descriptionController.text,
+            price: double.tryParse(_priceController.text) ?? 0.0,
+            cost: double.tryParse(_costController.text) ?? 0.0,
+            stockQuantity: int.tryParse(_stockQuantityController.text) ?? 0,
+            reorderThreshold:
+                int.tryParse(_reorderThresholdController.text) ?? 0,
+            unit: _unitController.text,
+          );
 
       setState(() => _isLoading = false);
 
@@ -92,7 +98,9 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: SingleChildScrollView(
@@ -105,11 +113,16 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('New Inventory Item', style: Theme.of(context).textTheme.headlineSmall),
+                  Text('New Inventory Item',
+                      style: Theme.of(context).textTheme.headlineSmall),
                   IconButton(
                     icon: const Icon(Icons.qr_code_scanner),
                     onPressed: () async {
-                      var res = await Navigator.push(context, MaterialPageRoute(builder: (context) => const SimpleBarcodeScannerPage()));
+                      var res = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const SimpleBarcodeScannerPage()));
                       if (res is String) {
                         _nameController.text = res;
                         _fetchProductDetails(res);
@@ -124,7 +137,8 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 decoration: const InputDecoration(
                   labelText: 'Item Name',
                 ),
-                validator: (value) => value!.isEmpty ? 'Please enter a name' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter a name' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -136,7 +150,8 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 controller: _priceController,
                 decoration: const InputDecoration(labelText: 'Price'),
                 keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Please enter a price' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter a price' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -149,24 +164,30 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 controller: _stockQuantityController,
                 decoration: const InputDecoration(labelText: 'Stock Quantity'),
                 keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Please enter stock quantity' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter stock quantity' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _reorderThresholdController,
-                decoration: const InputDecoration(labelText: 'Reorder Threshold'),
+                decoration:
+                    const InputDecoration(labelText: 'Reorder Threshold'),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _unitController,
-                decoration: const InputDecoration(labelText: 'Unit (e.g., pcs, kg)'),
+                decoration:
+                    const InputDecoration(labelText: 'Unit (e.g., pcs, kg)'),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitForm,
                 child: _isLoading
-                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white))
                     : const Text('Save Item'),
               ),
             ],

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/generic_list_tile.dart';
-import 'package:nariudyam/models/inventory_item.dart';
+import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
 import '../app_shell_layout.dart';
 import 'add_inventory_item_form.dart';
 import 'inventory_item_detail_screen.dart';
 
-final inventoryItemsProvider = StreamProvider.autoDispose<List<InventoryItem>>((ref) {
-  return ref.watch(inventoryServiceProvider).streamInventoryItems();
+final inventoryItemsProvider =
+    StreamProvider.autoDispose<List<ProductItem>>((ref) {
+  return ref.watch(inventoryServiceProvider).streamInventoryProductItems();
 });
 
 class InventoryScreen extends ConsumerStatefulWidget {
@@ -17,7 +18,6 @@ class InventoryScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<InventoryScreen> createState() => _InventoryScreenState();
 }
-
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   void _showAddInventoryItemDialog() {
@@ -48,12 +48,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0)).animate(animation),
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+              .animate(animation),
           child: child,
         );
       },
     );
   }
+
   @override
   void initState() {
     super.initState();
@@ -84,17 +86,20 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               itemBuilder: (context, index) {
                 final item = items[index];
                 return GenericListTile(
-                  leading: const Icon(Icons.inventory_2, color: Colors.black, size: 28),
+                  leading: const Icon(Icons.inventory_2,
+                      color: Colors.black, size: 28),
                   titleWidget: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         item.name,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                       Text(
                         '${item.stockQuantity} ${item.unit}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                        style: TextStyle(
+                            fontSize: 14, color: Colors.grey.shade600),
                       ),
                     ],
                   ),
@@ -103,9 +108,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     children: [
                       Text(
                         '₹${item.price.toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
                       ),
-                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                      const Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.grey),
                     ],
                   ),
                   onTap: () => showModalBottomSheet(
@@ -113,7 +120,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
-                    builder: (context) => InventoryItemDetailScreen(itemId: item.id),
+                    builder: (context) =>
+                        InventoryItemDetailScreen(itemId: item.id),
                   ),
                 );
               },

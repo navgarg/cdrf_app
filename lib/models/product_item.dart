@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class InventoryItem {
+class ProductItem {
   final String id;
   final String name;
   final String? description;
@@ -13,7 +13,7 @@ class InventoryItem {
   final DateTime? lastSoldDate;
   final String? location;
 
-  InventoryItem({
+  ProductItem({
     required this.id,
     required this.name,
     this.description,
@@ -27,9 +27,8 @@ class InventoryItem {
     this.location,
   });
 
-  // Factory constructor for creating an InventoryItem from a map (e.g., Firestore document)
-  factory InventoryItem.fromMap(Map<String, dynamic> data, String id) {
-    return InventoryItem(
+  factory ProductItem.fromMap(Map<String, dynamic> data, String id) {
+    return ProductItem(
       id: id,
       name: data['name'] ?? '',
       description: data['description'],
@@ -44,7 +43,6 @@ class InventoryItem {
     );
   }
 
-  // Method for converting an InventoryItem to a map (e.g., for Firestore)
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -54,8 +52,8 @@ class InventoryItem {
       'stockQuantity': stockQuantity,
       'reorderThreshold': reorderThreshold,
       'unit': unit,
-      'lastPurchasedDate': lastPurchasedDate != null ? Timestamp.fromDate(lastPurchasedDate!) : null,
-      'lastSoldDate': lastSoldDate != null ? Timestamp.fromDate(lastSoldDate!) : null,
+      'lastPurchasedDate': lastPurchasedDate,
+      'lastSoldDate': lastSoldDate,
       'location': location,
     };
   }
