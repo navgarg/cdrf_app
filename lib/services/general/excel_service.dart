@@ -21,20 +21,11 @@ class ExcelService {
     var excel = Excel.createExcel();
     Sheet sheetObject = excel['Daily Sales Transactions'];
 
-    // Add headers
-    sheetObject.appendRow([
-        TextCellValue('transaction_id'),
-        TextCellValue('date'),
-        TextCellValue('product_id'),
-        TextCellValue('product_name'),
-        TextCellValue('quantity_sold'),
-        TextCellValue('unit_price'),
-        TextCellValue('total_sale_value'),
-        TextCellValue('cost_per_unit'),
-        TextCellValue('margin'),
-        TextCellValue('payment_mode'),
-        TextCellValue('customer_id (opt.)'),
-       ]);
+    final firstTransaction = transactions.isNotEmpty ? transactions.first : null;
+    if (firstTransaction != null) {
+      final headers = firstTransaction.toMap().keys.toList();
+      sheetObject.appendRow(headers.map((h) => TextCellValue(h.toString())).toList());
+    }
 
     for (var transaction in transactions) {
       InventoryItem? item;
@@ -42,29 +33,32 @@ class ExcelService {
         item = await _ref.read(inventoryServiceProvider).streamInventoryItem(transaction.productId).first;
       } catch (e) {
         _ref.read(messengerProvider).showError('Error fetching inventory item for product ID ${transaction.productId}: $e');
-        item = null; // Handle case where item might not be found
+        item = null;
+      }
+      final productName = item?.name ?? 'Unknown Product';
+
+      final Map<String, dynamic> transactionMap = transaction.toMap();
+      final List<String> keys = transactionMap.keys.toList();
+      final int productIdIndex = keys.indexOf('productId');
+      if (productIdIndex != -1) {
+        keys.insert(productIdIndex + 1, 'productName');
+      } else {
+        keys.add('productName');
       }
 
-      final productName = item?.name ?? 'Unknown Product';
-      final totalSaleValue = transaction.quantity * transaction.price;
-      final margin = (transaction.price - transaction.cost) * transaction.quantity;
-
-      sheetObject.appendRow([
-        TextCellValue(transaction.id),
-        TextCellValue(transaction.timestamp.toIso8601String().split('T').first), // Date only
-        TextCellValue(transaction.productId),
-        TextCellValue(productName),
-        IntCellValue(transaction.quantity),
-        DoubleCellValue(transaction.price),
-        DoubleCellValue(totalSaleValue),
-        DoubleCellValue(transaction.cost),
-        DoubleCellValue(margin),
-        TextCellValue(transaction.transactionType.toString().split('.').last), // Assuming transactionType can map to payment_mode for now
-        TextCellValue(''), // Placeholder for customer_id
-      ]);
+      final List<CellValue?> rowData = keys.map((key) {
+        if (key == 'productName') return TextCellValue(productName);
+        final value = transactionMap[key];
+        if (value == null) return TextCellValue('N/A');
+        if (value is DateTime) return TextCellValue(value.toIso8601String().split('T').first);
+        if (value is int) return IntCellValue(value);
+        if (value is double) return DoubleCellValue(value);
+        return TextCellValue(value.toString());
+      }).toList();
+      
+      sheetObject.appendRow(rowData);
     }
 
-    // Save the Excel file
     final directory = await path_provider.getApplicationDocumentsDirectory();
     final path = '${directory.path}/Daily_Sales_Transactions.xlsx';
     final fileBytes = excel.save();

@@ -23,36 +23,28 @@ class OnboardingExcelService {
       var excel = Excel.createExcel();
       Sheet sheetObject = excel['Onboarding Data'];
 
-      // Add headers
-      sheetObject.appendRow([
-        TextCellValue('User ID'),
-        TextCellValue('Phone Number'),
-        TextCellValue('Name'),
-        TextCellValue('Language'),
-        TextCellValue('Education'),
-        TextCellValue('Age Range'),
-        TextCellValue('Business Domain'),
-        TextCellValue('Onboarding Completed'),
-        TextCellValue('Created At'),
-        TextCellValue('Last Login At'),
-      ]);
+      final List<String> allKeys = users.isNotEmpty
+          ? users.first.toMap().keys.toList()
+          : [];
+
+      final List<CellValue> headers = allKeys.map((key) => TextCellValue(key)).toList();
+      sheetObject.appendRow(headers);
 
       for (var user in users) {
         sheetObject.appendRow([
-          TextCellValue(user.uid),
-          TextCellValue(user.phoneNumber),
-          TextCellValue(user.name ?? 'N/A'),
-          TextCellValue(user.language ?? 'N/A'),
-          TextCellValue(user.education ?? 'N/A'),
-          TextCellValue(user.ageRange ?? 'N/A'),
-          TextCellValue(user.businessDomain ?? 'N/A'),
-          TextCellValue(user.onboardingCompleted.toString()),
-          TextCellValue(user.createdAt.toIso8601String().split('T').first),
-          TextCellValue(user.lastLoginAt.toIso8601String().split('T').first),
+          ...allKeys.map((key) {
+            final value = user.toMap()[key];
+            if (value is Timestamp) {
+              return TextCellValue(value.toDate().toIso8601String().split('T').first);
+            } else if (value != null) {
+              return TextCellValue(value.toString());
+            } else {
+              return TextCellValue('N/A');
+            }
+          }).toList(),
         ]);
       }
 
-      // Save the Excel file
       final directory = await path_provider.getApplicationDocumentsDirectory();
       final path = '${directory.path}/Onboarding_Data.xlsx';
       final fileBytes = excel.save();
