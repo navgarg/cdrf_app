@@ -14,6 +14,7 @@ import '../screens/schedule/schedule.dart';
 import '../screens/profile/profile.dart';
 import '../services/api/auth_service.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
+import '../screens/customer_order.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -127,6 +128,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/schedule',
             builder: (context, state) => const ScheduleScreen(),
+          ),
+          GoRoute(
+            path: '/customer_order',
+            builder: (context, state) => const CustomerOrderScreen(),
           ),
           GoRoute(
             path: '/profile',

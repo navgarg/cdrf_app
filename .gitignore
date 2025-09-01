@@ -1,3 +1,45 @@
+# Flutter/Dart build and IDE files
+build/
+.dart_tool/
+.idea/
+.vscode/
+*.iml
+*.log
+*.tmp
+*.swp
+
+# Android build and generated files
+android/app/build/
+android/.gradle/
+android/local.properties
+android/app/**/cmake*
+android/app/**/CMake*
+android/app/**/rules.ninja
+android/app/**/TargetDirectories.txt
+android/app/**/directory-*
+android/app/**/index-*
+android/app/**/codemodel-*
+android/app/**/make*
+
+# iOS/macOS build and generated files
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+macos/Flutter/ephemeral/
+ios/Flutter/GeneratedPluginRegistrant.swift
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Flutter-Generated.xcconfig
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/flutter_export_environment.sh
+macos/Flutter/Flutter-Generated.xcconfig
+macos/Flutter/ephemeral/flutter_export_environment.sh
+macos/Flutter/ephemeral/Flutter-Generated.xcconfig
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Other
+pubspec.lock
 # Miscellaneous
 *.class
 *.log
@@ -47,3 +89,17 @@ app.*.map.json
 firebase.json
 firebase_options.dart
 google-services.json
+
+# Ignore Android build and generated files
+android/app/**/cmake*
+android/app/**/CMake*
+android/app/**/rules.ninja
+android/app/**/TargetDirectories.txt
+android/app/**/directory-*
+android/app/**/index-*
+android/app/**/codemodel-*
+android/app/**/make*
+android/app/build/
+android/.gradle/
+android/local.properties
+android/app/.cxx
