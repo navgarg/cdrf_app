@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/screens/customer_order.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/components/rating_bottom_sheet.dart';
+import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
+import 'package:nariudyam/components/qr_payment_bottom_sheet.dart';
+import 'package:nariudyam/services/api/transaction_service.dart';
+import 'package:nariudyam/models/transaction.dart';
+import 'package:nariudyam/models/product_item.dart';
+import 'package:nariudyam/services/general/messenger.dart';
 
 class CartBottomSheet extends ConsumerWidget {
   const CartBottomSheet({super.key});
@@ -106,7 +113,8 @@ class CartBottomSheet extends ConsumerWidget {
                           child: Text('Your cart is empty.',
                               style: TextStyle(
                                   fontSize: 16,
-                                  color: onSurface.withOpacity(0.6))),
+                                  color:
+                                      onSurface.withAlpha(153))), // 0.6 opacity
                         )
                       : ListView.separated(
                           itemCount: cartItems.length,
@@ -130,7 +138,8 @@ class CartBottomSheet extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                      color: onSurface.withOpacity(0.05),
+                                      color: onSurface
+                                          .withAlpha(13), // 0.05 opacity
                                       blurRadius: 4,
                                       offset: const Offset(0, 2)),
                                 ],
@@ -144,7 +153,8 @@ class CartBottomSheet extends ConsumerWidget {
                                       width: 50,
                                       height: 50,
                                       decoration: BoxDecoration(
-                                        color: onPrimary.withOpacity(0.2),
+                                        color: onPrimary
+                                            .withAlpha(51), // 0.2 opacity
                                         borderRadius: BorderRadius.circular(15),
                                       ),
                                       child: Center(
@@ -153,7 +163,8 @@ class CartBottomSheet extends ConsumerWidget {
                                               ? Icons.inventory_2
                                               : Icons.content_cut,
                                           size: 28,
-                                          color: onSurface.withOpacity(0.6),
+                                          color: onSurface
+                                              .withAlpha(153), // 0.6 opacity
                                         ),
                                       ),
                                     ),
@@ -173,7 +184,8 @@ class CartBottomSheet extends ConsumerWidget {
                                             '₹${item.price.toStringAsFixed(2)}${!isService && item.unit != null ? ' per ${item.unit}' : ''}',
                                             style: TextStyle(
                                               fontSize: 13,
-                                              color: onSurface.withOpacity(0.6),
+                                              color: onSurface.withAlpha(
+                                                  153), // 0.6 opacity
                                             ),
                                           ),
                                         ],
@@ -268,7 +280,7 @@ class CartBottomSheet extends ConsumerWidget {
                       const BorderRadius.vertical(bottom: Radius.circular(20)),
                   boxShadow: [
                     BoxShadow(
-                        color: onSurface.withOpacity(0.1),
+                        color: onSurface.withAlpha(26), // 0.1 opacity
                         blurRadius: 5,
                         offset: const Offset(0, -2)),
                   ],
@@ -303,8 +315,9 @@ class CartBottomSheet extends ConsumerWidget {
                           elevation: 0,
                         ),
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          // Add order completion logic here
+                          // Start new flow (keep cart sheet open so context remains valid):
+                          _startOrderFlow(
+                              context, ref, cartItems, total, isService);
                         },
                         child: Icon(Icons.check, color: onPrimary, size: 28),
                       ),
@@ -316,5 +329,97 @@ class CartBottomSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _startOrderFlow(
+      BuildContext context,
+      WidgetRef ref,
+      List<Map<String, dynamic>> cartItems,
+      double total,
+      bool isService) async {
+    double? rating;
+    PaymentMethod? paymentMethod;
+
+    // 1. Rating bottom sheet
+    rating = await showModalBottomSheet<double>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (c) => RatingBottomSheet(
+        onSubmit: (r) => Navigator.of(c).pop(r),
+      ),
+    );
+    if (rating == null) return; // user dismissed
+    // debug
+    // ignore: avoid_print
+    print('[OrderFlow] Got rating: $rating');
+
+    // 2. Payment selection bottom sheet
+    paymentMethod = await showModalBottomSheet<PaymentMethod>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (c) => PaymentSelectionBottomSheet(
+        onSelected: (m) => Navigator.of(c).pop(m),
+      ),
+    );
+    if (paymentMethod == null) return;
+    // ignore: avoid_print
+    print('[OrderFlow] Payment method selected: $paymentMethod');
+
+    // 3. If QR -> show QR sheet to confirm payment
+    if (paymentMethod == PaymentMethod.qr) {
+      final confirmed = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (c) => QrPaymentBottomSheet(
+          onConfirmPaid: () => Navigator.of(c).pop(true),
+        ),
+      );
+      if (confirmed != true) return; // aborted
+      // ignore: avoid_print
+      print('[OrderFlow] QR payment confirmed');
+    }
+
+    // 4. Persist each cart line as a transaction (sale). For services there is no stock update here.
+    final transactionService = ref.read(transactionServiceProvider);
+    for (final entry in cartItems) {
+      final item = entry['item'];
+      final double qtyDouble = entry['quantity'] as double;
+      final int quantity = qtyDouble.round(); // Transaction model uses int
+      final double price = item.price;
+      final double cost = (item is ProductItem)
+          ? (item.cost)
+          : 0.0; // service has no cost field
+      try {
+        await transactionService.addTransaction(
+          productId: item.id,
+          itemName: item.name,
+          quantity: quantity,
+          price: price,
+          cost: cost,
+          transactionType: TransactionType.sale,
+        );
+      } catch (_) {
+        // continue attempting remaining items
+      }
+    }
+
+    // 5. Clear cart
+    ref.read(cartProvider.notifier).clearCart();
+
+    // 6. Show success (use messenger if available)
+    try {
+      ref.read(messengerProvider).showSuccess('Order completed successfully!');
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Order completed successfully!')));
+    }
+
+    // 7. Now close the original cart sheet (if still open)
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
   }
 }

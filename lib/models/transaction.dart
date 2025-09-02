@@ -9,6 +9,7 @@ enum TransactionType {
 class Transaction {
   final String id;
   final String productId;
+  final String? itemName; // denormalized name for quick display
   final int quantity;
   final double price;
   final double cost;
@@ -19,6 +20,7 @@ class Transaction {
   Transaction({
     required this.id,
     required this.productId,
+    this.itemName,
     required this.quantity,
     required this.price,
     required this.cost,
@@ -31,6 +33,7 @@ class Transaction {
     return Transaction(
       id: id,
       productId: data['productId'] ?? '',
+      itemName: data['itemName'],
       quantity: data['quantity'] ?? 0,
       price: data['price'] ?? 0.0,
       cost: data['cost'] ?? 0.0,
@@ -45,6 +48,7 @@ class Transaction {
   Map<String, dynamic> toMap() {
     return {
       'productId': productId,
+      if (itemName != null) 'itemName': itemName,
       'quantity': quantity,
       'price': price,
       'cost': cost,

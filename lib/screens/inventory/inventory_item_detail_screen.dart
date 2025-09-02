@@ -214,6 +214,7 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                   if (success) {
                     await ref.read(transactionServiceProvider).addTransaction(
                           productId: item.id,
+                          itemName: item.name,
                           quantity: quantityToSell,
                           price: item.price,
                           cost: item.cost,

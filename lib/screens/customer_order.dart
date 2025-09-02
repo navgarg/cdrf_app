@@ -89,7 +89,7 @@ class CustomerOrderScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withAlpha(13), // 0.05 opacity
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -104,14 +104,14 @@ class CustomerOrderScreen extends ConsumerWidget {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withAlpha(102), // 0.4 opacity
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Center(
                         child: Icon(
                           !isService ? Icons.inventory_2 : Icons.content_cut,
                           size: 28,
-                          color: onSurface.withOpacity(0.6),
+                          color: onSurface.withAlpha(153), // 0.6 opacity
                         ),
                       ),
                     ),
@@ -131,7 +131,8 @@ class CustomerOrderScreen extends ConsumerWidget {
                                   (!isService ? ' per $itemUnit' : ''),
                               style: TextStyle(
                                   fontSize: 14,
-                                  color: onSurface.withOpacity(0.6))),
+                                  color:
+                                      onSurface.withAlpha(153))), // 0.6 opacity
                         ],
                       ),
                     ),

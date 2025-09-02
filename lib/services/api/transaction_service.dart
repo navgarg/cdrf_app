@@ -23,7 +23,8 @@ class TransactionService {
         .doc(user.uid) // Assuming businessId is user.uid for now
         .collection('transactions')
         .withConverter<Transaction>(
-          fromFirestore: (snap, _) => Transaction.fromMap(snap.data()!, snap.id),
+          fromFirestore: (snap, _) =>
+              Transaction.fromMap(snap.data()!, snap.id),
           toFirestore: (transaction, _) => transaction.toMap(),
         );
   }
@@ -36,6 +37,7 @@ class TransactionService {
 
   Future<void> addTransaction({
     required String productId,
+    String? itemName,
     required int quantity,
     required double price,
     required double cost,
@@ -48,6 +50,7 @@ class TransactionService {
       final newTransaction = Transaction(
         id: '', // Firestore will generate this
         productId: productId,
+        itemName: itemName,
         quantity: quantity,
         price: price,
         cost: cost,
@@ -56,9 +59,13 @@ class TransactionService {
         businessId: user.uid,
       );
       await _getCollection().add(newTransaction);
-      _ref.read(messengerProvider).showSuccess('Transaction added successfully!');
+      _ref
+          .read(messengerProvider)
+          .showSuccess('Transaction added successfully!');
     } catch (e) {
-      _ref.read(messengerProvider).showError('Failed to add transaction: ${e.toString()}');
+      _ref
+          .read(messengerProvider)
+          .showError('Failed to add transaction: ${e.toString()}');
     }
   }
 }
