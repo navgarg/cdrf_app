@@ -173,9 +173,43 @@ CustomTransitionPage<void> _buildPageWithSlideTransition({
   );
 }
 
-//add financial info to onboarding
+/*
 //barcode scanning for info
 
 //todo:
-//for barcode, connect to api?
-//database: firebase or supabase?
+//feedback in excel
+//feedback before payment
+//graphs for individual inv item
+
+//which gives max revenue
+//which service gave max customer satisfaction
+//which item had max demand
+//cost vs revenue
+//for items - reorder threshold
+//focus on beauty parlor + stationary
+
+- chatbot for users?
+
+
+resource centre
+unique logo for app
+admin portal to download analytics
+
+password and otp
+english, hindi and telugu language support
+customer satisfaction trends
+% of online/offline transactions - using payment mode used
+different colors for diff categories
+
+card payment method
+dynamic transaction history for daily
+faqs page for owners
+montHly reports for inv -
+one button for all items - purchased date, quantity, price
+
+
+testing?
+diff mobile phones
+put on playstore?
+
+*/

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../models/inventory_item.dart';
 
 class BarcodeUtils {
   /// Shows a barcode scanner and returns the scanned result
@@ -65,21 +64,21 @@ class BarcodeUtils {
   }
 
   /// Find an item in a list by barcode
-  static InventoryItem? findItemByBarcode(
-    String barcode,
-    List<InventoryItem> items,
-    BuildContext context,
-  ) {
-    // In a real app, you would search for the item by barcode in your inventory
-    // For now, we'll try to match the barcode with the item name as a simple demonstration
-    try {
-      return items.firstWhere((item) => item.name.contains(barcode));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Item with barcode $barcode not found in inventory')),
-      );
-      return null;
-    }
-  }
+  // static InventoryItem? findItemByBarcode(
+  //   String barcode,
+  //   List<InventoryItem> items,
+  //   BuildContext context,
+  // ) {
+  //   // In a real app, you would search for the item by barcode in your inventory
+  //   // For now, we'll try to match the barcode with the item name as a simple demonstration
+  //   try {
+  //     return items.firstWhere((item) => item.name.contains(barcode));
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //           content: Text('Item with barcode $barcode not found in inventory')),
+  //     );
+  //     return null;
+  //   }
+  // }
 }

@@ -59,7 +59,13 @@ class _MultiStepOnboardingScreenState
     OnboardingStep(
       title: 'Education level:',
       firestoreField: 'educationLevel',
-      options: ['No formal schooling', 'Primary', 'Secondary', 'Higher secondary', 'Graduate'],
+      options: [
+        'No formal schooling',
+        'Primary',
+        'Secondary',
+        'Higher secondary',
+        'Graduate'
+      ],
     ),
     OnboardingStep(
       title: 'Years running business:',
@@ -79,10 +85,15 @@ class _MultiStepOnboardingScreenState
     OnboardingStep(
       title: 'Do you use digital payments (UPI, Paytm, PhonePe, etc.)?',
       firestoreField: 'digitalPayments',
-      options: ['Yes, openly with all customers', 'Yes, but only if asked', 'No'],
+      options: [
+        'Yes, openly with all customers',
+        'Yes, but only if asked',
+        'No'
+      ],
     ),
     OnboardingStep(
-      title: 'Do you use social media (Instagram, Facebook, WhatsApp) to promote your product / services ?',
+      title:
+          'Do you use social media (Instagram, Facebook, WhatsApp) to promote your product / services ?',
       firestoreField: 'socialMediaPromotion',
       options: ['Regularly', 'Sometimes', 'Never'],
     ),
@@ -102,7 +113,8 @@ class _MultiStepOnboardingScreenState
       isTextInput: true, // For 'Other' option
     ),
     OnboardingStep(
-      title: 'Can you roughly state your monthly profit after deducting expenses?',
+      title:
+          'Can you roughly state your monthly profit after deducting expenses?',
       firestoreField: 'monthlyProfit',
       options: ['Yes, accurately', 'Yes, but approximate', 'No idea'],
     ),
@@ -112,28 +124,40 @@ class _MultiStepOnboardingScreenState
       options: ['Always', 'Sometimes', 'Never'],
     ),
     OnboardingStep(
-      title: 'Do you save or reinvest part of your earnings for business growth (e.g., new chair, training, décor)?',
+      title:
+          'Do you save or reinvest part of your earnings for business growth (e.g., new chair, training, décor)?',
       firestoreField: 'saveReinvestForGrowth',
       options: ['Regularly', 'Occasionally', 'Never'],
     ),
     OnboardingStep(
       title: 'Do you use or have access to credit/loans?',
       firestoreField: 'accessToCreditLoans',
-      options: ['Yes, from SHG', 'Yes, from bank/MFI', 'Informal sources', 'No'],
+      options: [
+        'Yes, from SHG',
+        'Yes, from bank/MFI',
+        'Informal sources',
+        'No'
+      ],
     ),
     OnboardingStep(
       title: 'Section C. Stock / Inventory Management',
       isTitle: true,
     ),
     OnboardingStep(
-      title: 'How do you know what products (cosmetics, creams, dyes) are available?',
+      title:
+          'How do you know what products (cosmetics, creams, dyes) are available?',
       firestoreField: 'productAvailabilityKnowledge',
       options: ['Written list/register', 'Mobile app', 'Memory only'],
     ),
     OnboardingStep(
       title: 'How often do you check stock levels?',
       firestoreField: 'stockCheckFrequency',
-      options: ['Daily', 'Weekly', 'Only when product finishes', 'Rarely/Never'],
+      options: [
+        'Daily',
+        'Weekly',
+        'Only when product finishes',
+        'Rarely/Never'
+      ],
     ),
     OnboardingStep(
       title: 'Do you ever run out of products when a customer asks?',
@@ -162,17 +186,28 @@ class _MultiStepOnboardingScreenState
     OnboardingStep(
       title: 'Do you maintain a list of your regular customers?',
       firestoreField: 'maintainCustomerList',
-      options: ['Written register', 'Mobile/WhatsApp', 'Only in memory', 'None'],
+      options: [
+        'Written register',
+        'Mobile/WhatsApp',
+        'Only in memory',
+        'None'
+      ],
     ),
     OnboardingStep(
-      title: 'Do you remember customer preferences (type of cream, hairstyle, etc.)?',
+      title:
+          'Do you remember customer preferences (type of cream, hairstyle, etc.)?',
       firestoreField: 'rememberCustomerPreferences',
       options: ['Always', 'Sometimes', 'Rarely'],
     ),
     OnboardingStep(
-      title: 'Do you inform customers about new services/offers/festival packages?',
+      title:
+          'Do you inform customers about new services/offers/festival packages?',
       firestoreField: 'informCustomersAboutOffers',
-      options: ['Yes, via WhatsApp/calls', 'Only when they visit', 'Not at all'],
+      options: [
+        'Yes, via WhatsApp/calls',
+        'Only when they visit',
+        'Not at all'
+      ],
     ),
     OnboardingStep(
       title: 'Do you ask customers for feedback or suggestions?',
@@ -268,6 +303,19 @@ class _MultiStepOnboardingScreenState
               ),
             ),
             const SizedBox(height: 8),
+            step.isTitle == true
+                ? Text(
+                    step.titleText ?? " ",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontFamily: 'PatrickHand',
+                      fontWeight: FontWeight.w700,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+
+            const SizedBox(height: 8),
             Text(
               step.title,
               textAlign: TextAlign.center,
@@ -278,7 +326,8 @@ class _MultiStepOnboardingScreenState
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Enter ${step.title.toLowerCase()}',

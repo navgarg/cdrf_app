@@ -68,7 +68,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             _buildToggleButtons(),
             const SizedBox(height: 24),
-
             StreamBuilder<List<DailySummary>>(
               stream: dataStream,
               builder: (context, snapshot) {
@@ -124,7 +123,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       Text(
                         '₹ 0',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
                               color: Colors.green,
                             ),
                       ),
@@ -138,7 +140,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       Text(
                         '₹ 0',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
                               color: Colors.red,
                             ),
                       ),
@@ -217,11 +222,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     switch (_dashboardView) {
       case DashboardView.daily:
-        if (firstDate.month == lastDate.month) {
-          return '${DateFormat('MMM dd').format(firstDate)}-${DateFormat('dd, yyyy').format(lastDate)}';
-        } else {
-          return '${DateFormat('MMM dd').format(firstDate)}-${DateFormat('MMM dd, yyyy').format(lastDate)}';
-        }
+        return DateFormat('MMM dd, yyyy').format(firstDate);
+      // if (firstDate.month == lastDate.month) {
+      //   return '${DateFormat('MMM dd').format(firstDate)}-${DateFormat('dd, yyyy').format(lastDate)}';
+      // } else {
+      //   return '${DateFormat('MMM dd').format(firstDate)}-${DateFormat('MMM dd, yyyy').format(lastDate)}';
+      // }
       case DashboardView.weekly:
         if (firstDate.year == lastDate.year) {
           return '${DateFormat('MMM dd').format(firstDate)} - ${DateFormat('MMM dd, yyyy').format(lastDate)}';
@@ -240,23 +246,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildSummaryRow(String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-            Text(
-              '₹ $value',
-              style: const TextStyle(
-                fontSize: 16,
-              ),
+          ),
+          Text(
+            '₹ $value',
+            style: const TextStyle(
+              fontSize: 16,
             ),
-          ],
+          ),
+        ],
       ),
     );
   }

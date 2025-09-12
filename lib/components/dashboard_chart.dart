@@ -137,18 +137,27 @@ class DashboardChart extends StatelessWidget {
       String text;
       switch (dashboardView) {
         case DashboardView.daily:
-          text = '${data[index].date.day}';
+          final hour = data[index].date.hour;
+          String startHour12 = (hour % 12 == 0 ? 12 : hour % 12).toString();
+          String startAmPm = hour < 12 ? 'AM' : 'PM';
+
+          int endHour24 = hour + 4;
+          String endHour12 = (endHour24 % 12 == 0 ? 12 : endHour24 % 12).toString();
+          String endAmPm = endHour24 < 12 ? 'AM' : 'PM';
+
+          text = '$startHour12$startAmPm-$endHour12$endAmPm';
           break;
         case DashboardView.weekly:
+          DateTime dateForWeek = data[index].date;
+          text = '${data[index].date.day}';
+          break;
+        case DashboardView.monthly:
           DateTime dateForWeek = data[index].date;
           DateTime startOfWeek =
               dateForWeek.subtract(Duration(days: dateForWeek.weekday - 1));
           DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
           text =
               '${DateFormat('dd').format(startOfWeek)}-${DateFormat('dd MMM').format(endOfWeek)}';
-          break;
-        case DashboardView.monthly:
-          text = DateFormat('MMM').format(data[index].date);
           break;
       }
 
