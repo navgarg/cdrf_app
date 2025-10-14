@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:nariudyam/components/dashboard_chart.dart';
+import 'package:go_router/go_router.dart';
 import '../services/api/auth_service.dart';
 import '../models/user.dart';
 import '../services/api/dashboard_service.dart';
+import '../components/generic_list_tile.dart';
 
 enum DashboardView { daily, weekly, monthly }
 
@@ -151,6 +153,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 24),
+            // Resource Centre tile (navigates to separate page)
+            GenericListTile(
+              leading: Icon(Icons.folder,
+                  color: Theme.of(context).colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Resource Centre',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
+              onTap: () => context.push('/resource_centre'),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:nariudyam/screens/schedule/schedule.dart';
 import '../components/cart_bottom_sheet.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import '../components/customer_order_service_fab.dart';
+import '../services/admin/admin_provider.dart';
 
 final inventoryFabPressedProvider = StateProvider<bool>((ref) => false);
 
@@ -27,6 +28,11 @@ class AppShellLayout extends ConsumerWidget {
     '/schedule': 'Schedule',
     '/customer_order': 'Customer Order',
     '/profile': 'Profile',
+    '/resource_centre': 'Resource Centre',
+    '/admin': 'Admin Portal',
+    '/admin/users': 'Manage Users',
+    '/admin/analytics': 'Analytics',
+    '/admin/resources': 'Resources',
   };
 
   @override
@@ -36,6 +42,7 @@ class AppShellLayout extends ConsumerWidget {
     final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
     final bool showBackButton =
         GoRouter.of(context).canPop() && !isTopLevelRoute;
+    final isAdmin = ref.watch(isAdminProvider);
 
     void _showCartSheet() {
       showModalBottomSheet(
@@ -114,6 +121,13 @@ class AppShellLayout extends ConsumerWidget {
                         onPressed: _showCartSheet,
                         iconSize: 28,
                       )
+                    else if (currentPath == '/dashboard')
+                      IconButton(
+                        icon:
+                            const Icon(Icons.help_outline, color: Colors.white),
+                        onPressed: () => context.push('/faqs'),
+                        iconSize: 28,
+                      )
                     else
                       const SizedBox(width: 48),
                   ],
@@ -131,42 +145,69 @@ class AppShellLayout extends ConsumerWidget {
         backgroundColor: theme.colorScheme.surface,
         selectedItemColor: theme.colorScheme.primary,
         unselectedItemColor: Colors.grey,
-        currentIndex: _getSelectedIndex(currentPath),
-        onTap: (index) => _onItemTapped(context, index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Inventory',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Schedule',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Order',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        currentIndex: _getSelectedIndex(currentPath, isAdmin),
+        onTap: (index) => _onItemTapped(context, index, isAdmin),
+        items: isAdmin
+            ? const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.people),
+                  label: 'Users',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.analytics),
+                  label: 'Analytics',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.folder),
+                  label: 'Resources',
+                ),
+              ]
+            : const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.inventory),
+                  label: 'Inventory',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today),
+                  label: 'Schedule',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_cart),
+                  label: 'Order',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
       ),
       floatingActionButton: _buildFab(context, ref),
     );
   }
 
-  int _getSelectedIndex(String? path) {
-    if (path!.startsWith('/dashboard')) return 0;
-    if (path.startsWith('/inventory')) return 1;
-    if (path.startsWith('/schedule')) return 2;
-    if (path.startsWith('/customer_order')) return 3;
-    if (path.startsWith('/profile')) return 4;
-    return 0; // Default to home
+  int _getSelectedIndex(String? path, bool isAdmin) {
+    if (isAdmin) {
+      if (path!.startsWith('/admin/users')) return 1;
+      if (path.startsWith('/admin/analytics')) return 2;
+      if (path.startsWith('/admin/resources')) return 3;
+      if (path.startsWith('/admin')) return 0;
+      return 0;
+    } else {
+      if (path!.startsWith('/dashboard')) return 0;
+      if (path.startsWith('/inventory')) return 1;
+      if (path.startsWith('/schedule')) return 2;
+      if (path.startsWith('/customer_order')) return 3;
+      if (path.startsWith('/profile')) return 4;
+      return 0; // Default to home
+    }
   }
 
   Widget? _buildFab(BuildContext context, WidgetRef ref) {
@@ -201,26 +242,45 @@ class AppShellLayout extends ConsumerWidget {
     }
   }
 
-  void _onItemTapped(BuildContext context, int index) {
+  void _onItemTapped(BuildContext context, int index, bool isAdmin) {
     final String destination;
-    switch (index) {
-      case 0:
-        destination = '/dashboard';
-        break;
-      case 1:
-        destination = '/inventory';
-        break;
-      case 2:
-        destination = '/schedule';
-        break;
-      case 3:
-        destination = '/customer_order';
-        break;
-      case 4:
-        destination = '/profile';
-        break;
-      default:
-        destination = '/dashboard';
+    if (isAdmin) {
+      switch (index) {
+        case 0:
+          destination = '/admin';
+          break;
+        case 1:
+          destination = '/admin/users';
+          break;
+        case 2:
+          destination = '/admin/analytics';
+          break;
+        case 3:
+          destination = '/admin/resources';
+          break;
+        default:
+          destination = '/admin';
+      }
+    } else {
+      switch (index) {
+        case 0:
+          destination = '/dashboard';
+          break;
+        case 1:
+          destination = '/inventory';
+          break;
+        case 2:
+          destination = '/schedule';
+          break;
+        case 3:
+          destination = '/customer_order';
+          break;
+        case 4:
+          destination = '/profile';
+          break;
+        default:
+          destination = '/dashboard';
+      }
     }
     if ((currentPath ?? '') != destination) {
       context.go(destination);

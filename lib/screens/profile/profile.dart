@@ -17,9 +17,15 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-
   void _showLanguagesDialog(BuildContext context) {
-    const List<String> languages = ['English', 'हिन्दी', 'తెలుగు', 'മലയാളം', 'ಕನ್ನಡ', 'தமிழ்'];
+    const List<String> languages = [
+      'English',
+      'हिन्दी',
+      'తెలుగు',
+      'മലയാളം',
+      'ಕನ್ನಡ',
+      'தமிழ்'
+    ];
 
     showGeneralDialog(
       context: context,
@@ -32,7 +38,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           alignment: Alignment.bottomCenter,
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.5,
             ),
@@ -49,25 +56,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Select Language',
+                    const Text(
+                      'Select Language',
                       style: TextStyle(
-                      fontSize: 36,
-                      fontFamily: 'PatrickHand',
-                      fontWeight: FontWeight.w800,
-
-                    ),),
+                        fontSize: 36,
+                        fontFamily: 'PatrickHand',
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     ...languages.map((lang) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6.0),
-                      child: RegularButton(
-                        text: lang,
-                        onPressed: () {
-                          ref.read(authServiceProvider).updateUserProfile({'language': lang});
-                          Navigator.of(context).pop();
-                          ref.read(messengerProvider).showSuccess('Language updated to $lang');
-                        },
-                      ),
-                    )),
+                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                          child: RegularButton(
+                            text: lang,
+                            onPressed: () {
+                              ref
+                                  .read(authServiceProvider)
+                                  .updateUserProfile({'language': lang});
+                              Navigator.of(context).pop();
+                              ref
+                                  .read(messengerProvider)
+                                  .showSuccess('Language updated to $lang');
+                            },
+                          ),
+                        )),
                   ],
                 ),
               ),
@@ -77,7 +89,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0)).animate(animation),
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+              .animate(animation),
           child: child,
         );
       },
@@ -109,14 +122,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 12),
             Text(
               user.name ?? "User",
-              style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               user.phoneNumber,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey.shade600),
+              style: theme.textTheme.bodyLarge
+                  ?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 9),
 
@@ -128,36 +141,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _buildInfoSection(context, 'Settings'),
 
             GenericListTile(
-              leading: Icon(Icons.translate, color: theme.colorScheme.primary, size: 28),
+              leading: Icon(Icons.translate,
+                  color: theme.colorScheme.primary, size: 28),
               titleWidget: const Text(
                 'Languages',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () {
                 _showLanguagesDialog(context);
               },
             ),
             GenericListTile(
-              leading: Icon(Icons.notifications_none_outlined, color: theme.colorScheme.primary, size: 28),
+              leading: Icon(Icons.notifications_none_outlined,
+                  color: theme.colorScheme.primary, size: 28),
               titleWidget: const Text(
                 'Notifications',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () {},
             ),
             GenericListTile(
-              leading: Icon(Icons.favorite_border_rounded, color: theme.colorScheme.primary, size: 28),
+              leading: Icon(Icons.favorite_border_rounded,
+                  color: theme.colorScheme.primary, size: 28),
               titleWidget: const Text(
                 'Favourite Customers',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () => context.push('/profile/favourite_customers'),
             ),
             GenericListTile(
-              leading: Icon(Icons.request_quote_outlined, color: theme.colorScheme.primary, size: 28),
+              leading: Icon(Icons.request_quote_outlined,
+                  color: theme.colorScheme.primary, size: 28),
               titleWidget: const Text(
                 'Financial Transactions',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -173,28 +193,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onTap: () {},
             ),
             GenericListTile(
-              leading: Icon(Icons.download, color: theme.colorScheme.primary, size: 28),
+              leading: Icon(Icons.download,
+                  color: theme.colorScheme.primary, size: 28),
               titleWidget: const Text(
                 'Export Transactions to Excel',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () async {
-                await ref.read(excelServiceProvider).exportTransactionsToExcel();
-                ref.read(messengerProvider).showSuccess('Transactions exported to Excel!');
+                await ref
+                    .read(excelServiceProvider)
+                    .exportTransactionsToExcel();
+                ref
+                    .read(messengerProvider)
+                    .showSuccess('Transactions exported to Excel!');
               },
             ),
             GenericListTile(
-              leading: Icon(Icons.upload_file, color: theme.colorScheme.primary, size: 28),
+              leading: Icon(Icons.upload_file,
+                  color: theme.colorScheme.primary, size: 28),
               titleWidget: const Text(
                 'Export Onboarding Data to Excel',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () async {
-                await ref.read(onboardingExcelServiceProvider).exportOnboardingDataToExcel();
-                ref.read(messengerProvider).showSuccess('Onboarding data exported to Excel!');
+                await ref
+                    .read(onboardingExcelServiceProvider)
+                    .exportOnboardingDataToExcel();
+                ref
+                    .read(messengerProvider)
+                    .showSuccess('Onboarding data exported to Excel!');
               },
+            ),
+
+            // Resource Centre tile - placed at end of page as requested
+            GenericListTile(
+              leading: Icon(Icons.folder,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: const Text(
+                'Resource Centre',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
+              onTap: () => context.push('/resource_centre'),
             ),
 
             const SizedBox(height: 32),
@@ -232,10 +277,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Text(
             title,
-            style: Theme
-                .of(context)
-                .textTheme
-                .titleLarge,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           const Divider(),
         ],
@@ -264,5 +306,4 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
-
 }
