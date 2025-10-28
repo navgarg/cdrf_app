@@ -12,9 +12,15 @@ import '../screens/app_shell_layout.dart';
 import '../screens/inventory/inventory.dart';
 import '../screens/schedule/schedule.dart';
 import '../screens/profile/profile.dart';
+import '../screens/resource_center/resource_center.dart';
 import '../services/api/auth_service.dart';
+import '../services/admin/admin_provider.dart';
+import '../screens/admin/admin_dashboard.dart';
+import '../screens/admin/admin_users.dart';
+import '../screens/admin/admin_analytics.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import '../screens/customer_order.dart';
+import '../screens/faqs/faqs_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -22,6 +28,7 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
   final user = ref.watch(userProvider);
+  final isAdmin = ref.watch(isAdminProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -36,6 +43,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.valueOrNull != null;
 
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      final isAdminRoute = state.matchedLocation.startsWith('/admin');
 
       if (!isAuthenticated && !isAuthRoute) {
         return '/auth';
@@ -49,6 +57,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (user == null) return null; // Waiting for user data to load
 
         if (isAuthRoute) {
+          // Check if user is admin
+          if (isAdmin) {
+            return '/admin';
+          }
+
           // If first-time onboarding is not done, send to multi-step screen.
           if (!user.onboardingCompleted) {
             return '/onboarding/multi_step';
@@ -57,6 +70,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           else {
             return '/dashboard';
           }
+        }
+
+        // Redirect non-admin users away from admin routes
+        if (isAdminRoute && !isAdmin) {
+          return '/dashboard';
+        }
+
+        // Redirect admin users to admin portal if they try to access regular app
+        if (!isAdminRoute &&
+            isAdmin &&
+            state.matchedLocation.startsWith('/dashboard')) {
+          return '/admin';
         }
       }
 
@@ -143,6 +168,45 @@ final routerProvider = Provider<GoRouter>((ref) {
                 parentNavigatorKey: _shellNavigatorKey,
               ),
             ],
+          ),
+          GoRoute(
+            path: '/resource_centre',
+            builder: (context, state) => const ResourceCenterScreen(),
+          ),
+        ],
+      ),
+
+      // FAQs route outside the shell for full-screen presentation
+      GoRoute(
+        path: '/faqs',
+        builder: (context, state) => const FaqsScreen(),
+      ),
+
+      // Admin Shell Route (reuses AppShellLayout with bottom navigation)
+      ShellRoute(
+        builder: (context, state, child) {
+          return AppShellLayout(
+            currentPath: state.fullPath ?? '',
+            subtitle: 'Nari Udyam',
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/admin',
+            builder: (context, state) => const AdminDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/admin/users',
+            builder: (context, state) => const AdminUsersScreen(),
+          ),
+          GoRoute(
+            path: '/admin/analytics',
+            builder: (context, state) => const AdminAnalyticsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/resources',
+            builder: (context, state) => const ResourceCenterScreen(),
           ),
         ],
       ),
