@@ -198,7 +198,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
 
             const SizedBox(height: 32),
-
             SizedBox(
               width: double.infinity,
               child: TextButton.icon(
