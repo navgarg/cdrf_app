@@ -8,6 +8,7 @@ import '../../services/api/auth_service.dart';
 import '../../services/general/messenger.dart';
 import '../../services/general/excel_service.dart';
 import '../../services/general/onboarding_excel_service.dart';
+import 'package:nariudyam/l10n/app_localizations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -17,22 +18,31 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-
   void _showLanguagesDialog(BuildContext context) {
-    const List<String> languages = ['English', 'हिन्दी', 'తెలుగు', 'മലയാളം', 'ಕನ್ನಡ', 'தமிழ்'];
+    final appLocalizations = AppLocalizations.of(context);
+    const Map<String, String> languagesMap = {
+      'English': 'en',
+      'हिन्दी': 'hi',
+      'తెలుగు': 'te',
+      'മലയാളം': 'ml',
+      'ಕನ್ನಡ': 'kn',
+      'தமிழ்': 'ta',
+    };
+    final List<String> languages = languagesMap.keys.toList();
 
     showGeneralDialog(
       context: context,
       barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
       barrierDismissible: true,
-      barrierLabel: 'Select Language',
+      barrierLabel: appLocalizations!.selectLanguage,
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
           alignment: Alignment.bottomCenter,
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.5,
             ),
@@ -49,25 +59,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Select Language',
-                      style: TextStyle(
-                      fontSize: 36,
-                      fontFamily: 'PatrickHand',
-                      fontWeight: FontWeight.w800,
-
-                    ),),
-                    const SizedBox(height: 24),
-                    ...languages.map((lang) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6.0),
-                      child: RegularButton(
-                        text: lang,
-                        onPressed: () {
-                          ref.read(authServiceProvider).updateUserProfile({'language': lang});
-                          Navigator.of(context).pop();
-                          ref.read(messengerProvider).showSuccess('Language updated to $lang');
-                        },
+                    Text(
+                      appLocalizations.selectLanguage,
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontFamily: 'PatrickHand',
+                        fontWeight: FontWeight.w800,
                       ),
-                    )),
+                    ),
+                    const SizedBox(height: 24),
+                    ...languages.map(
+                      (lang) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                          child: RegularButton(
+                            text: lang,
+                            onPressed: () {
+                              final langCode = languagesMap[lang];
+                              if (langCode != null) {
+                                {
+                                  ref
+                                      .read(authServiceProvider)
+                                      .updateUserProfile(
+                                          {'language': langCode});
+                                  Navigator.of(context).pop();
+                                  ref.read(messengerProvider).showSuccess(
+                                      appLocalizations.languageUpdated(lang));
+                                }
+                              }
+                            },
+                          )),
+                    ),
                   ],
                 ),
               ),
@@ -77,7 +98,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0)).animate(animation),
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+              .animate(animation),
           child: child,
         );
       },
@@ -88,6 +110,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final user = ref.watch(userProvider);
+    final appLocalizations = AppLocalizations.of(context);
 
     // Show a loading indicator if user data isn't available yet
     if (user == null) {
@@ -108,59 +131,69 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              user.name ?? "User",
-              style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold),
+              user.name ?? appLocalizations!.user,
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               user.phoneNumber,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey.shade600),
+              style: theme.textTheme.bodyLarge
+                  ?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 9),
-
-            _buildInfoSection(context, 'Business Information'),
-            _buildInfoRow('Business Name', user.name ?? 'N/A'),
-            _buildInfoRow('Business Domain', user.businessDomain ?? 'N/A'),
-
+            _buildInfoSection(context, appLocalizations!.businessInformation),
+            _buildInfoRow(appLocalizations.businessName,
+                user.name ?? appLocalizations.notAvailable),
+            _buildInfoRow(appLocalizations.businessDomain,
+                user.businessDomain ?? appLocalizations.notAvailable),
             const SizedBox(height: 16),
-            _buildInfoSection(context, 'Settings'),
-
+            _buildInfoSection(context, appLocalizations.settings),
             GenericListTile(
-              leading: Icon(Icons.translate, color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Languages',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              leading: Icon(Icons.translate,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: Text(
+                appLocalizations.languages,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () {
                 _showLanguagesDialog(context);
               },
             ),
             GenericListTile(
-              leading: Icon(Icons.notifications_none_outlined, color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Notifications',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              leading: Icon(Icons.notifications_none_outlined,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: Text(
+                appLocalizations.notifications,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () {},
             ),
             GenericListTile(
-              leading: Icon(Icons.favorite_border_rounded, color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Favourite Customers',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              leading: Icon(Icons.favorite_border_rounded,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: Text(
+                appLocalizations.favouriteCustomers,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () => context.push('/profile/favourite_customers'),
             ),
             GenericListTile(
-              leading: Icon(Icons.request_quote_outlined, color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Financial Transactions',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              leading: Icon(Icons.request_quote_outlined,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: Text(
+                appLocalizations.financialTransactions,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               trailing: Switch(
                 value: user.financialTransactionsEnabled,
@@ -173,30 +206,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onTap: () {},
             ),
             GenericListTile(
-              leading: Icon(Icons.download, color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Export Transactions to Excel',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              leading: Icon(Icons.download,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: Text(
+                appLocalizations.exportTransactionsToExcel,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () async {
-                await ref.read(excelServiceProvider).exportTransactionsToExcel();
-                ref.read(messengerProvider).showSuccess('Transactions exported to Excel!');
+                await ref
+                    .read(excelServiceProvider)
+                    .exportTransactionsToExcel();
+                ref
+                    .read(messengerProvider)
+                    .showSuccess(appLocalizations.transactionsExported);
               },
             ),
             GenericListTile(
-              leading: Icon(Icons.upload_file, color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Export Onboarding Data to Excel',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              leading: Icon(Icons.upload_file,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: Text(
+                appLocalizations.exportOnboardingDataToExcel,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade600),
               onTap: () async {
-                await ref.read(onboardingExcelServiceProvider).exportOnboardingDataToExcel();
-                ref.read(messengerProvider).showSuccess('Onboarding data exported to Excel!');
+                await ref
+                    .read(onboardingExcelServiceProvider)
+                    .exportOnboardingDataToExcel();
+                ref
+                    .read(messengerProvider)
+                    .showSuccess(appLocalizations.onboardingDataExported);
               },
             ),
-
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -205,7 +251,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ref.read(authServiceProvider).signOut();
                 },
                 icon: const Icon(Icons.logout),
-                label: const Text('Sign Out'),
+                label: Text(appLocalizations.signOut),
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   foregroundColor: Colors.white,
@@ -231,10 +277,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Text(
             title,
-            style: Theme
-                .of(context)
-                .textTheme
-                .titleLarge,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           const Divider(),
         ],
@@ -263,5 +306,4 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
-
 }

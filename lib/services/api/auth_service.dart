@@ -155,7 +155,12 @@ class AuthService {
 
     try {
       await _firestore.collection('users').doc(user.uid).update(data);
-      // await _refreshUserProvider();
+      // After updating, refresh the user provider to reflect changes immediately
+      final updatedDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (updatedDoc.exists) {
+        final userModel = UserModel.fromFirestore(updatedDoc);
+        _ref.read(userProvider.notifier).state = userModel;
+      }
     } catch (e) {
       _ref.read(messengerProvider).showError('Failed to update profile: ${e.toString()}');
     }

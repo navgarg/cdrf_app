@@ -6,6 +6,7 @@ import 'package:nariudyam/screens/schedule/schedule.dart';
 import '../components/cart_bottom_sheet.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import '../components/customer_order_service_fab.dart';
+import 'package:nariudyam/l10n/app_localizations.dart';
 
 final inventoryFabPressedProvider = StateProvider<bool>((ref) => false);
 
@@ -21,18 +22,18 @@ class AppShellLayout extends ConsumerWidget {
     this.subtitle,
   });
 
-  static const Map<String, String> routeTitles = {
-    '/dashboard': 'Dashboard',
-    '/inventory': 'Inventory',
-    '/schedule': 'Schedule',
-    '/customer_order': 'Customer Order',
-    '/profile': 'Profile',
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
-    final String pageTitle = routeTitles[currentPath ?? ''] ?? 'Nari Udyam';
+    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
+    final Map<String, String> routeTitles = {
+      '/dashboard': appLocalizations.dashboard,
+      '/inventory': appLocalizations.inventory,
+      '/schedule': appLocalizations.schedule,
+      '/customer_order': appLocalizations.customerOrder,
+      '/profile': appLocalizations.profile,
+    };
+    final String pageTitle = routeTitles[currentPath ?? ''] ?? appLocalizations.appName;
     final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
     final bool showBackButton =
         GoRouter.of(context).canPop() && !isTopLevelRoute;
@@ -133,26 +134,26 @@ class AppShellLayout extends ConsumerWidget {
         unselectedItemColor: Colors.grey,
         currentIndex: _getSelectedIndex(currentPath),
         onTap: (index) => _onItemTapped(context, index),
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home),
+            label: appLocalizations.home,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Inventory',
+            icon: const Icon(Icons.inventory),
+            label: appLocalizations.inventory,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Schedule',
+            icon: const Icon(Icons.calendar_today),
+            label: appLocalizations.schedule,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Order',
+            icon: const Icon(Icons.shopping_cart),
+            label: appLocalizations.order,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person),
+            label: appLocalizations.profile,
           ),
         ],
       ),

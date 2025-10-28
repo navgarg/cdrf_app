@@ -74,7 +74,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _verificationCodeController.text.trim(),
         );
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
 
     if (verified) {
       ref.read(messengerProvider).showSuccess('Successfully logged in!');
@@ -218,10 +222,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-            RegularButton(
-              onPressed: _verifyCode,
-              text: "Verify",
-              isLoading: _isLoading,
+          RegularButton(
+            onPressed: _verifyCode,
+            text: "Verify",
+            isLoading: _isLoading,
           ),
         ],
       ),

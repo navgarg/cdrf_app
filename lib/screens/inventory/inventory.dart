@@ -6,6 +6,7 @@ import 'package:nariudyam/services/api/inventory_service.dart';
 import '../app_shell_layout.dart';
 import 'add_inventory_item_form.dart';
 import 'inventory_item_detail_screen.dart';
+import 'package:nariudyam/l10n/app_localizations.dart';
 
 final inventoryItemsProvider =
     StreamProvider.autoDispose<List<ProductItem>>((ref) {
@@ -21,11 +22,12 @@ class InventoryScreen extends ConsumerStatefulWidget {
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   void _showAddInventoryItemDialog() {
+    final appLocalizations = AppLocalizations.of(context);
     showGeneralDialog(
       context: context,
       barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
       barrierDismissible: true,
-      barrierLabel: 'Add Inventory Item',
+      barrierLabel: appLocalizations?.addInventoryItem ?? "",
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -76,8 +78,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         return inventoryItemsAsyncValue.when(
           data: (items) {
             if (items.isEmpty) {
-              return const Center(
-                child: Text('No inventory items found. Add some!'),
+              return Center(
+                child: Text(AppLocalizations.of(context)!.noInventoryItemsFound),
               );
             }
             return ListView.builder(
@@ -128,7 +130,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => const Center(child: Text('Error: \$error')),
+          error: (error, stack) => Center(child: Text(AppLocalizations.of(context)!.errorFetchingInventoryItems(error.toString()))),
         );
       },
     );
