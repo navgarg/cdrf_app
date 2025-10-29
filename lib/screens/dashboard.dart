@@ -7,6 +7,7 @@ import '../services/api/auth_service.dart';
 import '../models/user.dart';
 import '../services/api/dashboard_service.dart';
 import '../components/generic_list_tile.dart';
+import 'package:nariudyam/l10n/app_localizations.dart';
 
 enum DashboardView { daily, weekly, monthly }
 
@@ -41,6 +42,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final userModel = ref.watch(userProvider);
     final dashboardService = ref.watch(dashboardServiceProvider);
+    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
 
     Stream<List<DailySummary>> dataStream = Stream.value([]);
     switch (_dashboardView) {
@@ -57,20 +59,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return userModel == null
         ? const Center(child: CircularProgressIndicator())
-        : _buildDashboard(context, userModel, dataStream);
+        : _buildDashboard(context, userModel, dataStream, appLocalizations);
   }
 
-  Widget _buildDashboard(BuildContext context, UserModel user,
-      Stream<List<DailySummary>> dataStream) {
+  Widget _buildDashboard(
+      BuildContext context,
+      UserModel user,
+      Stream<List<DailySummary>> dataStream,
+      AppLocalizations appLocalizations) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildToggleButtons(),
-            const SizedBox(height: 24),
-            StreamBuilder<List<DailySummary>>(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _buildToggleButtons(),
+          const SizedBox(height: 24),
+          StreamBuilder<List<DailySummary>>(
               stream: dataStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -82,79 +85,92 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   return _buildDateNavigator([]);
                 }
                 final data = snapshot.data!;
-                return _buildDateNavigator(data);
-              },
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: DashboardChart(
-                  dataStream: dataStream, dashboardView: _dashboardView),
-            ),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Column(
-                children: [
-                  _buildSummaryRow('Today', '0'),
-                  const Divider(),
-                  _buildSummaryRow('Best', '0'),
-                  const Divider(),
-                  _buildSummaryRow('Total', '0'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                        'Revenue',
-                        style: Theme.of(context).textTheme.titleMedium,
+                final totalProfit =
+                    data.fold<double>(0.0, (sum, item) => sum + item.profit);
+                final todayProfit = data.isNotEmpty
+                    ? data.last.profit
+                    : 0.0; // Assuming last item is today's or most recent
+                final bestProfit = data.isNotEmpty
+                    ? data.map((e) => e.profit).reduce((a, b) => a > b ? a : b)
+                    : 0.0;
+
+                return Column(
+                  children: [
+                    _buildDateNavigator(data),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: DashboardChart(
+                          dataStream: dataStream,
+                          dashboardView: _dashboardView),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      Text(
-                        '₹ 0',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              color: Colors.green,
-                            ),
+                      child: Column(
+                        children: [
+                          _buildSummaryRow(appLocalizations.today,
+                              todayProfit.toStringAsFixed(2)),
+                          const Divider(),
+                          _buildSummaryRow(appLocalizations.best,
+                              bestProfit.toStringAsFixed(2)),
+                          const Divider(),
+                          _buildSummaryRow(appLocalizations.total,
+                              totalProfit.toStringAsFixed(2)),
+                        ],
                       ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Text(
-                        'Expenses',
-                        style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      Text(
-                        '₹ 0',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              color: Colors.red,
-                            ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Column(
+                            children: [
+                              Text(
+                                appLocalizations.revenue,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                '₹ 0',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      color: Colors.green,
+                                    ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                appLocalizations.expenses,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                '₹ 0',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      color: Colors.red,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: 24),
             // Resource Centre tile (navigates to separate page)
             GenericListTile(
               leading: Icon(Icons.folder,
@@ -168,7 +184,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               onTap: () => context.push('/resource_centre'),
             ),
           ],
-        ),
+                );
+              }),
+        ]),
       ),
     );
   }

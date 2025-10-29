@@ -66,9 +66,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (!user.onboardingCompleted) {
             return '/onboarding/multi_step';
           }
-          // If onboarding is done, send to business domain selection.
+          // If onboarding is done, send to dashboard
           else {
-            return '/onboarding/business_domain';
+            return '/dashboard';
           }
         }
 
@@ -242,7 +242,6 @@ CustomTransitionPage<void> _buildPageWithSlideTransition({
 
 //todo:
 //feedback in excel
-//feedback before payment
 //graphs for individual inv item
 
 //which gives max revenue
@@ -259,16 +258,14 @@ resource centre
 unique logo for app
 admin portal to download analytics
 
-password and otp
 english, hindi and telugu language support
 customer satisfaction trends
 % of online/offline transactions - using payment mode used
 different colors for diff categories
 
 card payment method
-dynamic transaction history for daily
 faqs page for owners
-montHly reports for inv -
+montHly reports for inv
 one button for all items - purchased date, quantity, price
 
 

@@ -74,7 +74,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _verificationCodeController.text.trim(),
         );
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
 
     if (verified) {
       ref.read(messengerProvider).showSuccess('Successfully logged in!');

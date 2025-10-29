@@ -4,6 +4,7 @@ import 'package:nariudyam/services/api/inventory_service.dart';
 import 'package:nariudyam/services/api/transaction_service.dart';
 import 'package:nariudyam/models/transaction.dart';
 import '../../models/product_item.dart';
+import 'package:nariudyam/l10n/app_localizations.dart';
 
 class InventoryItemDetailScreen extends ConsumerWidget {
   // final InventoryItem item;
@@ -14,12 +15,15 @@ class InventoryItemDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemAsync = ref.watch(productItemProvider(itemId));
+    final appLocalizations = AppLocalizations.of(context);
 
     return itemAsync.when(
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (err, stack) =>
-            Scaffold(body: Center(child: Text('Error: $err'))),
+        error: (err, stack) => Scaffold(
+            body: Center(
+                child:
+                    Text(appLocalizations!.errorFetchingItem(err.toString())))),
         data: (item) {
           return DraggableScrollableSheet(
             initialChildSize: 0.4, // Initial height of the bottom sheet
@@ -65,44 +69,50 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildActionButton(
-                              context, Icons.shopping_cart, 'Order', item, ref),
+                          _buildActionButton(context, Icons.shopping_cart,
+                              appLocalizations!.order, item, ref),
                           // _buildActionButton(context, Icons.swap_horiz, 'Transfer'),
-                          _buildActionButton(context,
-                              Icons.attach_money_outlined, 'Sell', item, ref),
+                          _buildActionButton(
+                              context,
+                              Icons.attach_money_outlined,
+                              appLocalizations.sell,
+                              item,
+                              ref),
                         ],
                       ),
                       const SizedBox(height: 24.0),
-                      _buildDetailRow(context, 'Amount',
+                      _buildDetailRow(context, appLocalizations.amount,
                           '${item.stockQuantity} ${item.unit}'),
-                      _buildDetailRow(context, 'Reorder Threshold',
+                      _buildDetailRow(
+                          context,
+                          appLocalizations.reorderThreshold,
                           '${item.reorderThreshold} ${item.unit}'),
-                      _buildDetailRow(
-                          context, 'Locations', item.location ?? 'N/A'),
-                      _buildDetailRow(
-                          context, 'Description', item.description ?? 'N/A'),
-                      _buildDetailRow(context, 'Stock value',
+                      _buildDetailRow(context, appLocalizations.locations,
+                          item.location ?? appLocalizations.notAvailable),
+                      _buildDetailRow(context, appLocalizations.description,
+                          item.description ?? appLocalizations.notAvailable),
+                      _buildDetailRow(context, appLocalizations.stockValue,
                           '₹${(item.price * item.stockQuantity).toStringAsFixed(2)}'),
                       _buildDetailRow(
                           context,
-                          'Last purchased',
+                          appLocalizations.lastPurchased,
                           item.lastPurchasedDate
                                   ?.toLocal()
                                   .toString()
                                   .split(' ')[0] ??
-                              'N/A'),
+                              appLocalizations.notAvailable),
                       _buildDetailRow(
                           context,
-                          'Last Sold',
+                          appLocalizations.lastSold,
                           item.lastSoldDate
                                   ?.toLocal()
                                   .toString()
                                   .split(' ')[0] ??
-                              'N/A'),
-                      _buildDetailRow(context, 'Last price',
-                          '₹${item.price.toStringAsFixed(2)} per ${item.unit}'),
-                      _buildDetailRow(context, 'Average price',
-                          '₹${item.cost.toStringAsFixed(2)} per ${item.unit}'),
+                              appLocalizations.notAvailable),
+                      _buildDetailRow(context, appLocalizations.lastPrice,
+                          '₹${item.price.toStringAsFixed(2)} ${appLocalizations.per} ${item.unit}'),
+                      _buildDetailRow(context, appLocalizations.averagePrice,
+                          '₹${item.cost.toStringAsFixed(2)} ${appLocalizations.per} ${item.unit}'),
                     ],
                   ),
                 ),
@@ -138,14 +148,20 @@ class InventoryItemDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, IconData icon, String label,
-      ProductItem item, WidgetRef ref) {
+  Widget _buildActionButton(
+    BuildContext context,
+    IconData icon,
+    String label,
+    ProductItem item,
+    WidgetRef ref,
+  ) {
+    final appLocalizations = AppLocalizations.of(context);
     return Column(
       children: [
         IconButton(
           icon: Icon(icon),
           onPressed: () {
-            if (label == 'Sell') {
+            if (label == appLocalizations!.sell) {
               _showSellDialog(context, item, ref);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -163,28 +179,30 @@ class InventoryItemDetailScreen extends ConsumerWidget {
     // These are created here and will be garbage collected when the dialog closes.
     final quantityController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    final appLocalizations = AppLocalizations.of(context);
 
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Sell Item'),
+          title: Text(appLocalizations!.sellItem),
           content: Form(
             key: formKey,
             child: TextFormField(
               controller: quantityController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Quantity to sell'),
+              decoration:
+                  InputDecoration(labelText: appLocalizations.quantityToSell),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a quantity';
+                  return appLocalizations.pleaseEnterQuantity;
                 }
                 final quantity = int.tryParse(value);
                 if (quantity == null || quantity <= 0) {
-                  return 'Please enter a valid positive number';
+                  return appLocalizations.pleaseEnterValidPositiveNumber;
                 }
                 if (quantity > item.stockQuantity) {
-                  return 'Not enough stock. Available: ${item.stockQuantity}';
+                  return appLocalizations.notEnoughStock(item.stockQuantity);
                 }
                 return null;
               },
@@ -192,13 +210,13 @@ class InventoryItemDetailScreen extends ConsumerWidget {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(appLocalizations.cancel),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
             ElevatedButton(
-              child: const Text('Sell'),
+              child: Text(appLocalizations.sell),
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   final quantityToSell = int.parse(quantityController.text);
@@ -224,9 +242,9 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                   } else {
                     // if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text(
-                              'Failed to update inventory or record transaction.')),
+                      SnackBar(
+                          content:
+                              Text(appLocalizations.failedToUpdateInventory)),
                     );
                     // }
                   }

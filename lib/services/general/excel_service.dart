@@ -56,8 +56,9 @@ class ExcelService {
         if (key == 'productName') return TextCellValue(productName);
         final value = transactionMap[key];
         if (value == null) return TextCellValue('N/A');
-        if (value is DateTime)
+        if (value is DateTime) {
           return TextCellValue(value.toIso8601String().split('T').first);
+        }
         if (value is int) return IntCellValue(value);
         if (value is double) return DoubleCellValue(value);
         return TextCellValue(value.toString());

@@ -5,6 +5,7 @@ import 'package:nariudyam/models/service_item.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
 import 'package:nariudyam/services/api/services_service.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/l10n/app_localizations.dart';
 
 final productsProvider = StreamProvider.autoDispose<List<ProductItem>>((ref) {
   return ref.watch(inventoryServiceProvider).streamInventoryProductItems();
@@ -51,6 +52,7 @@ class CustomerOrderScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
     final isService = user?.businessDomain == 'Beauty Parlor';
+    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
 
     final itemsAsyncValue = isService
         // Beauty Parlor => show services on order page
@@ -65,7 +67,9 @@ class CustomerOrderScreen extends ConsumerWidget {
       data: (items) {
         if (items.isEmpty) {
           return Center(
-              child: Text('No ${isService ? 'services' : 'products'} found.'));
+              child: Text(isService
+                  ? appLocalizations.noServicesFound
+                  : appLocalizations.noProductsFound));
         }
         final onSurface = theme.colorScheme.onSurface;
         return ListView.separated(
@@ -150,8 +154,8 @@ class CustomerOrderScreen extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) =>
-          Center(child: Text('Error loading data: $error')),
+      error: (error, stack) => Center(
+          child: Text(appLocalizations.errorLoadingData(error.toString()))),
     );
   }
 }
@@ -174,6 +178,7 @@ class _AddToCartButton extends ConsumerWidget {
     final qty = qtyMap[itemId];
     final notifier = ref.read(cartProvider.notifier);
     final onPrimary = theme.colorScheme.onPrimary;
+    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
 
     // Determine increment size (0.5 for weight-based products with kg unit)
     final bool isWeightProduct =
@@ -191,7 +196,7 @@ class _AddToCartButton extends ConsumerWidget {
           elevation: 0,
         ),
         onPressed: () => notifier.addToCart(itemId, quantityDelta: step),
-        child: Text('Add',
+        child: Text(appLocalizations.add,
             style: TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 16, color: onPrimary)),
       );

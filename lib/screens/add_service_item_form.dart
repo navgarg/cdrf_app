@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/services/api/services_service.dart';
+import 'package:nariudyam/l10n/app_localizations.dart';
 
 class AddServiceItemForm extends ConsumerStatefulWidget {
   const AddServiceItemForm({super.key});
@@ -46,6 +47,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(
         left: 24,
@@ -63,7 +65,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('New Service',
+                  Text(appLocalizations.newService,
                       style: Theme.of(context).textTheme.headlineSmall),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -74,38 +76,38 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Service Name'),
+                decoration: InputDecoration(labelText: appLocalizations.serviceName),
                 validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Please enter a name'
+                    ? appLocalizations.pleaseEnterName
                     : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(labelText: appLocalizations.description),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Price'),
+                decoration: InputDecoration(labelText: appLocalizations.price),
                 keyboardType: TextInputType.number,
                 validator: (v) => v == null || v.isEmpty
-                    ? 'Enter price'
+                    ? appLocalizations.enterPrice
                     : double.tryParse(v) == null
-                        ? 'Invalid number'
+                        ? appLocalizations.invalidNumber
                         : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _durationController,
                 decoration:
-                    const InputDecoration(labelText: 'Duration (minutes)'),
+                    InputDecoration(labelText: appLocalizations.durationMinutes),
                 keyboardType: TextInputType.number,
                 validator: (v) => v == null || v.isEmpty
-                    ? 'Enter duration'
+                    ? appLocalizations.enterDuration
                     : int.tryParse(v) == null
-                        ? 'Invalid number'
+                        ? appLocalizations.invalidNumber
                         : null,
               ),
               const SizedBox(height: 24),
@@ -117,7 +119,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
                         width: 24,
                         child: CircularProgressIndicator(),
                       )
-                    : const Text('Save Service'),
+                    : Text(appLocalizations.saveService),
               )
             ],
           ),
