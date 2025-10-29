@@ -98,87 +98,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final loginState = ref.watch(loginStateProvider);
 
-    return Column(
-      children: [
-        // Back button header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: loginState == LoginState.verificationCode
-                    ? _resetToPhoneInput
-                    : _goBack,
-              ),
-              const Text(
-                'Phone Login',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Login form
-        Expanded(
-          child: PageView(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              _buildPhoneInputPage(),
-              _buildVerificationCodePage(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPhoneInputPage() {
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Enter your phone number',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 40),
-            TextFormField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-                hintText: '911234567890',
-                prefixText: '+',
-                border: OutlineInputBorder(),
+            // Back button header
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: loginState == LoginState.verificationCode
+                        ? _resetToPhoneInput
+                        : _goBack,
+                  ),
+                  const Text(
+                    'Phone Login',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your phone number';
-                }
-                if (value.length < 10) {
-                  return 'Please enter a valid phone number';
-                }
-                return null;
-              },
             ),
-            const SizedBox(height: 20),
-            RegularButton(
-              onPressed: _verifyPhone,
-              text: "Continue",
-              isLoading: _isLoading,
+
+            // Login form
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildPhoneInputPage(),
+                  _buildVerificationCodePage(),
+                ],
+              ),
             ),
           ],
         ),
@@ -186,45 +143,123 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildVerificationCodePage() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Enter verification code',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+  Widget _buildPhoneInputPage() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            20.0,
+            0.0,
+            20.0,
+            MediaQuery.of(context).viewInsets.bottom + 20.0,
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Code sent to +${_phoneController.text}',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 30),
-          TextField(
-            controller: _verificationCodeController,
-            decoration: const InputDecoration(
-              labelText: 'Verification Code',
-              border: OutlineInputBorder(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Form(
+              key: _formKey,
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Enter your phone number',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone Number',
+                        hintText: '911234567890',
+                        prefixText: '+',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your phone number';
+                        }
+                        if (value.length < 10) {
+                          return 'Please enter a valid phone number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    RegularButton(
+                      onPressed: _verifyPhone,
+                      text: "Continue",
+                      isLoading: _isLoading,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
-            ],
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-            RegularButton(
-              onPressed: _verifyCode,
-              text: "Verify",
-              isLoading: _isLoading,
+        );
+      },
+    );
+  }
+
+  Widget _buildVerificationCodePage() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            20.0,
+            0.0,
+            20.0,
+            MediaQuery.of(context).viewInsets.bottom + 20.0,
           ),
-        ],
-      ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Enter verification code',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Code sent to +${_phoneController.text}',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 30),
+                  TextField(
+                    controller: _verificationCodeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Verification Code',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(6),
+                    ],
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  RegularButton(
+                    onPressed: _verifyCode,
+                    text: "Verify",
+                    isLoading: _isLoading,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
