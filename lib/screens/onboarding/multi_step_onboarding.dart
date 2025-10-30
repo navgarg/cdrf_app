@@ -314,7 +314,6 @@ class _MultiStepOnboardingScreenState
                     ),
                   )
                 : const SizedBox.shrink(),
-
             const SizedBox(height: 8),
             Text(
               step.title,
@@ -372,16 +371,19 @@ class _MultiStepOnboardingScreenState
                 fontWeight: FontWeight.w500,
               ),
             ),
-            ...step.options!.map(
-              (option) => Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
-                child: RegularButton(
-                  text: option,
-                  onPressed: () => _onOptionSelected(index, option),
+            if (step.options != null && step.options!.isNotEmpty)
+              ...step.options!.map(
+                (option) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 24.0),
+                  child: RegularButton(
+                    text: option,
+                    onPressed: () => _onOptionSelected(index, option),
+                  ),
                 ),
-              ),
-            ),
+              )
+            else
+              const SizedBox(height: 16),
           ],
         ),
       );
