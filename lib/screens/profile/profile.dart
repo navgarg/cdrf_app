@@ -142,8 +142,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               user.phoneNumber,
               style: theme.textTheme.bodyLarge
                   ?.copyWith(color: Colors.grey.shade600),
-              style: theme.textTheme.bodyLarge
-                  ?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 9),
             _buildInfoSection(context, appLocalizations!.businessInformation),
@@ -261,19 +259,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onTap: () => context.push('/resource_centre'),
             ),
 
-            // Resource Centre tile - placed at end of page as requested
-            GenericListTile(
-              leading: Icon(Icons.folder,
-                  color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Resource Centre',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Colors.grey.shade600),
-              onTap: () => context.push('/resource_centre'),
-            ),
-
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -308,7 +293,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const Divider(),

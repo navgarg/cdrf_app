@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/admin/admin_analytics_service.dart';
+import '../../services/general/excel_service.dart';
+import '../../config/admin_config.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -12,6 +14,8 @@ class AdminDashboardScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final user = ref.watch(userProvider);
     final analyticsService = ref.watch(adminAnalyticsServiceProvider);
+    final excelService = ref.watch(excelServiceProvider);
+    final isAdmin = AdminConfig.isAdmin(user?.phoneNumber ?? '');
 
     return FutureBuilder<Map<String, dynamic>>(
       future: analyticsService.getDashboardStats(),
@@ -121,7 +125,27 @@ class AdminDashboardScreen extends ConsumerWidget {
 
                 const SizedBox(height: 32),
 
-                // Sign out button
+                // Export Analytics button
+                if (isAdmin)
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        excelService.exportAdminAnalyticsToExcel();
+                      },
+                      icon: const Icon(Icons.download),
+                      label: const Text('Export Analytics'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        foregroundColor: Colors.white,
+                        backgroundColor: theme.colorScheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (isAdmin) const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: TextButton.icon(
