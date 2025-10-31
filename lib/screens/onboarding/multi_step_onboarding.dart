@@ -28,24 +28,14 @@ class _MultiStepOnboardingScreenState
       options: ['English', 'हिन्दी', 'తెలుగు', 'മലയാളം', 'ಕನ್ನಡ', 'தமிழ்'],
     ),
     OnboardingStep(
-      title: "What's your highest education?",
-      firestoreField: 'education',
-      options: [
-        'Below Highschool',
-        'Highschool',
-        "Bachelor's Degree",
-        'Not Educated'
-      ],
-    ),
-    OnboardingStep(
       title: 'What age range do you fall into?',
       firestoreField: 'ageRange',
       options: ['18 - 22', '23 - 29', '30-60', '61 and above'],
     ),
-    OnboardingStep(
-      title: 'Section A. Basic Profile',
-      isTitle: true,
-    ),
+    // OnboardingStep(
+    //   title: 'Section A. Basic Profile',
+    //   isTitle: true,
+    // ),
     OnboardingStep(
       title: 'Name of respondent:',
       firestoreField: 'respondentName',
@@ -97,10 +87,10 @@ class _MultiStepOnboardingScreenState
       firestoreField: 'socialMediaPromotion',
       options: ['Regularly', 'Sometimes', 'Never'],
     ),
-    OnboardingStep(
-      title: 'Section B. Budget Management',
-      isTitle: true,
-    ),
+    // OnboardingStep(
+    //   title: 'Section B. Budget Management',
+    //   isTitle: true,
+    // ),
     OnboardingStep(
       title: 'Do you record your daily income and expenses?',
       firestoreField: 'recordIncomeExpenses',
@@ -139,10 +129,10 @@ class _MultiStepOnboardingScreenState
         'No'
       ],
     ),
-    OnboardingStep(
-      title: 'Section C. Stock / Inventory Management',
-      isTitle: true,
-    ),
+    // OnboardingStep(
+    //   title: 'Section C. Stock / Inventory Management',
+    //   isTitle: true,
+    // ),
     OnboardingStep(
       title:
           'How do you know what products (cosmetics, creams, dyes) are available?',
@@ -179,10 +169,10 @@ class _MultiStepOnboardingScreenState
       firestoreField: 'trackProductSales',
       options: ['Yes', 'No'],
     ),
-    OnboardingStep(
-      title: 'Section D. Customer Engagement',
-      isTitle: true,
-    ),
+    // OnboardingStep(
+    //   title: 'Section D. Customer Engagement',
+    //   isTitle: true,
+    // ),
     OnboardingStep(
       title: 'Do you maintain a list of your regular customers?',
       firestoreField: 'maintainCustomerList',
