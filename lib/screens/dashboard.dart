@@ -96,9 +96,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 final data = snapshot.data!;
                 final totalProfit =
                     data.fold<double>(0.0, (sum, item) => sum + item.profit);
-                final todayProfit = data.isNotEmpty
-                    ? data.last.profit
-                    : 0.0; // Assuming last item is today's or most recent
+                // final todayProfit = data.isNotEmpty
+                //     ? data.last.profit
+                //     : 0.0; // Assuming last item is today's or most recent
                 final bestProfit = data.isNotEmpty
                     ? data.map((e) => e.profit).reduce((a, b) => a > b ? a : b)
                     : 0.0;

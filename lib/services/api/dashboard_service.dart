@@ -20,6 +20,10 @@ class DashboardService {
         .read(transactionServiceProvider)
         .streamTransactions()
         .map((transactions) {
+      if (transactions.isEmpty) {
+        print('No transactions found — returning empty weekly data.');
+        return <DailySummary>[];
+      }
       final Map<DateTime, double> dailySales = {};
       final Map<DateTime, double> dailyProfits = {};
       for (var transaction in transactions) {
@@ -51,6 +55,10 @@ class DashboardService {
         .read(transactionServiceProvider)
         .streamTransactions()
         .map((transactions) {
+      if (transactions.isEmpty) {
+        print('No transactions found — returning empty monthly data.');
+        return <DailySummary>[];
+      }
       final Map<DateTime, double> weeklySales = {};
       final Map<DateTime, double> weeklyProfits = {};
       for (var transaction in transactions) {
@@ -83,6 +91,13 @@ class DashboardService {
         .read(transactionServiceProvider)
         .streamTransactions()
         .map((transactions) {
+      if (transactions.isEmpty) {
+        print('No transactions found — returning empty daily data.');
+        return <DailySummary>[];
+      }
+      print(transactions);
+      print('Calculating daily data for $focusedDate');
+      print('Transactions count: ${transactions.length}');
       final Map<DateTime, double> intervalSales = {};
       final Map<DateTime, double> intervalProfits = {};
 
