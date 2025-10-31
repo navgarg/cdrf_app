@@ -46,8 +46,10 @@ class AppShellLayout extends ConsumerWidget {
       '/schedule': appLocalizations.schedule,
       '/customer_order': appLocalizations.customerOrder,
       '/profile': appLocalizations.profile,
+      '/advanced_analytics': 'Advanced Analytics',
     };
-    final String pageTitle = routeTitles[currentPath ?? ''] ?? appLocalizations.appName;
+    final String pageTitle =
+        routeTitles[currentPath ?? ''] ?? appLocalizations.appName;
     final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
     final bool showBackButton =
         GoRouter.of(context).canPop() && !isTopLevelRoute;

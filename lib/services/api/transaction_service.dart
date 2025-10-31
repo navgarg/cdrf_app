@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
+import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 
 import '../../models/transaction.dart';
 
@@ -42,6 +43,7 @@ class TransactionService {
     required double price,
     required double cost,
     required TransactionType transactionType,
+    required PaymentMethod paymentMethod,
   }) async {
     try {
       final user = _ref.read(userProvider);
@@ -57,6 +59,7 @@ class TransactionService {
         transactionType: transactionType,
         timestamp: DateTime.now(),
         businessId: user.uid,
+        paymentMethod: paymentMethod,
       );
       await _getCollection().add(newTransaction);
       _ref

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 
 enum TransactionType {
   sale,
@@ -16,6 +17,7 @@ class Transaction {
   final TransactionType transactionType;
   final DateTime timestamp;
   final String businessId;
+  final PaymentMethod paymentMethod;
 
   Transaction({
     required this.id,
@@ -27,6 +29,7 @@ class Transaction {
     required this.transactionType,
     required this.timestamp,
     required this.businessId,
+    required this.paymentMethod,
   });
 
   factory Transaction.fromMap(Map<String, dynamic> data, String id) {
@@ -42,6 +45,9 @@ class Transaction {
           orElse: () => TransactionType.sale),
       timestamp: (data['timestamp'] as Timestamp).toDate(),
       businessId: data['businessId'] ?? '',
+      paymentMethod: PaymentMethod.values.firstWhere(
+          (e) => e.toString() == 'PaymentMethod.${data['paymentMethod']}',
+          orElse: () => PaymentMethod.cash),
     );
   }
 
@@ -55,6 +61,7 @@ class Transaction {
       'transactionType': transactionType.toString().split('.').last,
       'timestamp': Timestamp.fromDate(timestamp),
       'businessId': businessId,
+      'paymentMethod': paymentMethod.toString().split('.').last,
     };
   }
 }

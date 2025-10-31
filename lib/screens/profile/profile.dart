@@ -42,7 +42,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Container(
             width: double.infinity,
             padding:
-               
                 const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.5,
@@ -100,7 +99,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
           position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
-              
               .animate(animation),
           child: child,
         );
@@ -140,8 +138,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 4),
             Text(
               user.phoneNumber,
-              style: theme.textTheme.bodyLarge
-                  ?.copyWith(color: Colors.grey.shade600),
               style: theme.textTheme.bodyLarge
                   ?.copyWith(color: Colors.grey.shade600),
             ),
@@ -248,20 +244,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
 
-            // Resource Centre tile - placed at end of page as requested
-            GenericListTile(
-              leading: Icon(Icons.folder,
-                  color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Resource Centre',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Colors.grey.shade600),
-              onTap: () => context.push('/resource_centre'),
-            ),
-
-            // Resource Centre tile - placed at end of page as requested
+            // Resource Centre tile
             GenericListTile(
               leading: Icon(Icons.folder,
                   color: theme.colorScheme.primary, size: 28),
@@ -308,7 +291,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const Divider(),

@@ -13,6 +13,7 @@ import '../screens/inventory/inventory.dart';
 import '../screens/schedule/schedule.dart';
 import '../screens/profile/profile.dart';
 import '../screens/resource_center/resource_center.dart';
+import '../screens/analytics/advanced_analytics_screen.dart';
 import '../services/api/auth_service.dart';
 import '../services/admin/admin_provider.dart';
 import '../screens/admin/admin_dashboard.dart';
@@ -168,6 +169,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                 parentNavigatorKey: _shellNavigatorKey,
               ),
             ],
+          ),
+          GoRoute(
+            path: '/advanced_analytics',
+            builder: (context, state) => const AdvancedAnalyticsScreen(),
           ),
           GoRoute(
             path: '/resource_centre',

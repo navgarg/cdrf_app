@@ -101,8 +101,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: DashboardChart(
-                          dataStream: dataStream,
-                          dashboardView: _dashboardView),
+                        data: data,
+                        dashboardView: _dashboardView,
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -171,19 +172,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-            // Resource Centre tile (navigates to separate page)
-            GenericListTile(
-              leading: Icon(Icons.folder,
-                  color: Theme.of(context).colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Resource Centre',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Colors.grey.shade600),
-              onTap: () => context.push('/resource_centre'),
-            ),
-          ],
+                    // Advanced Analytics tile
+                    GenericListTile(
+                      leading: Icon(Icons.analytics,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 28),
+                      titleWidget: const Text(
+                        'Advanced Analytics',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.grey.shade600),
+                      onTap: () => context.push('/advanced_analytics'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Resource Centre tile (navigates to separate page)
+                    GenericListTile(
+                      leading: Icon(Icons.folder,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 28),
+                      titleWidget: const Text(
+                        'Resource Centre',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.grey.shade600),
+                      onTap: () => context.push('/resource_centre'),
+                    ),
+                  ],
                 );
               }),
         ]),

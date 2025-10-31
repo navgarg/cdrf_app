@@ -400,6 +400,7 @@ class CartBottomSheet extends ConsumerWidget {
           price: price,
           cost: cost,
           transactionType: TransactionType.sale,
+          paymentMethod: paymentMethod,
         );
       } catch (_) {
         // continue attempting remaining items

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
 import 'package:nariudyam/services/api/transaction_service.dart';
 import 'package:nariudyam/models/transaction.dart';
+import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import '../../models/product_item.dart';
 import 'package:nariudyam/l10n/app_localizations.dart';
 
@@ -222,6 +223,22 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                   final quantityToSell = int.parse(quantityController.text);
                   final newStockQuantity = item.stockQuantity - quantityToSell;
 
+                  // Close the quantity dialog first
+                  Navigator.of(dialogContext).pop();
+
+                  // Show payment method selection
+                  final paymentMethod =
+                      await showModalBottomSheet<PaymentMethod>(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (c) => PaymentSelectionBottomSheet(
+                      onSelected: (m) => Navigator.of(c).pop(m),
+                    ),
+                  );
+
+                  if (paymentMethod == null) return; // User cancelled
+
                   final success = await ref
                       .read(inventoryServiceProvider)
                       .updateProductItem(
@@ -237,16 +254,18 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                           price: item.price,
                           cost: item.cost,
                           transactionType: TransactionType.sale,
+                          paymentMethod: paymentMethod,
                         );
-                    Navigator.of(dialogContext).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Sale completed successfully')),
+                    );
                   } else {
-                    // if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content:
                               Text(appLocalizations.failedToUpdateInventory)),
                     );
-                    // }
                   }
                 }
               },
