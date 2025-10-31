@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../models/user.dart';
 import '../general/messenger.dart';
 
@@ -20,6 +21,7 @@ class AuthService {
   final Ref _ref;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   AuthService(this._ref);
 
@@ -77,7 +79,7 @@ class AuthService {
     }
   }
 
-  Future<bool> _signInWithCredential(PhoneAuthCredential credential) async {
+  Future<bool> _signInWithCredential(AuthCredential credential) async {
     try {
       // Sign in with the credential
       final userCredential = await _auth.signInWithCredential(credential);
@@ -163,6 +165,27 @@ class AuthService {
       }
     } catch (e) {
       _ref.read(messengerProvider).showError('Failed to update profile: ${e.toString()}');
+    }
+  }
+
+  Future<bool> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // The user canceled the sign-in
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      return await _signInWithCredential(credential);
+    } catch (e) {
+      _ref.read(messengerProvider).showError('Google Sign-In failed: ${e.toString()}');
+      return false;
     }
   }
 }

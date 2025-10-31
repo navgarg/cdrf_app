@@ -80,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
     }
 
-    if (verified) {
+    if (mounted && verified) {
       ref.read(messengerProvider).showSuccess('Successfully logged in!');
     }
   }
