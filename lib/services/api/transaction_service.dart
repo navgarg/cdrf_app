@@ -16,7 +16,15 @@ class TransactionService {
 
   CollectionReference<Transaction> _getCollection() {
     final user = _ref.read(userProvider);
-    if (user == null) throw Exception('User not logged in!');
+    if (user == null) {
+      print(
+          'TransactionService: User not logged in when trying to get collection.');
+      throw Exception('User not logged in!');
+    }
+    final collectionPath =
+        'users/${user.uid}/businesses/${user.uid}/transactions';
+    print('TransactionService: Fetching from path: $collectionPath');
+
     return _firestore
         .collection('users')
         .doc(user.uid)

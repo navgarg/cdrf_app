@@ -150,14 +150,30 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 controller: _priceController,
                 decoration: const InputDecoration(labelText: 'Price'),
                 keyboardType: TextInputType.number,
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter a price' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a price';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _costController,
                 decoration: const InputDecoration(labelText: 'Cost'),
                 keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a cost';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(

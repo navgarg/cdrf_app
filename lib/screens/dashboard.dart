@@ -79,17 +79,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return _buildDateNavigator(null);
                 }
-                if (snapshot.hasError ||
-                    !snapshot.hasData ||
-                    snapshot.data!.isEmpty) {
-                  return _buildDateNavigator([]);
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Column(
+                    children: [
+                      _buildDateNavigator([]),
+                      const SizedBox(height: 16),
+                      const Center(
+                        child: Text('No data available for this period.'),
+                      ),
+                    ],
+                  );
                 }
                 final data = snapshot.data!;
                 final totalProfit =
                     data.fold<double>(0.0, (sum, item) => sum + item.profit);
-                final todayProfit = data.isNotEmpty
-                    ? data.last.profit
-                    : 0.0; // Assuming last item is today's or most recent
+                // final todayProfit = data.isNotEmpty
+                //     ? data.last.profit
+                //     : 0.0; // Assuming last item is today's or most recent
                 final bestProfit = data.isNotEmpty
                     ? data.map((e) => e.profit).reduce((a, b) => a > b ? a : b)
                     : 0.0;
@@ -113,9 +122,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       child: Column(
                         children: [
-                          _buildSummaryRow(appLocalizations.today,
-                              todayProfit.toStringAsFixed(2)),
-                          const Divider(),
+                          // _buildSummaryRow(appLocalizations.today,
+                          //     todayProfit.toStringAsFixed(2)),
+                          // const Divider(),
                           _buildSummaryRow(appLocalizations.best,
                               bestProfit.toStringAsFixed(2)),
                           const Divider(),
@@ -125,52 +134,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(15),
+                    // Container(
+                    //   padding: const EdgeInsets.all(16),
+                    //   decoration: BoxDecoration(
+                    //     color: Theme.of(context).colorScheme.primaryContainer,
+                    //     borderRadius: BorderRadius.circular(15),
+                    //   ),
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    //     children: [
+                    //       Column(
+                    //         children: [
+                    //           Text(
+                    //             appLocalizations.revenue,
+                    //             style: Theme.of(context).textTheme.titleMedium,
+                    //           ),
+                    //           Text(
+                    //             '₹ 0',
+                    //             style: Theme.of(context)
+                    //                 .textTheme
+                    //                 .headlineMedium
+                    //                 ?.copyWith(
+                    //                   color: Colors.green,
+                    //                 ),
+                    //           ),
+                    //         ],
+                    //       ),
+                    //       Column(
+                    //         children: [
+                    //           Text(
+                    //             appLocalizations.expenses,
+                    //             style: Theme.of(context).textTheme.titleMedium,
+                    //           ),
+                    //           Text(
+                    //             '₹ 0',
+                    //             style: Theme.of(context)
+                    //                 .textTheme
+                    //                 .headlineMedium
+                    //                 ?.copyWith(
+                    //                   color: Colors.red,
+                    //                 ),
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 24),
+                    // Resource Centre tile (navigates to separate page)
+                    GenericListTile(
+                      leading: Icon(Icons.folder,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 28),
+                      titleWidget: const Text(
+                        'Resource Centre',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Column(
-                            children: [
-                              Text(
-                                appLocalizations.revenue,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                '₹ 0',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(
-                                      color: Colors.green,
-                                    ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Text(
-                                appLocalizations.expenses,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                '₹ 0',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(
-                                      color: Colors.red,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.grey.shade600),
+                      onTap: () => context.push('/resource_centre'),
                     ),
+<<<<<<< HEAD
                     const SizedBox(height: 24),
                     // Advanced Analytics tile
                     GenericListTile(
@@ -201,6 +226,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           size: 16, color: Colors.grey.shade600),
                       onTap: () => context.push('/resource_centre'),
                     ),
+=======
+>>>>>>> 70d13de923a2b497db3a3de53f2be652ef11d98f
                   ],
                 );
               }),
