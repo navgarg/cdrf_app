@@ -26,7 +26,7 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
 
   Future<void> _pickAndUpload() async {
     // Use file_selector which provides platform file picking across mobile/desktop
-    final XTypeGroup typeGroup = XTypeGroup(
+    const XTypeGroup typeGroup = XTypeGroup(
       label: 'files',
       // allow common mime types; empty means all
       extensions: ['pdf', 'png', 'jpg', 'jpeg'],
@@ -154,7 +154,7 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
                           }
                         : null,
                   );
-                }).toList(),
+                }),
                 const Divider(height: 1, thickness: 2),
               ],
             );

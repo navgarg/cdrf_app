@@ -244,11 +244,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
 
-<<<<<<< HEAD
-            // Resource Centre tile
-=======
             // Resource Centre tile - placed at end of page as requested
->>>>>>> 39784cdd01a96b09a0e4c3879b8a9e024b76a5c9
             GenericListTile(
               leading: Icon(Icons.folder,
                   color: theme.colorScheme.primary, size: 28),

@@ -55,7 +55,7 @@ class AppShellLayout extends ConsumerWidget {
         GoRouter.of(context).canPop() && !isTopLevelRoute;
     final isAdmin = ref.watch(isAdminProvider);
 
-    void _showCartSheet() {
+    void showCartSheet() {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -129,7 +129,7 @@ class AppShellLayout extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.shopping_cart,
                             color: Colors.white),
-                        onPressed: _showCartSheet,
+                        onPressed: showCartSheet,
                         iconSize: 28,
                       )
                     else if (currentPath == '/dashboard')

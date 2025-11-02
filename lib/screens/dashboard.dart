@@ -181,25 +181,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     //   ),
                     // ),
                     // const SizedBox(height: 24),
-                    // Resource Centre tile (navigates to separate page)
+                    // Advanced Analytics tile (navigates to separate page)
                     GenericListTile(
-                      leading: Icon(Icons.folder,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 28),
-                      titleWidget: const Text(
-                        'Resource Centre',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey.shade600),
-                      onTap: () => context.push('/resource_centre'),
-                    ),
-<<<<<<< HEAD
-                    const SizedBox(height: 24),
-                    // Advanced Analytics tile
-                    GenericListTile(
-                      leading: Icon(Icons.analytics,
+                      leading: Icon(Icons.insights,
                           color: Theme.of(context).colorScheme.primary,
                           size: 28),
                       titleWidget: const Text(
@@ -211,7 +195,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           size: 16, color: Colors.grey.shade600),
                       onTap: () => context.push('/advanced_analytics'),
                     ),
-                    const SizedBox(height: 12),
                     // Resource Centre tile (navigates to separate page)
                     GenericListTile(
                       leading: Icon(Icons.folder,
@@ -226,8 +209,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           size: 16, color: Colors.grey.shade600),
                       onTap: () => context.push('/resource_centre'),
                     ),
-=======
->>>>>>> 70d13de923a2b497db3a3de53f2be652ef11d98f
                   ],
                 );
               }),

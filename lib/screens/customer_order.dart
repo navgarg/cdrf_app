@@ -46,7 +46,7 @@ class CartNotifier extends StateNotifier<Map<String, double>> {
 }
 
 class CustomerOrderScreen extends ConsumerWidget {
-  const CustomerOrderScreen({Key? key}) : super(key: key);
+  const CustomerOrderScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -131,8 +131,7 @@ class CustomerOrderScreen extends ConsumerWidget {
                                   color: onSurface)),
                           const SizedBox(height: 2),
                           Text(
-                              '₹${itemPrice.toStringAsFixed(2)}' +
-                                  (!isService ? ' per $itemUnit' : ''),
+                              '₹${itemPrice.toStringAsFixed(2)}${!isService ? ' per $itemUnit' : ''}',
                               style: TextStyle(
                                   fontSize: 14,
                                   color:
@@ -208,7 +207,7 @@ class _AddToCartButton extends ConsumerWidget {
         final showDecimal = (qty % 1) != 0;
         return '${qty.toStringAsFixed(showDecimal ? 1 : 0)} ${productItem?.unit ?? ''}';
       }
-      return '${qty.toStringAsFixed(0)}';
+      return qty.toStringAsFixed(0);
     }
 
     return Container(

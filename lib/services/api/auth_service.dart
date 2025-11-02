@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import '../../models/user.dart';
 import '../general/messenger.dart';
 
@@ -38,7 +40,11 @@ class AuthService {
   //   }
   // }
 
-  Future<void> verifyPhoneNumber({required String phoneNumber, required Function(String, int?) onCodeSent, required Function(String) onError,}) async {
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(String, int?) onCodeSent,
+    required Function(String) onError,
+  }) async {
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
@@ -127,7 +133,6 @@ class AuthService {
         createdAt: now,
         lastLoginAt: now,
         deviceToken: fcmToken,
-
         onboardingCompleted: false,
       );
 
@@ -158,13 +163,16 @@ class AuthService {
     try {
       await _firestore.collection('users').doc(user.uid).update(data);
       // After updating, refresh the user provider to reflect changes immediately
-      final updatedDoc = await _firestore.collection('users').doc(user.uid).get();
+      final updatedDoc =
+          await _firestore.collection('users').doc(user.uid).get();
       if (updatedDoc.exists) {
         final userModel = UserModel.fromFirestore(updatedDoc);
         _ref.read(userProvider.notifier).state = userModel;
       }
     } catch (e) {
-      _ref.read(messengerProvider).showError('Failed to update profile: ${e.toString()}');
+      _ref
+          .read(messengerProvider)
+          .showError('Failed to update profile: ${e.toString()}');
     }
   }
 
@@ -176,15 +184,36 @@ class AuthService {
         return false;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      if (kDebugMode &&
+          (googleAuth.idToken == null || googleAuth.idToken!.isEmpty)) {
+        // Helpful hint during development when idToken is missing.
+        debugPrint(
+            '[AuthService] Google idToken is null. Ensure google-services.json is up to date and default_web_client_id exists (add SHA-1/256 in Firebase > Android app, then re-download google-services.json).');
+      }
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       return await _signInWithCredential(credential);
+    } on PlatformException catch (e) {
+      // Surface common Google Play Services errors with better context.
+      final code = e.code.isNotEmpty ? e.code : 'platform_error';
+      final details = e.details?.toString() ?? '';
+      _ref.read(messengerProvider).showError(
+          'Google Sign-In failed ($code). ${e.message ?? ''} ${details}'
+              .trim());
+      if (kDebugMode) {
+        debugPrint(
+            '[AuthService] PlatformException during Google Sign-In: code=$code, message=${e.message}, details=$details');
+      }
+      return false;
     } catch (e) {
-      _ref.read(messengerProvider).showError('Google Sign-In failed: ${e.toString()}');
+      _ref
+          .read(messengerProvider)
+          .showError('Google Sign-In failed: ${e.toString()}');
       return false;
     }
   }
