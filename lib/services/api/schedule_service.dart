@@ -20,7 +20,15 @@ final appointmentsProvider = StreamProvider<List<Appointment>>((ref) {
   return scheduleService.streamAppointments(forDomain: currentDomain);
 });
 
-final currentDomainProvider = StateProvider<BusinessDomain?>((ref) => null);
+// State provider for current business domain
+final currentDomainProvider = StateProvider<BusinessDomain?>((ref) {
+  // Auto-initialize from userProvider when user data is available
+  final user = ref.watch(userProvider);
+  if (user?.businessDomain != null) {
+    return BusinessDomainExtension.fromString(user!.businessDomain!);
+  }
+  return null;
+});
 
 class ScheduleService {
   final Ref _ref;
@@ -38,13 +46,17 @@ class ScheduleService {
         .doc(user.uid)
         .collection('appointments')
         .withConverter<Appointment>(
-      fromFirestore: (snapshot, _) => Appointment.fromFirestore(snapshot),
-      toFirestore: (appointment, _) => appointment.toMap(),
-    );
+          fromFirestore: (snapshot, _) => Appointment.fromFirestore(snapshot),
+          toFirestore: (appointment, _) => appointment.toMap(),
+        );
   }
 
-  Stream<List<Appointment>> streamAppointments({required BusinessDomain forDomain}) {
-    return _getAppointmentsCollection().where('businessDomain', isEqualTo: forDomain.stringValue).snapshots().map((snapshot) {
+  Stream<List<Appointment>> streamAppointments(
+      {required BusinessDomain forDomain}) {
+    return _getAppointmentsCollection()
+        .where('businessDomain', isEqualTo: forDomain.stringValue)
+        .snapshots()
+        .map((snapshot) {
       return snapshot.docs.map((doc) => doc.data()).toList();
     });
   }
@@ -75,12 +87,15 @@ class ScheduleService {
 
       await _getAppointmentsCollection().add(newAppointment);
 
-      _ref.read(messengerProvider).showSuccess('Appointment added successfully!');
+      _ref
+          .read(messengerProvider)
+          .showSuccess('Appointment added successfully!');
       return true;
     } catch (e) {
-      _ref.read(messengerProvider).showError('Failed to add appointment: ${e.toString()}');
+      _ref
+          .read(messengerProvider)
+          .showError('Failed to add appointment: ${e.toString()}');
       return false;
     }
   }
-
 }

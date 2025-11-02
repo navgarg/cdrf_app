@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../components/domain_card.dart';
 import '../../models/business_domain.dart';
+import '../../models/user.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/api/schedule_service.dart';
 import '../../services/general/messenger.dart';
@@ -21,12 +22,18 @@ class BusinessDomainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<_BusinessDomainInfo> domains = [
-      _BusinessDomainInfo('Beauty Parlor', 'assets/icons/onboarding/beauty_parlor.png'),
-      _BusinessDomainInfo('Tailor Shop', 'assets/icons/onboarding/tailor_shop.png'),
-      _BusinessDomainInfo('Tiffin Services', 'assets/icons/onboarding/tiffin_service.png'),
-      _BusinessDomainInfo('Grocery Seller', 'assets/icons/onboarding/grocery_seller.png'),
-      _BusinessDomainInfo('Convenience Store', 'assets/icons/onboarding/convenience_store.png'),
-      _BusinessDomainInfo('Other Business', 'assets/icons/onboarding/other_business.png'),
+      _BusinessDomainInfo(
+          'Beauty Parlor', 'assets/icons/onboarding/beauty_parlor.png'),
+      _BusinessDomainInfo(
+          'Tailor Shop', 'assets/icons/onboarding/tailor_shop.png'),
+      _BusinessDomainInfo(
+          'Tiffin Services', 'assets/icons/onboarding/tiffin_service.png'),
+      _BusinessDomainInfo(
+          'Grocery Seller', 'assets/icons/onboarding/grocery_seller.png'),
+      _BusinessDomainInfo(
+          'Convenience Store', 'assets/icons/onboarding/convenience_store.png'),
+      _BusinessDomainInfo(
+          'Other Business', 'assets/icons/onboarding/other_business.png'),
     ]; //todo: make other business button functional
 
     Future<void> selectDomain(String domain) async {
@@ -39,11 +46,24 @@ class BusinessDomainScreen extends ConsumerWidget {
             .doc(user.uid)
             .update({'businessDomain': domain});
 
-        ref.read(currentDomainProvider.notifier).state = BusinessDomainExtension.fromString(domain);
+        // Refresh the user provider to reflect the business domain
+        final updatedDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (updatedDoc.exists) {
+          final userModel = UserModel.fromFirestore(updatedDoc);
+          ref.read(userProvider.notifier).state = userModel;
+        }
+
+        ref.read(currentDomainProvider.notifier).state =
+            BusinessDomainExtension.fromString(domain);
 
         context.go('/dashboard');
       } catch (e) {
-        ref.read(messengerProvider).showError('Could not save domain. Please try again.');
+        ref
+            .read(messengerProvider)
+            .showError('Could not save domain. Please try again.');
       }
     }
 
@@ -58,7 +78,6 @@ class BusinessDomainScreen extends ConsumerWidget {
               fontSize: 36,
               fontFamily: 'PatrickHand',
               fontWeight: FontWeight.w800,
-
             ),
           ),
           const Text(
@@ -68,10 +87,11 @@ class BusinessDomainScreen extends ConsumerWidget {
               fontSize: 24,
               fontFamily: 'PatrickHand',
               fontWeight: FontWeight.w300,
-
             ),
           ),
-          const SizedBox(height: 24,),
+          const SizedBox(
+            height: 24,
+          ),
           Expanded(
             child: GridView.count(
               crossAxisCount: 2, // 2 columns
