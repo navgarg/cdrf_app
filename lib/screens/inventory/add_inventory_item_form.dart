@@ -53,22 +53,21 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 (item['lowest_recorded_price'] ?? 0.0).toString();
           });
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product details not found.')),
-          );
+          _showSnackBar('Product details not found.');
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Failed to load product details: ${response.statusCode}')),
-        );
+        _showSnackBar('Failed to load product details: ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching product details: $e')),
-      );
+      _showSnackBar('Error fetching product details: $e');
     }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _submitForm() async {
@@ -118,11 +117,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                   IconButton(
                     icon: const Icon(Icons.qr_code_scanner),
                     onPressed: () async {
-                      var res = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  const SimpleBarcodeScannerPage()));
+                      var res = await SimpleBarcodeScanner.scanBarcode(context);
                       if (res is String) {
                         _nameController.text = res;
                         _fetchProductDetails(res);

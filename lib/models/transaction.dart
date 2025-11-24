@@ -1,16 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 
-enum TransactionType {
-  sale,
-  purchase,
-  adjustment,
-}
+enum TransactionType { sale, purchase }
 
 class Transaction {
   final String id;
   final String productId;
-  final String? itemName; // denormalized name for quick display
+  final String? itemName;
   final int quantity;
   final double price;
   final double cost;
@@ -18,6 +14,7 @@ class Transaction {
   final DateTime timestamp;
   final String businessId;
   final PaymentMethod paymentMethod;
+  final String? customerId;
 
   Transaction({
     required this.id,
@@ -30,38 +27,39 @@ class Transaction {
     required this.timestamp,
     required this.businessId,
     required this.paymentMethod,
+    this.customerId,
   });
 
   factory Transaction.fromMap(Map<String, dynamic> data, String id) {
     return Transaction(
       id: id,
-      productId: data['productId'] ?? '',
+      productId: data['productId'],
       itemName: data['itemName'],
-      quantity: data['quantity'] ?? 0,
-      price: data['price'] ?? 0.0,
-      cost: data['cost'] ?? 0.0,
+      quantity: data['quantity'],
+      price: (data['price'] as num).toDouble(),
+      cost: (data['cost'] as num).toDouble(),
       transactionType: TransactionType.values.firstWhere(
-          (e) => e.toString() == 'TransactionType.${data['transactionType']}',
-          orElse: () => TransactionType.sale),
+          (e) => e.toString() == 'TransactionType.${data['transactionType']}'),
       timestamp: (data['timestamp'] as Timestamp).toDate(),
-      businessId: data['businessId'] ?? '',
+      businessId: data['businessId'],
       paymentMethod: PaymentMethod.values.firstWhere(
-          (e) => e.toString() == 'PaymentMethod.${data['paymentMethod']}',
-          orElse: () => PaymentMethod.cash),
+          (e) => e.toString() == 'PaymentMethod.${data['paymentMethod']}'),
+      customerId: data['customerId'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'productId': productId,
-      if (itemName != null) 'itemName': itemName,
+      'itemName': itemName,
       'quantity': quantity,
       'price': price,
       'cost': cost,
       'transactionType': transactionType.toString().split('.').last,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp,
       'businessId': businessId,
       'paymentMethod': paymentMethod.toString().split('.').last,
+      'customerId': customerId,
     };
   }
 }

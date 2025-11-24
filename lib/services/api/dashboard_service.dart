@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/services/api/transaction_service.dart';
+import 'package:flutter/foundation.dart';
 
 class DailySummary {
   final DateTime date;
@@ -21,7 +22,7 @@ class DashboardService {
         .streamTransactions()
         .map((transactions) {
       if (transactions.isEmpty) {
-        print('No transactions found — returning empty weekly data.');
+        debugPrint('No transactions found — returning empty weekly data.');
         return <DailySummary>[];
       }
       final Map<DateTime, double> dailySales = {};
@@ -56,7 +57,7 @@ class DashboardService {
         .streamTransactions()
         .map((transactions) {
       if (transactions.isEmpty) {
-        print('No transactions found — returning empty monthly data.');
+        debugPrint('No transactions found — returning empty monthly data.');
         return <DailySummary>[];
       }
       final Map<DateTime, double> weeklySales = {};
@@ -92,12 +93,12 @@ class DashboardService {
         .streamTransactions()
         .map((transactions) {
       if (transactions.isEmpty) {
-        print('No transactions found — returning empty daily data.');
+        debugPrint('No transactions found — returning empty daily data.');
         return <DailySummary>[];
       }
-      print(transactions);
-      print('Calculating daily data for $focusedDate');
-      print('Transactions count: ${transactions.length}');
+      debugPrint(transactions.toString());
+      debugPrint('Calculating daily data for $focusedDate');
+      debugPrint('Transactions count: ${transactions.length}');
       final Map<DateTime, double> intervalSales = {};
       final Map<DateTime, double> intervalProfits = {};
 

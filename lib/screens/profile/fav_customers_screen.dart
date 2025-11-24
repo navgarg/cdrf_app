@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/api/fav_customer_service.dart';
+import '../../services/api/auth_service.dart';
 
 final favouriteCustomerFabPressedProvider = StateProvider<bool>((ref) => false);
 
@@ -14,7 +15,7 @@ class FavouriteCustomersScreen extends ConsumerStatefulWidget {
 class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScreen> {
 
 
-  void _showAddCustomerDialog() {
+  void _showAddCustomerDialog(String? userId) {
     final nameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -24,13 +25,13 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
       barrierDismissible: true,
       barrierLabel: 'Add Favourite Customer',
       transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
         return Align(
           alignment: Alignment.bottomCenter,
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: Theme.of(dialogContext).colorScheme.surface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(30),
                 topRight: Radius.circular(30),
@@ -41,7 +42,7 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
               child: Padding(
                 padding: EdgeInsets.only(
                   left: 24, right: 24, top: 24,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                  bottom: MediaQuery.of(dialogContext).viewInsets.bottom + 24,
                 ),
                 child: Form(
                   key: formKey,
@@ -49,7 +50,7 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('New Favourite Customer', style: Theme.of(context).textTheme.headlineSmall),
+                      Text('New Favourite Customer', style: Theme.of(dialogContext).textTheme.headlineSmall),
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: nameController,
@@ -61,12 +62,13 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
                         onPressed: () async {
                           if (formKey.currentState!.validate()) {
                             final success = await ref
-                                .read(favouriteCustomerServiceProvider)
+                                .read(favouriteCustomerServiceProvider(userId))
                                 .addFavouriteCustomer(nameController.text);
 
-                            if (success && mounted) {
-                              final _ = ref.refresh(favouriteCustomersProvider);
-                              Navigator.of(context).pop();
+                            if (success) {
+                              if (!dialogContext.mounted) return;
+                              final _ = ref.refresh(favouriteCustomersProvider(userId));
+                              Navigator.of(dialogContext).pop();
                             }
                           }
                         },
@@ -89,18 +91,24 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final userId = ref.watch(userProvider)?.uid;
     ref.listen(favouriteCustomerFabPressedProvider, (_, isPressed) {
       if (isPressed) {
-        _showAddCustomerDialog();
+        _showAddCustomerDialog(userId);
         ref.read(favouriteCustomerFabPressedProvider.notifier).state = false;
       }
     });
-    final favCustomersAsync = ref.watch(favouriteCustomersProvider);
+    final favCustomersAsync = ref.watch(favouriteCustomersProvider(userId));
     final theme = Theme.of(context);
 
-    return Column(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Favourite Customers'),
+      ),
+      body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -154,10 +162,10 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
                           icon: Icon(Icons.delete_outline, color: theme.colorScheme.primary),
                           onPressed: () async {
                             final success = await ref
-                                .read(favouriteCustomerServiceProvider)
+                                .read(favouriteCustomerServiceProvider(userId))
                                 .deleteFavouriteCustomer(customer.id);
                             if (success) {
-                              final _ = ref.refresh(favouriteCustomersProvider);
+                              final _ = ref.refresh(favouriteCustomersProvider(userId));
                             }
                           },
                         ),
@@ -169,6 +177,13 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddCustomerDialog(userId);
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

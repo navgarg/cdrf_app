@@ -1,20 +1,31 @@
-import '../../services/admin/admin_analytics_service.dart';
 import 'dart:io';
+
 import 'package:excel/excel.dart';
+import 'package:flutter/foundation.dart'; // Import for kDebugMode
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/product_item.dart';
-import '../api/transaction_service.dart';
-import '../api/inventory_service.dart';
-import '../general/messenger.dart';
-import 'dart:typed_data';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import 'package:nariudyam/models/product_item.dart';
+import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/services/api/fav_customer_service.dart';
+import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/services/api/transaction_service.dart';
+import 'package:nariudyam/services/general/messenger.dart';
 
 final excelServiceProvider = Provider((ref) => ExcelService(ref));
 
 class ExcelService {
   final Ref _ref;
+  final TransactionService _transactionService;
+  final AuthService _authService;
+  final FavouriteCustomerService _favouriteCustomerService;
 
-  ExcelService(this._ref);
+  ExcelService(this._ref) 
+      : _transactionService = _ref.read(transactionServiceProvider),
+        _authService = _ref.read(authServiceProvider),
+        _favouriteCustomerService = _ref.read(favouriteCustomerServiceProvider(_ref.read(authServiceProvider).currentUser?.uid));
 
   Future<bool> _requestStoragePermission() async {
     if (await Permission.manageExternalStorage.isGranted ||
@@ -29,6 +40,19 @@ class ExcelService {
     return status.isGranted;
   }
 
+  Future<String?> _getDownloadDirectory() async {
+    if (TargetPlatform.android == defaultTargetPlatform) {
+      return '/storage/emulated/0/Download';
+    } else if (TargetPlatform.iOS == defaultTargetPlatform) {
+      final directory = await getApplicationDocumentsDirectory();
+      return directory.path;
+    } else {
+      // For other platforms, you might need to implement platform-specific logic
+      // or use a different directory.
+      return null;
+    }
+  }
+
   Future<String> _saveExcelToDownloads(
       Uint8List excelBytes, String fileName) async {
     final hasPermission = await _requestStoragePermission();
@@ -36,35 +60,121 @@ class ExcelService {
       throw Exception('Storage permission not granted');
     }
 
-    // Public Downloads folder path
-    final downloadsDir = Directory('/storage/emulated/0/Download');
-
-    // Ensure it exists
-    if (!await downloadsDir.exists()) {
-      await downloadsDir.create(recursive: true);
+    final downloadsDir = await _getDownloadDirectory();
+    if (downloadsDir == null) {
+      throw Exception('Could not get download directory.');
     }
 
-    final filePath = '${downloadsDir.path}/$fileName';
+    // Ensure it exists
+    if (!await Directory(downloadsDir).exists()) {
+      await Directory(downloadsDir).create(recursive: true);
+    }
+
+    final filePath = '${downloadsDir}/$fileName';
     final file = File(filePath);
     await file.writeAsBytes(excelBytes);
 
     return filePath;
   }
 
-  Future<void> exportTransactionsToExcel() async {
-    final transactions =
-        await _ref.read(transactionServiceProvider).streamTransactions().first;
-
-    var excel = Excel.createExcel();
-    Sheet sheetObject = excel['Daily Sales Transactions'];
-
-    final firstTransaction =
-        transactions.isNotEmpty ? transactions.first : null;
-    if (firstTransaction != null) {
-      final headers = firstTransaction.toMap().keys.toList();
-      sheetObject
-          .appendRow(headers.map((h) => TextCellValue(h.toString())).toList());
+  Future<void> exportAllAnalyticsToExcel() async {
+    if (!await _requestStoragePermission()) {
+      if (kDebugMode) {
+        print('Storage permission not granted.');
+      }
+      return;
     }
+
+    final excel = Excel.createExcel(); // Use createExcel() as createStorage() is not defined
+
+    // Customer Analytics Sheet
+    await _addCustomerAnalyticsSheet(excel);
+
+    // Daily Sales Transactions Sheet
+    await _addDailySalesTransactionsSheet(excel);
+
+    // Admin Dashboard Analytics Sheet
+    await _addAdminDashboardAnalyticsSheet(excel);
+
+    final excelBytes = excel.encode();
+    if (excelBytes == null) {
+      if (kDebugMode) {
+        print('Failed to encode Excel file.');
+      }
+      return;
+    }
+
+    try {
+      final filePath = await _saveExcelToDownloads(Uint8List.fromList(excelBytes), 'Analytics.xlsx');
+      if (kDebugMode) {
+        print('Excel file saved to: $filePath');
+      }
+      _ref.read(messengerProvider).showSuccess(
+            'All analytics Excel file saved to Downloads: $filePath',
+          );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving Excel file: $e');
+      }
+      _ref.read(messengerProvider).showError('Failed to save all analytics Excel file.');
+    }
+  }
+
+  Future<void> _addCustomerAnalyticsSheet(Excel excel) async {
+    final Sheet customerSheet = excel['Customer Analytics'];
+    customerSheet.appendRow([
+      TextCellValue('Customer ID'),
+      TextCellValue('Name'),
+      TextCellValue('Phone Number'),
+      TextCellValue('Credit Outstanding'),
+      TextCellValue('Last Purchase Date'),
+      TextCellValue('Avg Monthly Spend'),
+      TextCellValue('Loyalty Status'),
+    ]);
+
+    final userId = _authService.currentUser?.uid;
+    if (userId == null) {
+      if (kDebugMode) {
+        print('User not logged in.');
+      }
+      return;
+    }
+
+    final customers = await _favouriteCustomerService.streamFavouriteCustomers().first;
+
+    for (var customer in customers) {
+      customerSheet.appendRow([
+        TextCellValue(customer.id),
+        TextCellValue(customer.name),
+        TextCellValue(customer.phoneNumber ?? 'N/A'),
+        DoubleCellValue(customer.creditOutstanding ?? 0.0),
+        TextCellValue(customer.lastPurchaseDate != null ? DateFormat('yyyy-MM-dd HH:mm').format(customer.lastPurchaseDate!) : 'N/A'),
+        DoubleCellValue(customer.avgMonthlySpend ?? 0.0),
+        TextCellValue(customer.loyaltyStatus ?? 'N/A'),
+      ]);
+    }
+  }
+
+  Future<void> _addDailySalesTransactionsSheet(Excel excel) async {
+    final Sheet transactionSheet = excel['Daily Sales Transactions'];
+    transactionSheet.appendRow([
+      TextCellValue('Transaction ID'),
+      TextCellValue('Customer ID'),
+      TextCellValue('Product Name'),
+      TextCellValue('Quantity'),
+      TextCellValue('Price'),
+      TextCellValue('Timestamp'),
+    ]);
+
+    final userId = _authService.currentUser?.uid;
+    if (userId == null) {
+      if (kDebugMode) {
+        print('User not logged in.');
+      }
+      return;
+    }
+
+    final transactions = await _transactionService.streamTransactions().first;
 
     for (var transaction in transactions) {
       ProductItem? item;
@@ -74,6 +184,9 @@ class ExcelService {
             .streamProductItem(transaction.productId)
             .first;
       } catch (e) {
+        if (kDebugMode) {
+          print('Error fetching inventory item for product ID ${transaction.productId}: $e');
+        }
         _ref.read(messengerProvider).showError(
             'Error fetching inventory item for product ID ${transaction.productId}: $e');
         item = null;
@@ -94,67 +207,53 @@ class ExcelService {
         final value = transactionMap[key];
         if (value == null) return TextCellValue('N/A');
         if (value is DateTime) {
-          return TextCellValue(value.toIso8601String().split('T').first);
+          return TextCellValue(DateFormat('yyyy-MM-dd HH:mm').format(value));
         }
         if (value is int) return IntCellValue(value);
         if (value is double) return DoubleCellValue(value);
         return TextCellValue(value.toString());
       }).toList();
 
-      sheetObject.appendRow(rowData);
-    }
-
-    final fileBytes = excel.save();
-    if (fileBytes != null) {
-      final filePath = await _saveExcelToDownloads(
-        Uint8List.fromList(fileBytes),
-        'Daily_Sales_Transactions.xlsx',
-      );
-      _ref.read(messengerProvider).showSuccess(
-            'Excel file saved to Downloads: $filePath',
-          );
-    } else {
-      _ref.read(messengerProvider).showError('Failed to save Excel file.');
+      transactionSheet.appendRow(rowData);
     }
   }
 
-  Future<void> exportAdminAnalyticsToExcel() async {
-    final analytics =
-        await _ref.read(adminAnalyticsServiceProvider).getDashboardStats();
+  Future<void> _addAdminDashboardAnalyticsSheet(Excel excel) async {
+    final Sheet adminSheet = excel['Admin Dashboard Analytics'];
+    adminSheet.appendRow([
+      TextCellValue('Metric'),
+      TextCellValue('Value'),
+    ]);
 
-    var excel = Excel.createExcel();
-    Sheet sheetObject = excel['Admin Dashboard Analytics'];
-
-    // Add headers
-    final headers = analytics.keys.toList();
-    sheetObject
-        .appendRow(headers.map((h) => TextCellValue(h.toString())).toList());
-
-    // Add data
-    final rowData = analytics.values.map((value) {
-      if (value == null) return TextCellValue('N/A');
-      if (value is DateTime) {
-        return TextCellValue(value.toIso8601String().split('T').first);
+    final userId = _authService.currentUser?.uid;
+    if (userId == null) {
+      if (kDebugMode) {
+        print('User not logged in.');
       }
-      if (value is int) return IntCellValue(value);
-      if (value is double) return DoubleCellValue(value);
-      return TextCellValue(value.toString());
-    }).toList();
-    sheetObject.appendRow(rowData);
-
-    final fileBytes = excel.save();
-    if (fileBytes != null) {
-      final filePath = await _saveExcelToDownloads(
-        Uint8List.fromList(fileBytes),
-        'Admin_Dashboard_Analytics.xlsx',
-      );
-      _ref.read(messengerProvider).showSuccess(
-            'Admin analytics Excel file saved to Downloads: $filePath',
-          );
-    } else {
-      _ref
-          .read(messengerProvider)
-          .showError('Failed to save admin analytics Excel file.');
+      return;
     }
+
+    // Example: Total Sales (replace with actual calculation)
+    final totalSales = await _transactionService.streamTransactions().first.then((transactions) =>
+        transactions.fold(0.0, (sum, transaction) => sum + (transaction.price * transaction.quantity)));
+
+    adminSheet.appendRow([
+      TextCellValue('Total Sales'),
+      DoubleCellValue(totalSales),
+    ]);
+
+    // Example: Number of Transactions
+    final numberOfTransactions = await _transactionService.streamTransactions().first.then((transactions) => transactions.length);
+    adminSheet.appendRow([
+      TextCellValue('Number of Transactions'),
+      IntCellValue(numberOfTransactions),
+    ]);
+
+    // Example: Average Transaction Value
+    final averageTransactionValue = numberOfTransactions > 0 ? totalSales / numberOfTransactions : 0.0;
+    adminSheet.appendRow([
+      TextCellValue('Average Transaction Value'),
+      DoubleCellValue(averageTransactionValue),
+    ]);
   }
 }

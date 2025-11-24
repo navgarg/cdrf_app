@@ -7,14 +7,11 @@ class BarcodeUtils {
   /// Shows a barcode scanner and returns the scanned result
   static Future<String?> scanBarcode(BuildContext context) async {
     try {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SimpleBarcodeScannerPage(),
-        ),
-      );
-      return result is String ? result : null;
+      final res = await SimpleBarcodeScanner.scanBarcode(context);
+      if (res == '-1') return null; // User cancelled scan
+      return res;
     } catch (e) {
+      if (!context.mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error scanning barcode: $e')),
       );

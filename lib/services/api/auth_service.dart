@@ -19,6 +19,11 @@ final authStateProvider = StreamProvider<User?>((ref) {
 
 final userProvider = StateProvider<UserModel?>((ref) => null);
 
+final userBusinessIdProvider = Provider<String?>((ref) {
+  final user = ref.watch(userProvider);
+  return user?.businessDomain;
+});
+
 class AuthService {
   final Ref _ref;
   final FirebaseAuth _auth = FirebaseAuth.instance;

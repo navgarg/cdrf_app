@@ -76,7 +76,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
             gradient: LinearGradient(
               colors: [
                 theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.7),
+                theme.colorScheme.primary.withValues(alpha: 0.7),
               ],
             ),
             borderRadius: BorderRadius.circular(15),
@@ -124,7 +124,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
         Text(
           value,
           style: TextStyle(
-            color: color,
+            color: color.withValues(alpha: 0.9),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -132,7 +132,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
         Text(
           label,
           style: TextStyle(
-            color: color.withOpacity(0.9),
+            color: color.withValues(alpha: 0.9),
             fontSize: 12,
           ),
         ),
@@ -450,7 +450,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(15),
                   ),
@@ -482,7 +482,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                   final item = data[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Colors.red.withOpacity(0.2),
+                      backgroundColor: Colors.red.withValues(alpha: 0.2),
                       child: const Icon(Icons.warning,
                           color: Colors.red, size: 20),
                     ),
@@ -495,7 +495,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.2),
+                        color: Colors.red.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
@@ -557,7 +557,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
               return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: index < 3
-                      ? rankColors[index].withOpacity(0.2)
+                      ? rankColors[index].withValues(alpha: 0.2)
                       : theme.colorScheme.primaryContainer,
                   child: Text(
                     '${index + 1}',
@@ -577,7 +577,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
+                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
                   ),
                 ),
               );

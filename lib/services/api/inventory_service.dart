@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
+import 'package:flutter/foundation.dart';
 
 final inventoryServiceProvider = Provider((ref) => InventoryService(ref));
 
@@ -80,7 +81,7 @@ class InventoryService {
       // ignore: avoid_print
       final raw = user?.businessDomain;
       final normalized = (raw ?? '').trim().toLowerCase();
-      print(
+      debugPrint(
           '[InventoryService] isService=$isService rawDomain=$raw normalizedDomain=$normalized');
     }
     // Only migrate legacy non-service products here. Service item migration moved to services_service.

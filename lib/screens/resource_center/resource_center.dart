@@ -111,7 +111,7 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
                   color: Theme.of(context)
                       .colorScheme
                       .primaryContainer
-                      .withOpacity(0.3),
+                      .withAlpha((0.3 * 255).round()),
                   child: Text(
                     dateHeading,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

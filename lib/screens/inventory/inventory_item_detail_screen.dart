@@ -6,6 +6,8 @@ import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import '../../models/product_item.dart';
 import 'package:nariudyam/l10n/app_localizations.dart';
+import 'package:nariudyam/services/api/fav_customer_service.dart'; // Import FavouriteCustomerService
+import '../../services/api/auth_service.dart';
 
 class InventoryItemDetailScreen extends ConsumerWidget {
   // final InventoryItem item;
@@ -163,7 +165,7 @@ class InventoryItemDetailScreen extends ConsumerWidget {
           icon: Icon(icon),
           onPressed: () {
             if (label == appLocalizations!.sell) {
-              _showSellDialog(context, item, ref);
+              _showCustomerSelectionDialog(context, item, ref);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('$label action for ${item.name}')),
@@ -176,7 +178,69 @@ class InventoryItemDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _showSellDialog(BuildContext context, ProductItem item, WidgetRef ref) {
+  void _showCustomerSelectionDialog(BuildContext context, ProductItem item, WidgetRef ref) {
+    final appLocalizations = AppLocalizations.of(context);
+    if (appLocalizations == null) {
+      throw FlutterError('AppLocalizations not found in context');
+    }
+    final user = ref.watch(userProvider);
+    final userId = user?.uid;
+    if (userId == null) {
+      throw FlutterError('User not logged in');
+    }
+    final customersAsyncValue = ref.watch(favouriteCustomersProvider(userId));
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Select Customer'),
+          content: customersAsyncValue.when(
+            data: (customers) {
+              return SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: customers.length + 1, // +1 for 'No Customer' option
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return ListTile(
+                        title: const Text('No Customer'),
+                        onTap: () {
+                          Navigator.of(dialogContext).pop();
+                          _showSellDialog(context, item, ref, customerId: null);
+                        },
+                      );
+                    }
+                    final customer = customers[index - 1];
+                    return ListTile(
+                      title: Text(customer.name),
+                      onTap: () {
+                        Navigator.of(dialogContext).pop();
+                        _showSellDialog(context, item, ref, customerId: customer.id);
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(appLocalizations.cancel),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSellDialog(BuildContext context, ProductItem item, WidgetRef ref, {String? customerId}) {
     // These are created here and will be garbage collected when the dialog closes.
     final quantityController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -255,17 +319,8 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                           cost: item.cost,
                           transactionType: TransactionType.sale,
                           paymentMethod: paymentMethod,
+                          customerId: customerId,
                         );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Sale completed successfully')),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content:
-                              Text(appLocalizations.failedToUpdateInventory)),
-                    );
                   }
                 }
               },

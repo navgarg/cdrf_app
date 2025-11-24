@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../models/transaction.dart';
 
@@ -17,13 +18,13 @@ class TransactionService {
   CollectionReference<Transaction> _getCollection() {
     final user = _ref.read(userProvider);
     if (user == null) {
-      print(
+      debugPrint(
           'TransactionService: User not logged in when trying to get collection.');
       throw Exception('User not logged in!');
     }
     final collectionPath =
         'users/${user.uid}/businesses/${user.uid}/transactions';
-    print('TransactionService: Fetching from path: $collectionPath');
+    debugPrint('TransactionService: Fetching from path: $collectionPath');
 
     return _firestore
         .collection('users')
@@ -44,6 +45,15 @@ class TransactionService {
     });
   }
 
+  Stream<List<Transaction>> streamTransactionsByCustomerId(String customerId) {
+    return _getCollection()
+        .where('customerId', isEqualTo: customerId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    });
+  }
+
   Future<void> addTransaction({
     required String productId,
     String? itemName,
@@ -52,6 +62,7 @@ class TransactionService {
     required double cost,
     required TransactionType transactionType,
     required PaymentMethod paymentMethod,
+    String? customerId,
   }) async {
     try {
       final user = _ref.read(userProvider);
@@ -68,6 +79,7 @@ class TransactionService {
         timestamp: DateTime.now(),
         businessId: user.uid,
         paymentMethod: paymentMethod,
+        customerId: customerId,
       );
       await _getCollection().add(newTransaction);
       _ref

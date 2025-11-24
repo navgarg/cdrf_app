@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:intl/intl.dart';
 import '../models/favourite_customer.dart';
 import '../services/api/fav_customer_service.dart';
@@ -64,7 +65,8 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
 
   @override
   Widget build(BuildContext context) {
-    final favouriteCustomersAsync = ref.watch(favouriteCustomersProvider);
+    final userId = ref.watch(authServiceProvider).currentUser?.uid;
+    final favouriteCustomersAsync = ref.watch(favouriteCustomersProvider(userId));
 
     return Padding(
       padding: EdgeInsets.only(
