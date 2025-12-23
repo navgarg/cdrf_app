@@ -44,17 +44,19 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
 
       final domain = ref.read(currentDomainProvider);
       if (domain == null) {
-        ref.read(messengerProvider).showError(context.tr('No business domain selected.'));
+        ref
+            .read(messengerProvider)
+            .showError(context.tr('No business domain selected.'));
         return;
       }
 
       final success = await ref.read(scheduleServiceProvider).addAppointment(
-        title: _titleController.text,
-        date: _selectedDate,
-        time: _selectedTime,
-        businessDomain: domain,
-        customerId: _selectedFavouriteCustomer?.id,
-      );
+            title: _titleController.text,
+            date: _selectedDate,
+            time: _selectedTime,
+            businessDomain: domain,
+            customerId: _selectedFavouriteCustomer?.id,
+          );
 
       setState(() => _isLoading = false);
 
@@ -67,11 +69,14 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
   @override
   Widget build(BuildContext context) {
     final userId = ref.watch(authServiceProvider).currentUser?.uid;
-    final favouriteCustomersAsync = ref.watch(favouriteCustomersProvider(userId));
+    final favouriteCustomersAsync =
+        ref.watch(favouriteCustomersProvider(userId));
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: SingleChildScrollView(
@@ -81,22 +86,26 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(context.tr('New Appointment'), style: Theme.of(context).textTheme.headlineSmall),
+              Text(context.tr('New Appointment'),
+                  style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: context.tr('Appointment Title')),
-                validator: (value) => value!.isEmpty ? context.tr('Please enter a title') : null,
+                decoration:
+                    InputDecoration(labelText: context.tr('Appointment Title')),
+                validator: (value) =>
+                    value!.isEmpty ? context.tr('Please enter a title') : null,
               ),
               const SizedBox(height: 16),
-
               favouriteCustomersAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Text(context.tr('Could not load customers.')),
+                error: (err, stack) =>
+                    Text(context.tr('Could not load customers.')),
                 data: (customerList) {
                   return DropdownButtonFormField<FavouriteCustomer?>(
                     value: _selectedFavouriteCustomer,
-                    hint: Text(context.tr('Link a Favourite Customer (Optional)')),
+                    hint: Text(
+                        context.tr('Link a Favourite Customer (Optional)')),
                     isExpanded: true,
                     decoration: InputDecoration(
                       labelText: context.tr('Link Favourite Customer'),
@@ -126,7 +135,8 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
               const SizedBox(height: 16),
               OutlinedButton.icon(
                 icon: const Icon(Icons.calendar_today),
-                label: Text(context.tr('Date: ${DateFormat('MMMM d, yyyy').format(_selectedDate)}')),
+                label: Text(context.tr(
+                    'Date: ${DateFormat('MMMM d, yyyy').format(_selectedDate)}')),
                 onPressed: () async {
                   final date = await showDatePicker(
                     context: context,
@@ -140,9 +150,11 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 icon: const Icon(Icons.access_time),
-                label: Text(context.tr('Time: ${_selectedTime.format(context)}')),
+                label:
+                    Text(context.tr('Time: ${_selectedTime.format(context)}')),
                 onPressed: () async {
-                  final time = await showTimePicker(context: context, initialTime: _selectedTime);
+                  final time = await showTimePicker(
+                      context: context, initialTime: _selectedTime);
                   if (time != null) setState(() => _selectedTime = time);
                 },
               ),
@@ -150,7 +162,10 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitForm,
                 child: _isLoading
-                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white))
                     : Text(context.tr('Save Appointment')),
               ),
             ],
