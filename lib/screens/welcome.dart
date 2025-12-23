@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/regular_button.dart';
 import '../services/api/auth_service.dart';
+import '../l10n/dynamic_localizations.dart';
 
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
@@ -13,9 +14,9 @@ class WelcomeScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          'Login',
-          style: TextStyle(
+        Text(
+          context.tr('Login'),
+          style: const TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w900,
             color: Colors.black,
@@ -28,7 +29,7 @@ class WelcomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: RegularButton(
               onPressed: () => context.replace('/auth/phone'),
-              text: "Sign in with Phone",
+              text: context.tr('Sign in with Phone'),
               icon: Icons.phone_android,
             )),
         const SizedBox(height: 16),
@@ -38,7 +39,7 @@ class WelcomeScreen extends ConsumerWidget {
                 onPressed: () {
                   ref.read(authServiceProvider).signInWithGoogle();
                 },
-                text: "Sign in with Google",
+                text: context.tr('Sign in with Google'),
                 icon: Icons.email_outlined)),
       ],
     );

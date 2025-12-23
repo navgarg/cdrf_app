@@ -36,8 +36,8 @@ class Transaction {
       productId: data['productId'],
       itemName: data['itemName'],
       quantity: data['quantity'],
-      price: (data['price'] as num).toDouble(),
-      cost: (data['cost'] as num).toDouble(),
+      price: (data['price'] as num?)?.toDouble() ?? 0.0,
+      cost: (data['cost'] as num?)?.toDouble() ?? 0.0,
       transactionType: TransactionType.values.firstWhere(
           (e) => e.toString() == 'TransactionType.${data['transactionType']}'),
       timestamp: (data['timestamp'] as Timestamp).toDate(),

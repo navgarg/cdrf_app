@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:nariudyam/l10n/app_localizations.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'dart:async';
 import 'firebase_options.dart';
+import 'providers/locale_provider.dart';
 import 'services/api/fcm_service.dart';
 import 'services/general/messenger.dart';
 import 'services/general/settings.dart';
+import 'services/translation_service.dart';
 import 'utils/router.dart';
 import 'utils/theme.dart';
 
@@ -18,24 +19,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('Background message received: ${message.messageId}');
 }
-
-final localeProvider = Provider<Locale>((ref) {
-  // Watch the user's data. If it changes, this provider will re-run.
-  final user = ref.watch(userProvider);
-  final langCode = user?.language;
-
-  // If the user has a saved language, use it.
-  if (langCode != null && langCode.isNotEmpty) {
-    for (final locale in AppLocalizations.supportedLocales) {
-      if (locale.languageCode == langCode) {
-        return locale;
-      }
-    }
-  }
-
-  // Otherwise, default to English.
-  return const Locale('en');
-});
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,15 +47,42 @@ class NariUdyam extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<NariUdyam> {
+  StreamSubscription? _translationSubscription;
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
     _initServices();
+
+    // Listen for translation updates and trigger rebuild
+    _translationSubscription =
+        TranslationService().onTranslationUpdated.listen((_) {
+      // Debounce rebuilds to avoid performance issues
+      if (_refreshTimer?.isActive ?? false) return;
+
+      _refreshTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {
+            // Trigger rebuild to show new translations
+          });
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _translationSubscription?.cancel();
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initServices() async {
     await ref.read(settingsProvider).init();
     await ref.read(fcmServiceProvider).initialize();
+    // Initialize translation service
+    await TranslationService().initialize();
   }
 
   @override
@@ -83,18 +93,14 @@ class _MyAppState extends ConsumerState<NariUdyam> {
     final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
+      key: ValueKey(locale.languageCode), // Force rebuild when locale changes
       debugShowCheckedModeBanner: false,
       title: "Nari Udhyam",
       scaffoldMessengerKey: messenger.scaffoldMessengerKey,
       theme: theme,
       routerConfig: router,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: DynamicAppLocalizations.localizationsDelegates,
+      supportedLocales: DynamicAppLocalizations.supportedLocales,
       locale: locale,
     );
   }

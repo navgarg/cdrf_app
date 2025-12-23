@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/dynamic_localizations.dart';
 
 enum PaymentMethod { qr, cash }
 
@@ -45,7 +46,7 @@ class PaymentSelectionBottomSheet extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const Spacer(),
-                  Text('Select Payment',
+                  Text(context.tr('Select Payment'),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

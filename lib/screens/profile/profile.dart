@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 
 import '../../components/generic_list_tile.dart';
 import '../../components/regular_button.dart';
@@ -8,7 +9,9 @@ import '../../services/api/auth_service.dart';
 import '../../services/general/messenger.dart';
 import '../../services/general/excel_service.dart';
 import '../../services/general/onboarding_excel_service.dart';
-import 'package:nariudyam/l10n/app_localizations.dart';
+import '../../l10n/dynamic_localizations.dart';
+import '../../providers/locale_provider.dart';
+import '../../services/translation_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -18,8 +21,34 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  StreamSubscription? _translationSubscription;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for translation updates and trigger rebuild
+    _translationSubscription =
+        TranslationService().onTranslationUpdated.listen((_) {
+      if (_refreshTimer?.isActive ?? false) return;
+
+      _refreshTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _translationSubscription?.cancel();
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
   void _showLanguagesDialog(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
     const Map<String, String> languagesMap = {
       'English': 'en',
       'हिन्दी': 'hi',
@@ -34,7 +63,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
       barrierDismissible: true,
-      barrierLabel: appLocalizations!.selectLanguage,
+      barrierLabel: context.tr('Select Language'),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -60,7 +89,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      appLocalizations.selectLanguage,
+                      context.tr('Select Language'),
                       style: const TextStyle(
                         fontSize: 36,
                         fontFamily: 'PatrickHand',
@@ -73,17 +102,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 6.0),
                           child: RegularButton(
                             text: lang,
-                            onPressed: () {
+                            onPressed: () async {
                               final langCode = languagesMap[lang];
                               if (langCode != null) {
-                                {
-                                  ref
-                                      .read(authServiceProvider)
-                                      .updateUserProfile(
-                                          {'language': langCode});
-                                  Navigator.of(context).pop();
+                                // Close dialog first
+                                Navigator.of(context).pop();
+
+                                // Update locale - this triggers app-wide translation
+                                await ref
+                                    .read(localeProvider.notifier)
+                                    .setLocale(Locale(langCode));
+
+                                // Update User Profile in Firebase in background (don't await to prevent redirect)
+                                ref
+                                    .read(authServiceProvider)
+                                    .updateUserProfile({'language': langCode});
+
+                                // Show success message - stay on profile page
+                                if (context.mounted) {
                                   ref.read(messengerProvider).showSuccess(
-                                      appLocalizations.languageUpdated(lang));
+                                      context.tr('Language Updated to $lang'));
                                 }
                               }
                             },
@@ -110,7 +148,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final user = ref.watch(userProvider);
-    final appLocalizations = AppLocalizations.of(context);
 
     // Show a loading indicator if user data isn't available yet
     if (user == null) {
@@ -131,7 +168,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              user.name ?? appLocalizations!.user,
+              user.name ?? context.tr('User'),
               style: theme.textTheme.headlineSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -142,18 +179,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 9),
-            _buildInfoSection(context, appLocalizations!.businessInformation),
-            _buildInfoRow(appLocalizations.businessName,
-                user.name ?? appLocalizations.notAvailable),
-            _buildInfoRow(appLocalizations.businessDomain,
-                user.businessDomain ?? appLocalizations.notAvailable),
+            _buildInfoSection(context, context.tr('Business Information')),
+            _buildInfoRow(context.tr('Business Name'),
+                user.name ?? context.tr('Not Available')),
+            _buildInfoRow(context.tr('Business Domain'),
+                user.businessDomain ?? context.tr('Not Available')),
             const SizedBox(height: 16),
-            _buildInfoSection(context, appLocalizations.settings),
+            _buildInfoSection(context, context.tr('Settings')),
             GenericListTile(
               leading: Icon(Icons.translate,
                   color: theme.colorScheme.primary, size: 28),
               titleWidget: Text(
-                appLocalizations.languages,
+                context.tr('Languages'),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -167,7 +204,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               leading: Icon(Icons.notifications_none_outlined,
                   color: theme.colorScheme.primary, size: 28),
               titleWidget: Text(
-                appLocalizations.notifications,
+                context.tr('Notifications'),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -179,7 +216,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               leading: Icon(Icons.favorite_border_rounded,
                   color: theme.colorScheme.primary, size: 28),
               titleWidget: Text(
-                appLocalizations.favouriteCustomers,
+                context.tr('Favourite Customers'),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -191,7 +228,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               leading: Icon(Icons.request_quote_outlined,
                   color: theme.colorScheme.primary, size: 28),
               titleWidget: Text(
-                appLocalizations.financialTransactions,
+                context.tr('Financial Transactions'),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -209,7 +246,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               leading: Icon(Icons.download,
                   color: theme.colorScheme.primary, size: 28),
               titleWidget: Text(
-                appLocalizations.exportTransactionsToExcel,
+                context.tr('Export Transactions to Excel'),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -221,14 +258,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     .exportAllAnalyticsToExcel();
                 ref
                     .read(messengerProvider)
-                    .showSuccess(appLocalizations.transactionsExported);
+                    .showSuccess(context.tr('Transactions Exported'));
               },
             ),
             GenericListTile(
               leading: Icon(Icons.upload_file,
                   color: theme.colorScheme.primary, size: 28),
               titleWidget: Text(
-                appLocalizations.exportOnboardingDataToExcel,
+                context.tr('Export Onboarding Data to Excel'),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -240,14 +277,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     .exportAllAnalyticsToExcel();
                 ref
                     .read(messengerProvider)
-                    .showSuccess(appLocalizations.transactionsExported);
+                    .showSuccess(context.tr('Transactions Exported'));
               },
             ),
             GenericListTile(
               leading: Icon(Icons.upload_file,
                   color: theme.colorScheme.primary, size: 28),
               titleWidget: Text(
-                appLocalizations.exportOnboardingDataToExcel,
+                context.tr('Export Onboarding Data to Excel'),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -256,10 +293,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onTap: () async {
                 await ref
                     .read(onboardingExcelServiceProvider)
-                    .exportOnboardingDataToExcel([]); // todo: pass actual list here
+                    .exportOnboardingDataToExcel(
+                        []); // todo: pass actual list here
                 ref
                     .read(messengerProvider)
-                    .showSuccess(appLocalizations.onboardingDataExported);
+                    .showSuccess(context.tr('Onboarding Data Exported'));
               },
             ),
 
@@ -267,9 +305,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.folder,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: const Text(
-                'Resource Centre',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              titleWidget: Text(
+                context.tr('Resource Centre'),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
@@ -284,7 +323,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ref.read(authServiceProvider).signOut();
                 },
                 icon: const Icon(Icons.logout),
-                label: Text(appLocalizations.signOut),
+                label: Text(context.tr('Sign Out')),
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   foregroundColor: Colors.white,

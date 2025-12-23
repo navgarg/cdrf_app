@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components/domain_card.dart';
+import '../../l10n/dynamic_localizations.dart';
 import '../../models/business_domain.dart';
 import '../../models/user.dart';
 import '../../services/api/auth_service.dart';
@@ -23,17 +24,17 @@ class BusinessDomainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final List<_BusinessDomainInfo> domains = [
       _BusinessDomainInfo(
-          'Beauty Parlor', 'assets/icons/onboarding/beauty_parlor.png'),
+          context.tr('Beauty Parlor'), 'assets/icons/onboarding/beauty_parlor.png'),
       _BusinessDomainInfo(
-          'Tailor Shop', 'assets/icons/onboarding/tailor_shop.png'),
+          context.tr('Tailor Shop'), 'assets/icons/onboarding/tailor_shop.png'),
       _BusinessDomainInfo(
-          'Tiffin Services', 'assets/icons/onboarding/tiffin_service.png'),
+          context.tr('Tiffin Services'), 'assets/icons/onboarding/tiffin_service.png'),
       _BusinessDomainInfo(
-          'Grocery Seller', 'assets/icons/onboarding/grocery_seller.png'),
+          context.tr('Grocery Seller'), 'assets/icons/onboarding/grocery_seller.png'),
       _BusinessDomainInfo(
-          'Convenience Store', 'assets/icons/onboarding/convenience_store.png'),
+          context.tr('Convenience Store'), 'assets/icons/onboarding/convenience_store.png'),
       _BusinessDomainInfo(
-          'Other Business', 'assets/icons/onboarding/other_business.png'),
+          context.tr('Other Business'), 'assets/icons/onboarding/other_business.png'),
     ]; //todo: make other business button functional
 
     Future<void> selectDomain(String domain) async {
@@ -63,7 +64,7 @@ class BusinessDomainScreen extends ConsumerWidget {
       } catch (e) {
         ref
             .read(messengerProvider)
-            .showError('Could not save domain. Please try again.');
+            .showError(context.tr('Could not save domain. Please try again.'));
       }
     }
 
@@ -71,19 +72,19 @@ class BusinessDomainScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         children: [
-          const Text(
-            "Hello!",
+          Text(
+            context.tr("Hello!"),
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 36,
               fontFamily: 'PatrickHand',
               fontWeight: FontWeight.w800,
             ),
           ),
-          const Text(
-            "Select your business domain",
+          Text(
+            context.tr("Select your business domain"),
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 24,
               fontFamily: 'PatrickHand',
               fontWeight: FontWeight.w300,

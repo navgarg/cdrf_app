@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/api/fav_customer_service.dart';
 import '../../services/api/auth_service.dart';
+import '../../l10n/dynamic_localizations.dart';
 
 final favouriteCustomerFabPressedProvider = StateProvider<bool>((ref) => false);
 
@@ -9,12 +10,12 @@ class FavouriteCustomersScreen extends ConsumerStatefulWidget {
   const FavouriteCustomersScreen({super.key});
 
   @override
-  ConsumerState<FavouriteCustomersScreen> createState() => _FavouriteCustomersScreenState();
+  ConsumerState<FavouriteCustomersScreen> createState() =>
+      _FavouriteCustomersScreenState();
 }
 
-class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScreen> {
-
-
+class _FavouriteCustomersScreenState
+    extends ConsumerState<FavouriteCustomersScreen> {
   void _showAddCustomerDialog(String? userId) {
     final nameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -23,7 +24,7 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
       context: context,
       barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
       barrierDismissible: true,
-      barrierLabel: 'Add Favourite Customer',
+      barrierLabel: context.tr('Add Favourite Customer'),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (dialogContext, animation, secondaryAnimation) {
         return Align(
@@ -41,7 +42,9 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
               color: Colors.transparent,
               child: Padding(
                 padding: EdgeInsets.only(
-                  left: 24, right: 24, top: 24,
+                  left: 24,
+                  right: 24,
+                  top: 24,
                   bottom: MediaQuery.of(dialogContext).viewInsets.bottom + 24,
                 ),
                 child: Form(
@@ -50,12 +53,17 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('New Favourite Customer', style: Theme.of(dialogContext).textTheme.headlineSmall),
+                      Text(context.tr('New Favourite Customer'),
+                          style:
+                              Theme.of(dialogContext).textTheme.headlineSmall),
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: nameController,
-                        decoration: const InputDecoration(labelText: 'Customer Name'),
-                        validator: (value) => value!.isEmpty ? 'Please enter a name' : null,
+                        decoration: InputDecoration(
+                            labelText: context.tr('Customer Name')),
+                        validator: (value) => value!.isEmpty
+                            ? context.tr('Please enter a name')
+                            : null,
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton(
@@ -67,12 +75,13 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
 
                             if (success) {
                               if (!dialogContext.mounted) return;
-                              final _ = ref.refresh(favouriteCustomersProvider(userId));
+                              final _ = ref
+                                  .refresh(favouriteCustomersProvider(userId));
                               Navigator.of(dialogContext).pop();
                             }
                           }
                         },
-                        child: const Text('Save Customer'),
+                        child: Text(context.tr('Save Customer')),
                       ),
                     ],
                   ),
@@ -84,13 +93,13 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0)).animate(animation),
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+              .animate(animation),
           child: child,
         );
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +115,7 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Favourite Customers'),
+        title: Text(context.tr('Favourite Customers')),
       ),
       body: Column(
         children: [
@@ -116,28 +125,32 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Manage Favourites',
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  context.tr('Manage Favourites'),
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Add or remove customers you want to track closely.',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+                  context
+                      .tr('Add or remove customers you want to track closely.'),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: Colors.grey.shade600),
                 ),
                 const Divider(height: 24),
               ],
             ),
           ),
-
           Expanded(
             child: favCustomersAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
+              error: (err, stack) =>
+                  Center(child: Text(context.tr('Error: $err'))),
               data: (customerList) {
                 if (customerList.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
-                      'You have no favourite customers yet.\nTap the + button to add one!',
+                      context.tr(
+                          'You have no favourite customers yet.\nTap the + button to add one!'),
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -150,22 +163,26 @@ class _FavouriteCustomersScreenState extends ConsumerState<FavouriteCustomersScr
                     final customer = customerList[index];
                     return Card(
                       color: theme.cardColor,
-                      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 4.0, horizontal: 8.0),
                       elevation: 0.5,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
-                        leading: Icon(Icons.person, color: theme.colorScheme.primary),
+                        leading: Icon(Icons.person,
+                            color: theme.colorScheme.primary),
                         title: Text(customer.name),
                         trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: theme.colorScheme.primary),
+                          icon: Icon(Icons.delete_outline,
+                              color: theme.colorScheme.primary),
                           onPressed: () async {
                             final success = await ref
                                 .read(favouriteCustomerServiceProvider(userId))
                                 .deleteFavouriteCustomer(customer.id);
                             if (success) {
-                              final _ = ref.refresh(favouriteCustomersProvider(userId));
+                              final _ = ref
+                                  .refresh(favouriteCustomersProvider(userId));
                             }
                           },
                         ),

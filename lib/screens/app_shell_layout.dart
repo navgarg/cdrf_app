@@ -7,7 +7,7 @@ import '../components/cart_bottom_sheet.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import '../components/customer_order_service_fab.dart';
 import '../services/admin/admin_provider.dart';
-import 'package:nariudyam/l10n/app_localizations.dart';
+import '../l10n/dynamic_localizations.dart';
 
 final inventoryFabPressedProvider = StateProvider<bool>((ref) => false);
 
@@ -39,17 +39,16 @@ class AppShellLayout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
-    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
     final Map<String, String> routeTitles = {
-      '/dashboard': appLocalizations.dashboard,
-      '/inventory': appLocalizations.inventory,
-      '/schedule': appLocalizations.schedule,
-      '/customer_order': appLocalizations.customerOrder,
-      '/profile': appLocalizations.profile,
-      '/advanced_analytics': 'Advanced Analytics',
+      '/dashboard': context.tr('Dashboard'),
+      '/inventory': context.tr('Inventory'),
+      '/schedule': context.tr('Schedule'),
+      '/customer_order': context.tr('Customer Order'),
+      '/profile': context.tr('Profile'),
+      '/advanced_analytics': context.tr('Advanced Analytics'),
     };
     final String pageTitle =
-        routeTitles[currentPath ?? ''] ?? appLocalizations.appName;
+        routeTitles[currentPath ?? ''] ?? context.tr('Nari Udyam');
     final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
     final bool showBackButton =
         GoRouter.of(context).canPop() && !isTopLevelRoute;
@@ -159,44 +158,44 @@ class AppShellLayout extends ConsumerWidget {
         currentIndex: _getSelectedIndex(currentPath, isAdmin),
         onTap: (index) => _onItemTapped(context, index, isAdmin),
         items: isAdmin
-            ? const [
+            ? [
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
+                  icon: const Icon(Icons.home),
+                  label: context.tr('Home'),
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.people),
-                  label: 'Users',
+                  icon: const Icon(Icons.people),
+                  label: context.tr('Users'),
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.analytics),
-                  label: 'Analytics',
+                  icon: const Icon(Icons.analytics),
+                  label: context.tr('Analytics'),
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.folder),
-                  label: 'Resources',
+                  icon: const Icon(Icons.folder),
+                  label: context.tr('Resources'),
                 ),
               ]
             : [
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.home),
-                  label: appLocalizations.home,
+                  label: context.tr('Home'),
                 ),
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.inventory),
-                  label: appLocalizations.inventory,
+                  label: context.tr('Inventory'),
                 ),
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.calendar_today),
-                  label: appLocalizations.schedule,
+                  label: context.tr('Schedule'),
                 ),
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.shopping_cart),
-                  label: appLocalizations.order,
+                  label: context.tr('Order'),
                 ),
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.person),
-                  label: appLocalizations.profile,
+                  label: context.tr('Profile'),
                 ),
               ],
       ),

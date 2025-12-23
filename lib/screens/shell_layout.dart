@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+// TODO: Add import for your localization solution, e.g.:
+// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// or your custom i18n package
 
 class OnboardingLayout extends StatelessWidget {
   final Widget child;
@@ -39,7 +42,7 @@ class OnboardingLayout extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Nari Udyam',
+                          'Nari Udyam', // TODO: Replace with AppLocalizations.of(context)!.appName
                           style: TextStyle(
                             fontFamily: 'Rochester',
                             fontSize: 46,
@@ -49,7 +52,7 @@ class OnboardingLayout extends StatelessWidget {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Vyapar chalati, Naari ka saathi',
+                          'Vyapar chalati, Naari ka saathi', // TODO: Replace with AppLocalizations.of(context)!.appTagline
                           style: TextStyle(
                             fontFamily: 'PatrickHand',
                             fontSize: 18,

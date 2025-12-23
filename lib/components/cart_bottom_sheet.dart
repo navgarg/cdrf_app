@@ -9,6 +9,7 @@ import 'package:nariudyam/services/api/transaction_service.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/services/general/messenger.dart';
+import 'package:nariudyam/l10n/dynamic_localizations.dart';
 
 class CartBottomSheet extends ConsumerWidget {
   const CartBottomSheet({super.key});
@@ -80,7 +81,7 @@ class CartBottomSheet extends ConsumerWidget {
                       ),
                       Expanded(
                         child: Text(
-                          'Cart',
+                          context.tr('Cart'),
                           style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -97,7 +98,7 @@ class CartBottomSheet extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'My Cart:',
+                  context.tr('My Cart:'),
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -110,7 +111,7 @@ class CartBottomSheet extends ConsumerWidget {
                       left: 16.0, right: 16.0, bottom: 100.0),
                   child: cartItems.isEmpty
                       ? Center(
-                          child: Text('Your cart is empty.',
+                          child: Text(context.tr('Your cart is empty.'),
                               style: TextStyle(
                                   fontSize: 16,
                                   color:
@@ -174,14 +175,16 @@ class CartBottomSheet extends ConsumerWidget {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(item.name,
+                                          Text(
+                                              context.tr(item
+                                                  .name), // Translate product/service name
                                               style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 16,
                                                   color: onSurface)),
                                           const SizedBox(height: 2),
                                           Text(
-                                            '₹${item.price.toStringAsFixed(2)}${!isService && item.unit != null ? ' per ${item.unit}' : ''}',
+                                            '₹${item.price.toStringAsFixed(2)}${!isService && item.unit != null ? ' ${context.tr('per')} ${context.tr(item.unit)}' : ''}',
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: onSurface.withAlpha(
@@ -294,7 +297,7 @@ class CartBottomSheet extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('To Pay',
+                          Text(context.tr('To Pay'),
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -395,7 +398,7 @@ class CartBottomSheet extends ConsumerWidget {
       try {
         await transactionService.addTransaction(
           productId: item.id,
-          itemName: item.name,
+          itemName: context.tr(item.name), // Translate product/service name
           quantity: quantity,
           price: price,
           cost: cost,

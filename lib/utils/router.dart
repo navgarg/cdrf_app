@@ -84,6 +84,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             state.matchedLocation.startsWith('/dashboard')) {
           return '/admin';
         }
+
+        // If user is on a valid route (dashboard, inventory, schedule, profile, etc.),
+        // don't redirect even if user data updates (e.g., language change)
+        // This prevents unwanted redirects when updating profile settings
       }
 
       return null;

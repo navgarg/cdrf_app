@@ -4,6 +4,7 @@ import 'package:nariudyam/services/api/inventory_service.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../l10n/dynamic_localizations.dart';
 
 class AddInventoryItemForm extends ConsumerStatefulWidget {
   const AddInventoryItemForm({super.key});
@@ -53,13 +54,14 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 (item['lowest_recorded_price'] ?? 0.0).toString();
           });
         } else {
-          _showSnackBar('Product details not found.');
+          _showSnackBar(context.tr('Product details not found.'));
         }
       } else {
-        _showSnackBar('Failed to load product details: ${response.statusCode}');
+        _showSnackBar(context
+            .tr('Failed to load product details: ${response.statusCode}'));
       }
     } catch (e) {
-      _showSnackBar('Error fetching product details: $e');
+      _showSnackBar(context.tr('Error fetching product details: $e'));
     }
   }
 
@@ -112,7 +114,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('New Inventory Item',
+                  Text(context.tr('New Inventory Item'),
                       style: Theme.of(context).textTheme.headlineSmall),
                   IconButton(
                     icon: const Icon(Icons.qr_code_scanner),
@@ -129,28 +131,29 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Item Name',
+                decoration: InputDecoration(
+                  labelText: context.tr('Item Name'),
                 ),
                 validator: (value) =>
-                    value!.isEmpty ? 'Please enter a name' : null,
+                    value!.isEmpty ? context.tr('Please enter a name') : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration:
+                    InputDecoration(labelText: context.tr('Description')),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Price'),
+                decoration: InputDecoration(labelText: context.tr('Price')),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a price';
+                    return context.tr('Please enter a price');
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
+                    return context.tr('Please enter a valid number');
                   }
                   return null;
                 },
@@ -158,14 +161,14 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _costController,
-                decoration: const InputDecoration(labelText: 'Cost'),
+                decoration: InputDecoration(labelText: context.tr('Cost')),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a cost';
+                    return context.tr('Please enter a cost');
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
+                    return context.tr('Please enter a valid number');
                   }
                   return null;
                 },
@@ -173,23 +176,25 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _stockQuantityController,
-                decoration: const InputDecoration(labelText: 'Stock Quantity'),
+                decoration:
+                    InputDecoration(labelText: context.tr('Stock Quantity')),
                 keyboardType: TextInputType.number,
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter stock quantity' : null,
+                validator: (value) => value!.isEmpty
+                    ? context.tr('Please enter stock quantity')
+                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _reorderThresholdController,
                 decoration:
-                    const InputDecoration(labelText: 'Reorder Threshold'),
+                    InputDecoration(labelText: context.tr('Reorder Threshold')),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _unitController,
-                decoration:
-                    const InputDecoration(labelText: 'Unit (e.g., pcs, kg)'),
+                decoration: InputDecoration(
+                    labelText: context.tr('Unit (e.g., pcs, kg)')),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -199,7 +204,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                         height: 24,
                         width: 24,
                         child: CircularProgressIndicator(color: Colors.white))
-                    : const Text('Save Item'),
+                    : Text(context.tr('Save Item')),
               ),
             ],
           ),

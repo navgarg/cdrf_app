@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../services/admin/admin_analytics_service.dart';
+import '../../l10n/dynamic_localizations.dart';
 
 class AdminAnalyticsScreen extends ConsumerStatefulWidget {
   const AdminAnalyticsScreen({super.key});
@@ -62,7 +63,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'User Analytics',
+                    context.tr('User Analytics'),
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -70,54 +71,54 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                   IconButton(
                     icon: const Icon(Icons.refresh),
                     onPressed: _loadAnalytics,
-                    tooltip: 'Refresh',
+                    tooltip: context.tr('Refresh'),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               _buildAnalyticsCard(
                 context,
-                'Total Users',
+                context.tr('Total Users'),
                 data.totalUsers.toString(),
                 Icons.people,
                 Colors.blue,
-                'All registered users',
+                context.tr('All registered users'),
               ),
               const SizedBox(height: 12),
               _buildAnalyticsCard(
                 context,
-                'Active Users (7 days)',
+                context.tr('Active Users (7 days)'),
                 data.activeUsers.toString(),
                 Icons.online_prediction,
                 Colors.green,
-                'Users active in last 7 days',
+                context.tr('Users active in last 7 days'),
               ),
               const SizedBox(height: 12),
               _buildAnalyticsCard(
                 context,
-                'Total Transactions',
+                context.tr('Total Transactions'),
                 data.totalTransactions.toString(),
                 Icons.receipt_long,
                 Colors.orange,
-                'All time transactions',
+                context.tr('All time transactions'),
               ),
               const SizedBox(height: 12),
               _buildAnalyticsCard(
                 context,
-                'Resources Uploaded',
+                context.tr('Resources Uploaded'),
                 data.totalResources.toString(),
                 Icons.folder,
                 Colors.purple,
-                'Total files in resource center',
+                context.tr('Total files in resource center'),
               ),
               const SizedBox(height: 12),
               _buildAnalyticsCard(
                 context,
-                'Total Revenue',
+                context.tr('Total Revenue'),
                 currencyFormat.format(data.totalRevenue),
                 Icons.currency_rupee,
                 Colors.teal,
-                'Combined revenue from all users',
+                context.tr('Combined revenue from all users'),
               ),
             ],
           ),

@@ -5,7 +5,7 @@ import 'package:nariudyam/models/service_item.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
 import 'package:nariudyam/services/api/services_service.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
-import 'package:nariudyam/l10n/app_localizations.dart';
+import 'package:nariudyam/l10n/dynamic_localizations.dart';
 
 final productsProvider = StreamProvider.autoDispose<List<ProductItem>>((ref) {
   return ref.watch(inventoryServiceProvider).streamInventoryProductItems();
@@ -52,7 +52,6 @@ class CustomerOrderScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
     final isService = user?.businessDomain == 'Beauty Parlor';
-    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
 
     final itemsAsyncValue = isService
         // Beauty Parlor => show services on order page
@@ -68,8 +67,8 @@ class CustomerOrderScreen extends ConsumerWidget {
         if (items.isEmpty) {
           return Center(
               child: Text(isService
-                  ? appLocalizations.noServicesFound
-                  : appLocalizations.noProductsFound));
+                  ? context.tr('No services found.')
+                  : context.tr('No products found.')));
         }
         final onSurface = theme.colorScheme.onSurface;
         return ListView.separated(
@@ -78,13 +77,14 @@ class CustomerOrderScreen extends ConsumerWidget {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             dynamic item = items[index];
-            String itemName = item.name;
+            String itemName =
+                context.tr(item.name); // Translate product/service name
             double itemPrice = item.price;
             String itemUnit = '';
             String itemId = item.id;
 
             if (!isService && item is ProductItem) {
-              itemUnit = item.unit;
+              itemUnit = context.tr(item.unit); // Translate unit name
             }
 
             return Container(
@@ -154,7 +154,7 @@ class CustomerOrderScreen extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
-          child: Text(appLocalizations.errorLoadingData(error.toString()))),
+          child: Text(context.tr('Error loading data: ${error.toString()}'))),
     );
   }
 }
@@ -177,7 +177,6 @@ class _AddToCartButton extends ConsumerWidget {
     final qty = qtyMap[itemId];
     final notifier = ref.read(cartProvider.notifier);
     final onPrimary = theme.colorScheme.onPrimary;
-    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
 
     // Determine increment size (0.5 for weight-based products with kg unit)
     final bool isWeightProduct =
@@ -195,7 +194,7 @@ class _AddToCartButton extends ConsumerWidget {
           elevation: 0,
         ),
         onPressed: () => notifier.addToCart(itemId, quantityDelta: step),
-        child: Text(appLocalizations.add,
+        child: Text(context.tr('Add'),
             style: TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 16, color: onPrimary)),
       );

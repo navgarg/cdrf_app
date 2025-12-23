@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:developer' as _logger;
+import 'dart:ui';
 
 final settingsProvider = Provider<SettingsService>((ref) {
   return SettingsService();
@@ -69,6 +71,11 @@ class SettingsService {
   bool containsKey(String key) {
     if (!_initialized) return false;
     return _prefs.containsKey(key);
+  }
+
+  // Update the app's locale
+  Future<void> updateLocale(Locale locale) async {
+    await setString('locale', locale.languageCode);
   }
 
   Future<void> _ensureInitialized() async {

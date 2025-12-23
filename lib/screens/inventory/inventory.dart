@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import 'package:nariudyam/components/generic_list_tile.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
 import '../app_shell_layout.dart';
 import 'add_inventory_item_form.dart';
 import 'inventory_item_detail_screen.dart';
-import 'package:nariudyam/l10n/app_localizations.dart';
+import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'package:nariudyam/services/translation_service.dart';
 
 final inventoryItemsProvider =
     StreamProvider.autoDispose<List<ProductItem>>((ref) {
@@ -21,13 +23,39 @@ class InventoryScreen extends ConsumerStatefulWidget {
 }
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
+  StreamSubscription? _translationSubscription;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for translation updates and trigger rebuild
+    _translationSubscription =
+        TranslationService().onTranslationUpdated.listen((_) {
+      if (_refreshTimer?.isActive ?? false) return;
+
+      _refreshTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _translationSubscription?.cancel();
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
   void _showAddInventoryItemDialog() {
-    final appLocalizations = AppLocalizations.of(context);
     showGeneralDialog(
       context: context,
       barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
       barrierDismissible: true,
-      barrierLabel: appLocalizations?.addInventoryItem ?? "",
+      barrierLabel: context.tr('Add Inventory Item'),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -59,11 +87,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     ref.listen(inventoryFabPressedProvider, (_, isPressed) {
       if (isPressed) {
@@ -79,7 +102,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           data: (items) {
             if (items.isEmpty) {
               return Center(
-                child: Text(AppLocalizations.of(context)!.noInventoryItemsFound),
+                child: Text(context.tr('No inventory items found. Add some!')),
               );
             }
             return ListView.builder(
@@ -94,12 +117,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.name,
+                        context.tr(item.name), // Translate product name
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        '${item.stockQuantity} ${item.unit}',
+                        '${item.stockQuantity} ${context.tr(item.unit)}', // Translate unit
                         style: TextStyle(
                             fontSize: 14, color: Colors.grey.shade600),
                       ),
@@ -130,7 +153,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text(AppLocalizations.of(context)!.errorFetchingInventoryItems(error.toString()))),
+          error: (error, stack) =>
+              Center(child: Text(context.tr('Error: ${error.toString()}'))),
         );
       },
     );

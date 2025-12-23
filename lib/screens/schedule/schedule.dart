@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import 'package:nariudyam/screens/schedule/day_view.dart';
 import 'package:nariudyam/screens/schedule/month_view.dart';
 import 'package:nariudyam/screens/schedule/week_view.dart';
 import 'package:nariudyam/services/api/schedule_service.dart';
 import '../../components/add_appointment_form.dart';
-
+import '../../l10n/dynamic_localizations.dart';
+import '../../services/translation_service.dart';
 
 final scheduleFabPressedProvider = StateProvider<bool>((ref) => false);
 
@@ -13,7 +15,7 @@ bool isSameMonth(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month;
 }
 
-enum ScheduleView {day, week, month }
+enum ScheduleView { day, week, month }
 
 class ScheduleScreen extends ConsumerStatefulWidget {
   const ScheduleScreen({super.key});
@@ -23,43 +25,65 @@ class ScheduleScreen extends ConsumerStatefulWidget {
 }
 
 class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
-
-
   ScheduleView _scheduleView = ScheduleView.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  StreamSubscription? _translationSubscription;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for translation updates and trigger rebuild
+    _translationSubscription =
+        TranslationService().onTranslationUpdated.listen((_) {
+      if (_refreshTimer?.isActive ?? false) return;
+
+      _refreshTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _translationSubscription?.cancel();
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   // Called when the Floating Action Button is tapped
   void _showAddAppointmentDialog() {
     showGeneralDialog(
       context: context,
-      barrierColor: Colors.black.withAlpha((0.5*255).round()),
+      barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
       barrierDismissible: true,
-      barrierLabel: 'Add Appointment',
+      barrierLabel: context.tr('Add Appointment'),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
           alignment: Alignment.bottomCenter,
           // child: SizedBox(
           //   height: MediaQuery.of(context).size.height * 0.6,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
-              ),
-
-
-              child: Material(
-                color: Colors.transparent,
-                child: AddAppointmentForm(
-                  selectedDate: _selectedDay ?? DateTime.now(),
-                ),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
               ),
             ),
+            child: Material(
+              color: Colors.transparent,
+              child: AddAppointmentForm(
+                selectedDate: _selectedDay ?? DateTime.now(),
+              ),
+            ),
+          ),
           // ),
         );
       },
@@ -79,7 +103,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   }
 
   Widget _buildScreenContent() {
-    return Consumer(builder: (context, ref, child) {
+    return Consumer(
+      builder: (context, ref, child) {
         ref.listen<bool>(scheduleFabPressedProvider, (prev, next) {
           if (next) {
             _showAddAppointmentDialog();
@@ -87,56 +112,62 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           }
         });
 
-          final appointmentsAsyncValue = ref.watch(appointmentsProvider);
+        final appointmentsAsyncValue = ref.watch(appointmentsProvider);
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              children: [
-                _buildToggleButtons(),
-                Expanded(
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: [
+              _buildToggleButtons(),
+              Expanded(
                   child: appointmentsAsyncValue.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (err, stack) => Center(child: Text('Error: $err')),
-                    data: (allAppointments) {
-                      return switch (_scheduleView) {
-                        ScheduleView.month => MonthView(
-                            allAppointments: allAppointments,
-                            focusedDay: _focusedDay,
-                            selectedDay: _selectedDay,
-                            onDaySelected: (selectedDay, focusedDay) {
-                              setState(() {
-                                _selectedDay = selectedDay;
-                                _focusedDay = focusedDay;
-                                _scheduleView = ScheduleView.day;
-                              });
-                            },
-                            onPageChanged: (focusedDay) {
-                              setState(() { _focusedDay = focusedDay; });
-                            },
-                          ),
-                        ScheduleView.week => WeekView(
-                            allAppointments: allAppointments,
-                            focusedDay: _focusedDay,
-                            onWeekNavigate: (newFocusedDay) {
-                              setState(() { _focusedDay = newFocusedDay; });
-                            },
-                          ),
-                        ScheduleView.day => DayView(
-                            allAppointments: allAppointments,
-                            selectedDay: _selectedDay,
-                            onDayNavigate: (newSelectedDay) {
-                              setState(() { _selectedDay = newSelectedDay; });
-                            },
-                          ),
-                      };
-                    },
-                  )
-                ),
-              ],
-            ),
-          );
-        },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) =>
+                    Center(child: Text(context.tr('Error: $err'))),
+                data: (allAppointments) {
+                  return switch (_scheduleView) {
+                    ScheduleView.month => MonthView(
+                        allAppointments: allAppointments,
+                        focusedDay: _focusedDay,
+                        selectedDay: _selectedDay,
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
+                            _selectedDay = selectedDay;
+                            _focusedDay = focusedDay;
+                            _scheduleView = ScheduleView.day;
+                          });
+                        },
+                        onPageChanged: (focusedDay) {
+                          setState(() {
+                            _focusedDay = focusedDay;
+                          });
+                        },
+                      ),
+                    ScheduleView.week => WeekView(
+                        allAppointments: allAppointments,
+                        focusedDay: _focusedDay,
+                        onWeekNavigate: (newFocusedDay) {
+                          setState(() {
+                            _focusedDay = newFocusedDay;
+                          });
+                        },
+                      ),
+                    ScheduleView.day => DayView(
+                        allAppointments: allAppointments,
+                        selectedDay: _selectedDay,
+                        onDayNavigate: (newSelectedDay) {
+                          setState(() {
+                            _selectedDay = newSelectedDay;
+                          });
+                        },
+                      ),
+                  };
+                },
+              )),
+            ],
+          ),
+        );
+      },
       // ),
     );
   }
@@ -167,7 +198,11 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           minHeight: 40.0,
           minWidth: (MediaQuery.of(context).size.width - 48) / 3,
         ),
-        children: const [Text('Day'), Text('Week'), Text('Month')],
+        children: [
+          Text(context.tr('Day')),
+          Text(context.tr('Week')),
+          Text(context.tr('Month'))
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../../services/api/auth_service.dart';
 import '../../services/admin/admin_analytics_service.dart';
 import '../../services/general/excel_service.dart';
 import '../../config/admin_config.dart';
+import '../../l10n/dynamic_localizations.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -42,14 +43,14 @@ class AdminDashboardScreen extends ConsumerWidget {
               children: [
                 // Admin Portal heading
                 Text(
-                  'Admin Portal',
+                  context.tr('Admin Portal'),
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,
                   ),
                 ),
                 Text(
-                  'Welcome, ${user?.name ?? "Admin"}',
+                  context.tr('Welcome, ${user?.name ?? 'Admin'}'),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: Colors.grey.shade600,
                   ),
@@ -61,7 +62,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Overview',
+                      context.tr('Overview'),
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -80,7 +81,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _buildStatCard(
                         context,
-                        'Total Users',
+                        context.tr('Total Users'),
                         stats['totalUsers'].toString(),
                         Icons.people,
                         Colors.blue,
@@ -90,7 +91,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _buildStatCard(
                         context,
-                        'Resources',
+                        context.tr('Resources'),
                         stats['totalResources'].toString(),
                         Icons.folder,
                         Colors.green,
@@ -104,7 +105,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _buildStatCard(
                         context,
-                        'Total Revenue',
+                        context.tr('Total Revenue'),
                         currencyFormat.format(stats['totalRevenue']),
                         Icons.currency_rupee,
                         Colors.orange,
@@ -114,7 +115,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _buildStatCard(
                         context,
-                        'Active Today',
+                        context.tr('Active Today'),
                         stats['activeToday'].toString(),
                         Icons.trending_up,
                         Colors.purple,
@@ -134,7 +135,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         excelService.exportAllAnalyticsToExcel();
                       },
                       icon: const Icon(Icons.download),
-                      label: const Text('Export Analytics'),
+                      label: Text(context.tr('Export Analytics')),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         foregroundColor: Colors.white,
@@ -153,7 +154,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ref.read(authServiceProvider).signOut();
                     },
                     icon: const Icon(Icons.logout),
-                    label: const Text('Sign Out'),
+                    label: Text(context.tr('Sign Out')),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       foregroundColor: Colors.white,

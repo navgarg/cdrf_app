@@ -12,6 +12,7 @@ import '../../services/resource/resource_service.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/general/messenger.dart';
 import '../../components/generic_list_tile.dart';
+import '../../l10n/dynamic_localizations.dart';
 
 class ResourceCenterScreen extends ConsumerStatefulWidget {
   const ResourceCenterScreen({super.key});
@@ -25,19 +26,18 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
   final _service = ResourceService();
 
   Future<void> _pickAndUpload() async {
-    // Use file_selector which provides platform file picking across mobile/desktop
     const XTypeGroup typeGroup = XTypeGroup(
       label: 'files',
-      // allow common mime types; empty means all
       extensions: ['pdf', 'png', 'jpg', 'jpeg'],
     );
 
     final XFile? picked = await openFile(acceptedTypeGroups: [typeGroup]);
     if (picked == null) return;
 
-    // On web, XFile may not expose a path; use bytes if necessary
     if (kIsWeb) {
-      ref.read(messengerProvider).showError('Upload not supported on web yet');
+      ref
+          .read(messengerProvider)
+          .showError(context.tr('Upload not supported on web yet'));
       return;
     }
 
@@ -47,9 +47,11 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
     try {
       await _service.uploadResource(
           file: file, uploadedBy: user.uid, fileName: picked.name);
-      ref.read(messengerProvider).showSuccess('Uploaded ${picked.name}');
+      ref
+          .read(messengerProvider)
+          .showSuccess(context.tr('Uploaded ${picked.name}'));
     } catch (e) {
-      ref.read(messengerProvider).showError('Upload failed: ${e.toString()}');
+      ref.read(messengerProvider).showError(context.tr('Upload failed: $e'));
     }
   }
 
@@ -84,7 +86,7 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
 
         final docs = snapshot.data?.docs ?? [];
         if (docs.isEmpty) {
-          return const Center(child: Text('No resources uploaded yet'));
+          return Center(child: Text(context.tr('No resources uploaded yet')));
         }
 
         // Group by date
@@ -176,9 +178,9 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
           GenericListTile(
             leading: Icon(Icons.upload_file,
                 color: theme.colorScheme.primary, size: 28),
-            titleWidget: const Text(
-              'Upload Resource (PDF/Image)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            titleWidget: Text(
+              context.tr('Upload Resource (PDF/Image)'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             trailing: Icon(Icons.add_circle,
                 size: 28, color: theme.colorScheme.primary),

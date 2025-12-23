@@ -7,6 +7,7 @@ import '../../components/regular_button.dart';
 import '../../models/onboarding_step.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/general/messenger.dart';
+import '../../l10n/dynamic_localizations.dart';
 
 class MultiStepOnboardingScreen extends ConsumerStatefulWidget {
   const MultiStepOnboardingScreen({super.key});
@@ -251,7 +252,9 @@ class _MultiStepOnboardingScreenState
         );
       }
     } catch (e) {
-      ref.read(messengerProvider).showError('Failed to save progress: $e');
+      ref
+          .read(messengerProvider)
+          .showError(context.tr('Failed to save progress: $e'));
     }
   }
 
@@ -275,19 +278,19 @@ class _MultiStepOnboardingScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "Hello!",
+            Text(
+              context.tr("Hello!"),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 36,
                 fontFamily: 'PatrickHand',
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const Text(
-              "Please answer the following:",
+            Text(
+              context.tr("Please answer the following:"),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w200,
               ),
@@ -319,7 +322,7 @@ class _MultiStepOnboardingScreenState
                   const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Enter ${step.title.toLowerCase()}',
+                  hintText: context.tr('Enter your answer'),
                   border: const OutlineInputBorder(),
                 ),
                 onSubmitted: (value) => _onOptionSelected(index, value),
@@ -334,19 +337,19 @@ class _MultiStepOnboardingScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "Hello!",
+            Text(
+              context.tr("Hello!"),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 36,
                 fontFamily: 'PatrickHand',
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const Text(
-              "Please answer the following:",
+            Text(
+              context.tr("Please answer the following:"),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w200,
               ),

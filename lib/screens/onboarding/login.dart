@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nariudyam/components/regular_button.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/general/messenger.dart';
+import '../../l10n/dynamic_localizations.dart';
 
 final loginStateProvider =
     StateProvider<LoginState>((ref) => LoginState.phoneInput);
@@ -55,7 +56,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               curve: Curves.easeInOut,
             );
             setState(() => _isLoading = false);
-            ref.read(messengerProvider).showSuccess('Verification code sent!');
+            ref.read(messengerProvider).showSuccess(context.tr('Verification code sent!'));
           },
           onError: (String message) {
             setState(() => _isLoading = false);
@@ -81,7 +82,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (mounted && verified) {
-      ref.read(messengerProvider).showSuccess('Successfully logged in!');
+      ref.read(messengerProvider).showSuccess(context.tr('Successfully logged in!'));
     }
   }
 
@@ -119,9 +120,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ? _resetToPhoneInput
                         : _goBack,
                   ),
-                  const Text(
-                    'Phone Login',
-                    style: TextStyle(
+                  Text(
+                    context.tr('Phone Login'),
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -166,20 +167,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Enter your phone number',
+                    Text(
+                      context.tr('Enter your phone number'),
                       style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
                     TextFormField(
                       controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
+                      decoration: InputDecoration(
+                        labelText: context.tr('Phone Number'),
                         hintText: '911234567890',
                         prefixText: '+',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.phone,
                       inputFormatters: [
@@ -187,10 +188,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your phone number';
+                          return context.tr('Please enter your phone number');
                         }
                         if (value.length < 10) {
-                          return 'Please enter a valid phone number';
+                          return context.tr('Please enter a valid phone number');
                         }
                         return null;
                       },
@@ -198,7 +199,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 20),
                     RegularButton(
                       onPressed: _verifyPhone,
-                      text: "Continue",
+                      text: context.tr('Continue'),
                       isLoading: _isLoading,
                     ),
                   ],
@@ -228,22 +229,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Enter verification code',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Text(
+                    context.tr('Enter verification code'),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Code sent to +${_phoneController.text}',
+                    context.tr('Code sent to +${_phoneController.text}'),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 30),
                   TextField(
                     controller: _verificationCodeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Verification Code',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.tr('Verification Code'),
+                      border: const OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
@@ -255,7 +256,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 20),
                   RegularButton(
                     onPressed: _verifyCode,
-                    text: "Verify",
+                    text: context.tr('Verify'),
                     isLoading: _isLoading,
                   ),
                 ],

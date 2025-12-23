@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:nariudyam/services/api/analytics_service.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
+import 'package:nariudyam/l10n/dynamic_localizations.dart';
 
 class AdvancedAnalyticsScreen extends ConsumerWidget {
   const AdvancedAnalyticsScreen({super.key});
@@ -18,31 +19,31 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Overall Metrics
-          _buildOverallMetricsSection(analyticsService, theme),
+          _buildOverallMetricsSection(analyticsService, theme, context),
           const SizedBox(height: 24),
 
           // Revenue by Product/Service
-          _buildSectionTitle('Revenue by Product/Service', theme),
+          _buildSectionTitle(context.tr('Revenue by Product/Service'), theme),
           const SizedBox(height: 12),
-          _buildProductRevenueChart(analyticsService, theme),
+          _buildProductRevenueChart(analyticsService, theme, context),
           const SizedBox(height: 24),
 
           // Revenue by Payment Mode
-          _buildSectionTitle('Revenue by Payment Mode', theme),
+          _buildSectionTitle(context.tr('Revenue by Payment Mode'), theme),
           const SizedBox(height: 12),
-          _buildPaymentModeChart(analyticsService, theme),
+          _buildPaymentModeChart(analyticsService, theme, context),
           const SizedBox(height: 24),
 
           // Inventory Reorder Alerts
-          _buildSectionTitle('Inventory Reorder Alerts', theme),
+          _buildSectionTitle(context.tr('Inventory Reorder Alerts'), theme),
           const SizedBox(height: 12),
-          _buildInventoryReorderList(analyticsService, theme),
+          _buildInventoryReorderList(analyticsService, theme, context),
           const SizedBox(height: 24),
 
           // Top Products by Revenue
-          _buildSectionTitle('Top Products by Revenue', theme),
+          _buildSectionTitle(context.tr('Top Products by Revenue'), theme),
           const SizedBox(height: 12),
-          _buildTopProductsList(analyticsService, theme),
+          _buildTopProductsList(analyticsService, theme, context),
         ],
       ),
     );
@@ -57,16 +58,16 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverallMetricsSection(
-      AnalyticsService analyticsService, ThemeData theme) {
+  Widget _buildOverallMetricsSection(AnalyticsService analyticsService,
+      ThemeData theme, BuildContext context) {
     return StreamBuilder<Map<String, double>>(
       stream: analyticsService.getOverallMetrics(),
-      builder: (context, snapshot) {
+      builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Text('No data available');
+          return Text(context.tr('No data available'));
         }
 
         final metrics = snapshot.data!;
@@ -84,7 +85,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
           child: Column(
             children: [
               Text(
-                'Overall Performance',
+                context.tr('Overall Performance'),
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -95,13 +96,13 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildMetricCard(
-                    'Total Revenue',
+                    context.tr('Total Revenue'),
                     '₹${metrics['totalRevenue']?.toStringAsFixed(0) ?? '0'}',
                     Icons.attach_money,
                     Colors.white,
                   ),
                   _buildMetricCard(
-                    'Total Transactions',
+                    context.tr('Total Transactions'),
                     '${metrics['totalTransactions']?.toInt() ?? 0}',
                     Icons.receipt_long,
                     Colors.white,
@@ -140,11 +141,11 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildProductRevenueChart(
-      AnalyticsService analyticsService, ThemeData theme) {
+  Widget _buildProductRevenueChart(AnalyticsService analyticsService,
+      ThemeData theme, BuildContext context) {
     return StreamBuilder<List<ProductRevenueData>>(
       stream: analyticsService.getProductRevenueStream(),
-      builder: (context, snapshot) {
+      builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             height: 250,
@@ -158,7 +159,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Center(child: Text('No sales data available')),
+            child: Center(child: Text(context.tr('No sales data available'))),
           );
         }
 
@@ -241,11 +242,11 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentModeChart(
-      AnalyticsService analyticsService, ThemeData theme) {
+  Widget _buildPaymentModeChart(AnalyticsService analyticsService,
+      ThemeData theme, BuildContext context) {
     return StreamBuilder<List<PaymentModeData>>(
       stream: analyticsService.getPaymentModeStream(),
-      builder: (context, snapshot) {
+      builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             height: 250,
@@ -259,7 +260,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Center(child: Text('No payment data available')),
+            child: Center(child: Text(context.tr('No payment data available'))),
           );
         }
 
@@ -270,8 +271,8 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
         };
 
         final labels = {
-          PaymentMethod.cash: 'Cash',
-          PaymentMethod.qr: 'QR/UPI',
+          PaymentMethod.cash: context.tr('Cash'),
+          PaymentMethod.qr: context.tr('QR/UPI'),
         };
 
         return Container(
@@ -284,7 +285,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
             children: [
               // By Revenue
               Text(
-                'By Revenue',
+                context.tr('By Revenue'),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -336,7 +337,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${labels[item.method] ?? 'Unknown'} (₹${item.revenue.toStringAsFixed(0)})',
+                        '${labels[item.method] ?? context.tr('Unknown')} (₹${item.revenue.toStringAsFixed(0)})',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
@@ -349,7 +350,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
               const SizedBox(height: 40),
               // By Transaction Count
               Text(
-                'By Transaction Count',
+                context.tr('By Transaction Count'),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -401,7 +402,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${labels[item.method] ?? 'Unknown'} (${item.transactionCount} txns)',
+                        '${labels[item.method] ?? context.tr('Unknown')} (${item.transactionCount} txns)',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
@@ -418,11 +419,11 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInventoryReorderList(
-      AnalyticsService analyticsService, ThemeData theme) {
+  Widget _buildInventoryReorderList(AnalyticsService analyticsService,
+      ThemeData theme, BuildContext context) {
     return StreamBuilder<List<InventoryReorderData>>(
       stream: analyticsService.getInventoryReorderStream(),
-      builder: (context, snapshot) {
+      builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -433,8 +434,9 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Center(
-              child: Text('✓ All inventory items are well stocked!'),
+            child: Center(
+              child:
+                  Text(context.tr('✓ All inventory items are well stocked!')),
             ),
           );
         }
@@ -462,7 +464,8 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Items currently at or below reorder threshold',
+                        context.tr(
+                            'Items currently at or below reorder threshold'),
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.orange.shade700,
@@ -488,7 +491,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                     ),
                     title: Text(item.productName),
                     subtitle: Text(
-                      'Current: ${item.currentStock} | Threshold: ${item.reorderThreshold}',
+                      '${context.tr('Current')}: ${item.currentStock} | ${context.tr('Threshold')}: ${item.reorderThreshold}',
                       style: const TextStyle(fontSize: 12),
                     ),
                     trailing: Container(
@@ -498,8 +501,8 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                         color: Colors.red.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'Low Stock',
+                      child: Text(
+                        context.tr('Low Stock'),
                         style: TextStyle(
                           color: Colors.red,
                           fontSize: 12,
@@ -517,11 +520,11 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopProductsList(
-      AnalyticsService analyticsService, ThemeData theme) {
+  Widget _buildTopProductsList(AnalyticsService analyticsService,
+      ThemeData theme, BuildContext context) {
     return StreamBuilder<List<ProductRevenueData>>(
       stream: analyticsService.getProductRevenueStream(),
-      builder: (context, snapshot) {
+      builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -532,7 +535,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Center(child: Text('No sales data available')),
+            child: Center(child: Text(context.tr('No sales data available'))),
           );
         }
 
@@ -569,7 +572,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                 ),
                 title: Text(item.productName),
                 subtitle: Text(
-                  'Sales: ${item.salesCount} | Profit: ₹${item.profit.toStringAsFixed(0)}',
+                  '${context.tr('Sales')}: ${item.salesCount} | ${context.tr('Profit')}: ₹${item.profit.toStringAsFixed(0)}',
                   style: const TextStyle(fontSize: 12),
                 ),
                 trailing: Text(

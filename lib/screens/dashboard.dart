@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import 'package:nariudyam/components/dashboard_chart.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api/auth_service.dart';
 import '../models/user.dart';
 import '../services/api/dashboard_service.dart';
 import '../components/generic_list_tile.dart';
-import 'package:nariudyam/l10n/app_localizations.dart';
+import '../l10n/dynamic_localizations.dart';
+import '../services/translation_service.dart';
 
 enum DashboardView { daily, weekly, monthly }
 
@@ -21,6 +23,35 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DashboardView _dashboardView = DashboardView.daily;
   DateTime _focusedDate = DateTime.now();
+  StreamSubscription? _translationSubscription;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for translation updates and trigger rebuild
+    _translationSubscription =
+        TranslationService().onTranslationUpdated.listen((_) {
+      // Debounce rebuilds to avoid performance issues
+      if (_refreshTimer?.isActive ?? false) return;
+
+      _refreshTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {
+            // Trigger rebuild to show new translations
+          });
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _translationSubscription?.cancel();
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   void _navigate(int days, int weeks, int months) {
     setState(() {
@@ -42,7 +73,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final userModel = ref.watch(userProvider);
     final dashboardService = ref.watch(dashboardServiceProvider);
-    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
 
     Stream<List<DailySummary>> dataStream = Stream.value([]);
     switch (_dashboardView) {
@@ -59,14 +89,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return userModel == null
         ? const Center(child: CircularProgressIndicator())
-        : _buildDashboard(context, userModel, dataStream, appLocalizations);
+        : _buildDashboard(context, userModel, dataStream);
   }
 
-  Widget _buildDashboard(
-      BuildContext context,
-      UserModel user,
-      Stream<List<DailySummary>> dataStream,
-      AppLocalizations appLocalizations) {
+  Widget _buildDashboard(BuildContext context, UserModel user,
+      Stream<List<DailySummary>> dataStream) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -80,15 +107,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   return _buildDateNavigator(null);
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                      child: Text(context.tr('Error: ${snapshot.error}')));
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Column(
                     children: [
                       _buildDateNavigator([]),
                       const SizedBox(height: 16),
-                      const Center(
-                        child: Text('No data available for this period.'),
+                      Center(
+                        child: Text(
+                            context.tr('No data available for this period.')),
                       ),
                     ],
                   );
@@ -122,13 +151,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       child: Column(
                         children: [
-                          // _buildSummaryRow(appLocalizations.today,
+                          // _buildSummaryRow(context.tr('Today'),
                           //     todayProfit.toStringAsFixed(2)),
                           // const Divider(),
-                          _buildSummaryRow(appLocalizations.best,
+                          _buildSummaryRow(context.tr('Best'),
                               bestProfit.toStringAsFixed(2)),
                           const Divider(),
-                          _buildSummaryRow(appLocalizations.total,
+                          _buildSummaryRow(context.tr('Total'),
                               totalProfit.toStringAsFixed(2)),
                         ],
                       ),
@@ -186,9 +215,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       leading: Icon(Icons.insights,
                           color: Theme.of(context).colorScheme.primary,
                           size: 28),
-                      titleWidget: const Text(
-                        'Advanced Analytics',
-                        style: TextStyle(
+                      titleWidget: Text(
+                        context.tr('Advanced Analytics'),
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                       trailing: Icon(Icons.arrow_forward_ios,
@@ -200,9 +229,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       leading: Icon(Icons.folder,
                           color: Theme.of(context).colorScheme.primary,
                           size: 28),
-                      titleWidget: const Text(
-                        'Resource Centre',
-                        style: TextStyle(
+                      titleWidget: Text(
+                        context.tr('Resource Centre'),
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                       trailing: Icon(Icons.arrow_forward_ios,
@@ -352,7 +381,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           minHeight: 40.0,
           minWidth: (MediaQuery.of(context).size.width - 48) / 3,
         ),
-        children: const [Text('Daily'), Text('Weekly'), Text('Monthly')],
+        children: [
+          Text(context.tr('Daily')),
+          Text(context.tr('Weekly')),
+          Text(context.tr('Monthly'))
+        ],
       ),
     );
   }

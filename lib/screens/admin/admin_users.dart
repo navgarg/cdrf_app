@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/dynamic_localizations.dart';
 
 class AdminUsersScreen extends ConsumerWidget {
   const AdminUsersScreen({super.key});
@@ -16,13 +17,13 @@ class AdminUsersScreen extends ConsumerWidget {
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text(context.tr('Error: ${snapshot.error}')));
         }
 
         final users = snapshot.data?.docs ?? [];
 
         if (users.isEmpty) {
-          return const Center(child: Text('No users found'));
+          return Center(child: Text(context.tr('No users found')));
         }
 
         return ListView.builder(
@@ -30,9 +31,10 @@ class AdminUsersScreen extends ConsumerWidget {
           itemCount: users.length,
           itemBuilder: (context, index) {
             final userData = users[index].data() as Map<String, dynamic>;
-            final name = userData['name'] ?? 'Unknown';
-            final phone = userData['phoneNumber'] ?? 'N/A';
-            final businessDomain = userData['businessDomain'] ?? 'N/A';
+            final name = userData['name'] ?? context.tr('Unknown');
+            final phone = userData['phoneNumber'] ?? context.tr('N/A');
+            final businessDomain =
+                userData['businessDomain'] ?? context.tr('N/A');
             final createdAt = userData['createdAt'] as Timestamp?;
             final dateStr = createdAt != null
                 ? DateFormat.yMMMd().format(createdAt.toDate())
@@ -48,9 +50,9 @@ class AdminUsersScreen extends ConsumerWidget {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Phone: $phone'),
-                    Text('Business: $businessDomain'),
-                    Text('Joined: $dateStr'),
+                    Text(context.tr('Phone: $phone')),
+                    Text(context.tr('Business: $businessDomain')),
+                    Text(context.tr('Joined: $dateStr')),
                   ],
                 ),
                 isThreeLine: true,
