@@ -273,25 +273,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   size: 16, color: Colors.grey.shade600),
               onTap: () async {
                 await ref
-                    .read(excelServiceProvider)
-                    .exportAllAnalyticsToExcel();
-                ref
-                    .read(messengerProvider)
-                    .showSuccess(context.tr('Transactions Exported'));
-              },
-            ),
-            GenericListTile(
-              leading: Icon(Icons.upload_file,
-                  color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
-                context.tr('Export Onboarding Data to Excel'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Colors.grey.shade600),
-              onTap: () async {
-                await ref
                     .read(onboardingExcelServiceProvider)
                     .exportOnboardingDataToExcel(
                         []); // todo: pass actual list here
