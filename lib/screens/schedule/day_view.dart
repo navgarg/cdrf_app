@@ -5,6 +5,9 @@ import 'package:nariudyam/models/appointment.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'package:nariudyam/models/favourite_customer.dart';
+import 'package:nariudyam/services/api/fav_customer_service.dart';
+import 'package:collection/collection.dart';
 
 class DayView extends ConsumerWidget {
   final List<Appointment> allAppointments;
@@ -30,6 +33,8 @@ class DayView extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final user = ref.watch(userProvider);
+    final favouriteCustomersAsyncValue =
+        ref.watch(favouriteCustomersProvider(user?.uid));
 
     final dayAppointments = allAppointments
         .where((a) =>
@@ -39,73 +44,86 @@ class DayView extends ConsumerWidget {
         .toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-    return Column(
-      children: [
-        if (showHeader)
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios,
-                      color: Colors.white, size: 18),
-                  onPressed: () => onDayNavigate
-                      ?.call(selectedDay!.subtract(const Duration(days: 1))),
+    return favouriteCustomersAsyncValue.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
+      data: (favouriteCustomers) {
+        return Column(
+          children: [
+            if (showHeader)
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
-                Text(
-                  DateFormat('MMMM d, yyyy').format(selectedDay!),
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios,
+                          color: Colors.white, size: 18),
+                      onPressed: () => onDayNavigate?.call(
+                          selectedDay!.subtract(const Duration(days: 1))),
+                    ),
+                    Text(
+                      DateFormat('MMMM d, yyyy').format(selectedDay!),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_forward_ios,
+                          color: Colors.white, size: 18),
+                      onPressed: () => onDayNavigate
+                          ?.call(selectedDay!.add(const Duration(days: 1))),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios,
-                      color: Colors.white, size: 18),
-                  onPressed: () => onDayNavigate
-                      ?.call(selectedDay!.add(const Duration(days: 1))),
-                ),
-              ],
-            ),
-          ),
-        Expanded(
-          child: dayAppointments.isEmpty
-              ? Center(child: Text(context.tr("No appointments for this day.")))
-              : ListView.builder(
-                  itemCount: dayAppointments.length,
-                  itemBuilder: (context, index) {
-                    final appointment = dayAppointments[index];
-                    final bool isFavourite = user != null &&
-                        appointment.customerId != null &&
-                        user.favouriteCustomerIds
-                            .contains(appointment.customerId);
+              ),
+            Expanded(
+              child: dayAppointments.isEmpty
+                  ? Center(
+                      child: Text(context.tr("No appointments for this day.")))
+                  : ListView.builder(
+                      itemCount: dayAppointments.length,
+                      itemBuilder: (context, index) {
+                        final appointment = dayAppointments[index];
+                        final FavouriteCustomer? customer = appointment
+                                    .customerId !=
+                                null
+                            ? favouriteCustomers.firstWhereOrNull(
+                                (favCustomer) =>
+                                    favCustomer.id == appointment.customerId)
+                            : null;
+                        final bool isFavourite = customer != null;
 
-                    return ListTile(
-                      leading: Text(
-                          DateFormat('h:mm a').format(appointment.dateTime),
-                          style: const TextStyle(fontWeight: FontWeight.w500)),
-                      title: Text(appointment.title),
-                      trailing: isFavourite
-                          ? Icon(Icons.star_rounded,
-                              color: Colors.amber.shade700)
-                          : null,
-                      onTap: () {
-                        if (isFavourite) {
-                          ref.read(messengerProvider).showInfo(context.tr(
-                              'Tapped on favourite customer: ${appointment.customerId}'));
-                        }
+                        return ListTile(
+                          leading: Text(
+                              DateFormat('h:mm a').format(appointment.dateTime),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500)),
+                          title: Text(customer?.name ?? appointment.title),
+                          trailing: isFavourite
+                              ? Icon(Icons.star_rounded,
+                                  color: Colors.amber.shade700)
+                              : null,
+                          onTap: () {
+                            if (isFavourite) {
+                              ref.read(messengerProvider).showInfo(context.tr(
+                                  'Tapped on favourite customer: ${customer.name}'));
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
-                ),
-        ),
-      ],
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

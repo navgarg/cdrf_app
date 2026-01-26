@@ -4,9 +4,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/favourite_customer.dart';
 import '../general/messenger.dart';
 import 'auth_service.dart';
+import 'package:nariudyam/services/api/schedule_service.dart';
 import 'package:nariudyam/services/api/transaction_service.dart';
+import 'package:nariudyam/models/business_domain.dart';
 
-
+final favCustomerServiceProvider =
+    FutureProvider<List<FavouriteCustomer>>((ref) async {
+  final user = ref.watch(userProvider);
+  final currentDomain = ref.watch(currentDomainProvider);
+  if (user == null || user.uid == null || currentDomain == null) {
+    return [];
+  }
+  final favCustomerService = FavouriteCustomerService(ref, user.uid,
+      currentDomain.stringValue, ref.watch(transactionServiceProvider));
+  return await favCustomerService.getFavouriteCustomers();
+});
 
 class FavouriteCustomerService {
   final Ref _ref;
@@ -15,7 +27,8 @@ class FavouriteCustomerService {
   final String? businessId;
   final TransactionService _transactionService;
 
-  FavouriteCustomerService(this._ref, this.userId, this.businessId, this._transactionService);
+  FavouriteCustomerService(
+      this._ref, this.userId, this.businessId, this._transactionService);
 
   CollectionReference<FavouriteCustomer> _getCollection() {
     if (userId == null || businessId == null) {
@@ -28,7 +41,8 @@ class FavouriteCustomerService {
         .doc(businessId)
         .collection('favouriteCustomers')
         .withConverter<FavouriteCustomer>(
-          fromFirestore: (snapshot, options) => FavouriteCustomer.fromFirestore(snapshot, options),
+          fromFirestore: (snapshot, options) =>
+              FavouriteCustomer.fromFirestore(snapshot, options),
           toFirestore: (customer, _) => customer.toFirestore(),
         );
   }
@@ -48,7 +62,8 @@ class FavouriteCustomerService {
     return snapshot.docs.map((doc) => doc.data()).toList();
   }
 
-  Future<bool> addFavouriteCustomer(String name, {String? phoneNumber, double? creditOutstanding}) async {
+  Future<bool> addFavouriteCustomer(String name,
+      {String? phoneNumber, double? creditOutstanding}) async {
     if (name.isEmpty) return false;
     try {
       final newCustomer = FavouriteCustomer(
@@ -66,7 +81,8 @@ class FavouriteCustomerService {
     }
   }
 
-  Future<bool> updateFavouriteCustomer(String customerId, {
+  Future<bool> updateFavouriteCustomer(
+    String customerId, {
     String? name,
     String? phoneNumber,
     double? creditOutstanding,
@@ -78,14 +94,19 @@ class FavouriteCustomerService {
       final updates = <String, dynamic>{};
       if (name != null) updates['name'] = name;
       if (phoneNumber != null) updates['phone_number'] = phoneNumber;
-      if (creditOutstanding != null) updates['credit_outstanding'] = creditOutstanding;
-      if (lastPurchaseDate != null) updates['last_purchase_date'] = Timestamp.fromDate(lastPurchaseDate);
-      if (avgMonthlySpend != null) updates['avg_monthly_spend'] = avgMonthlySpend;
+      if (creditOutstanding != null)
+        updates['credit_outstanding'] = creditOutstanding;
+      if (lastPurchaseDate != null)
+        updates['last_purchase_date'] = Timestamp.fromDate(lastPurchaseDate);
+      if (avgMonthlySpend != null)
+        updates['avg_monthly_spend'] = avgMonthlySpend;
       if (loyaltyStatus != null) updates['loyalty_status'] = loyaltyStatus;
 
       if (updates.isNotEmpty) {
         await _getCollection().doc(customerId).update(updates);
-        _ref.read(messengerProvider).showSuccess('Customer updated successfully.');
+        _ref
+            .read(messengerProvider)
+            .showSuccess('Customer updated successfully.');
       }
       return true;
     } catch (e) {
@@ -97,7 +118,9 @@ class FavouriteCustomerService {
   Future<bool> deleteFavouriteCustomer(String customerId) async {
     try {
       await _getCollection().doc(customerId).delete();
-      _ref.read(messengerProvider).showSuccess('Customer removed from favourites.');
+      _ref
+          .read(messengerProvider)
+          .showSuccess('Customer removed from favourites.');
       return true;
     } catch (e) {
       _ref.read(messengerProvider).showError('Failed to remove customer: $e');
@@ -105,12 +128,15 @@ class FavouriteCustomerService {
     }
   }
 
-  Future<FavouriteCustomer> _calculateCustomerMetrics(FavouriteCustomer customer) async {
+  Future<FavouriteCustomer> _calculateCustomerMetrics(
+      FavouriteCustomer customer) async {
     if (userId == null || businessId == null) {
       return customer;
     }
 
-    final transactions = await _transactionService.streamTransactionsByCustomerId(customer.id).first;
+    final transactions = await _transactionService
+        .streamTransactionsByCustomerId(customer.id)
+        .first;
 
     if (transactions.isEmpty) {
       return customer.copyWith(
@@ -121,12 +147,15 @@ class FavouriteCustomerService {
     }
 
     // Calculate lastPurchaseDate
-    final lastPurchaseDate = transactions.map((t) => t.timestamp).reduce((a, b) => a.isAfter(b) ? a : b);
+    final lastPurchaseDate = transactions
+        .map((t) => t.timestamp)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
 
     // Calculate avgMonthlySpend
     final now = DateTime.now();
     final sixMonthsAgo = DateTime(now.year, now.month - 6, now.day);
-    final recentTransactions = transactions.where((t) => t.timestamp.isAfter(sixMonthsAgo)).toList();
+    final recentTransactions =
+        transactions.where((t) => t.timestamp.isAfter(sixMonthsAgo)).toList();
 
     double totalSpend = 0.0;
     for (var t in recentTransactions) {
@@ -152,13 +181,16 @@ class FavouriteCustomerService {
   }
 }
 
-final favouriteCustomerServiceProvider = Provider.family<FavouriteCustomerService, String?>((ref, userId) {
+final favouriteCustomerServiceProvider =
+    Provider.family<FavouriteCustomerService, String?>((ref, userId) {
   final businessId = ref.watch(userBusinessIdProvider);
   final transactionService = ref.watch(transactionServiceProvider);
   return FavouriteCustomerService(ref, userId, businessId, transactionService);
 });
 
-final favouriteCustomersProvider = StreamProvider.family<List<FavouriteCustomer>, String?>((ref, userId) {
-  final favouriteCustomerService = ref.watch(favouriteCustomerServiceProvider(userId));
+final favouriteCustomersProvider =
+    StreamProvider.family<List<FavouriteCustomer>, String?>((ref, userId) {
+  final favouriteCustomerService =
+      ref.watch(favouriteCustomerServiceProvider(userId));
   return favouriteCustomerService.streamFavouriteCustomers();
 });
