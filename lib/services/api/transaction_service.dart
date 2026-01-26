@@ -9,6 +9,15 @@ import '../../models/transaction.dart';
 
 final transactionServiceProvider = Provider((ref) => TransactionService(ref));
 
+final allTransactionsStreamProvider = StreamProvider<List<Transaction>>((ref) {
+  final user = ref.watch(userProvider);
+  if (user == null) {
+    return Stream.value([]); // Return an empty stream if no user is logged in
+  }
+  final transactionService = ref.watch(transactionServiceProvider);
+  return transactionService.streamTransactions();
+});
+
 class TransactionService {
   final Ref _ref;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -33,8 +42,24 @@ class TransactionService {
         .doc(user.uid) // Assuming businessId is user.uid for now
         .collection('transactions')
         .withConverter<Transaction>(
-          fromFirestore: (snap, _) =>
-              Transaction.fromMap(snap.data()!, snap.id),
+          fromFirestore: (snap, _) {
+            final data = snap.data();
+            if (data == null) {
+              // Return a default or empty Transaction if data is null
+              return Transaction(
+                id: snap.id,
+                productId: 'unknown',
+                quantity: 0,
+                price: 0.0,
+                cost: 0.0,
+                transactionType: TransactionType.sale,
+                timestamp: DateTime.now(),
+                businessId: 'unknown',
+                paymentMethod: PaymentMethod.cash,
+              );
+            }
+            return Transaction.fromMap(data, snap.id);
+          },
           toFirestore: (transaction, _) => transaction.toMap(),
         );
   }

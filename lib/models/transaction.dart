@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
+import 'package:collection/collection.dart';
 
 enum TransactionType { sale, purchase }
 
@@ -33,18 +34,20 @@ class Transaction {
   factory Transaction.fromMap(Map<String, dynamic> data, String id) {
     return Transaction(
       id: id,
-      productId: data['productId'],
-      itemName: data['itemName'],
-      quantity: data['quantity'],
+      productId: data['productId'] as String? ?? 'unknown',
+      itemName: data['itemName'] as String?,
+      quantity: (data['quantity'] as int?) ?? 0,
       price: (data['price'] as num?)?.toDouble() ?? 0.0,
       cost: (data['cost'] as num?)?.toDouble() ?? 0.0,
-      transactionType: TransactionType.values.firstWhere(
-          (e) => e.toString() == 'TransactionType.${data['transactionType']}'),
-      timestamp: (data['timestamp'] as Timestamp).toDate(),
-      businessId: data['businessId'],
-      paymentMethod: PaymentMethod.values.firstWhere(
-          (e) => e.toString() == 'PaymentMethod.${data['paymentMethod']}'),
-      customerId: data['customerId'],
+      transactionType: TransactionType.values.firstWhereOrNull((e) =>
+              e.toString() == 'TransactionType.${data['transactionType'] as String?}') ??
+          TransactionType.sale,
+      timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      businessId: data['businessId'] as String? ?? 'unknown',
+      paymentMethod: PaymentMethod.values.firstWhereOrNull((e) =>
+              e.toString() == 'PaymentMethod.${data['paymentMethod'] as String?}') ??
+          PaymentMethod.cash,
+      customerId: data['customerId'] as String?,
     );
   }
 
