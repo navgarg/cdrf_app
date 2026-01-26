@@ -106,16 +106,14 @@ class DayView extends ConsumerWidget {
                               DateFormat('h:mm a').format(appointment.dateTime),
                               style:
                                   const TextStyle(fontWeight: FontWeight.w500)),
-                          title: Text(customer?.name ?? appointment.title),
+                          title: Text(appointment.title),
                           trailing: isFavourite
                               ? Icon(Icons.star_rounded,
                                   color: Colors.amber.shade700)
                               : null,
                           onTap: () {
-                            if (isFavourite) {
-                              ref.read(messengerProvider).showInfo(context.tr(
-                                  'Tapped on favourite customer: ${customer.name}'));
-                            }
+                            ref.read(messengerProvider).showInfo(context.tr(
+                                'Tapped on appointment: ${appointment.title}'));
                           },
                         );
                       },

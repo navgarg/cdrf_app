@@ -122,20 +122,14 @@ class WeekView extends ConsumerWidget {
                                       .format(appointment.dateTime),
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w500)),
-                              title: Text(
-                                  favouriteCustomer?.name ?? appointment.title),
+                              title: Text(appointment.title),
                               trailing: isFavourite
                                   ? Icon(Icons.star_rounded,
                                       color: Colors.amber.shade700)
                                   : null,
                               onTap: () {
-                                if (favouriteCustomer != null) {
-                                  ref.read(messengerProvider).showInfo(context.tr(
-                                      'Tapped on favourite customer: ${favouriteCustomer.name}'));
-                                } else {
-                                  ref.read(messengerProvider).showInfo(context.tr(
-                                      'Tapped on appointment: ${appointment.title}'));
-                                }
+                                ref.read(messengerProvider).showInfo(context.tr(
+                                    'Tapped on appointment: ${appointment.title}'));
                               },
                             ),
                           ],
