@@ -39,7 +39,7 @@ class ServicesService {
         .collection('services')
         .withConverter<ServiceItem>(
           fromFirestore: (snap, _) =>
-              ServiceItem.fromMap(snap.data()!, snap.id),
+              ServiceItem.fromMap(snap.data() ?? {}, snap.id),
           toFirestore: (item, _) => item.toMap(),
         );
   }
@@ -56,7 +56,7 @@ class ServicesService {
         .collection('products')
         .withConverter<ServiceItem>(
           fromFirestore: (snap, _) =>
-              ServiceItem.fromMap(snap.data()!, snap.id),
+              ServiceItem.fromMap(snap.data() ?? {}, snap.id),
           toFirestore: (item, _) => item.toMap(),
         );
   }
@@ -129,6 +129,11 @@ class ServicesService {
     required int duration,
   }) async {
     try {
+      final user = _ref.read(userProvider);
+      if (user == null) {
+        _ref.read(messengerProvider).showError('User not logged in.');
+        return false;
+      }
       if (!_isServiceBusiness()) {
         throw Exception('addServiceItem called for non-service business');
       }

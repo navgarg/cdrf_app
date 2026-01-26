@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/services/api/services_service.dart';
-import 'package:nariudyam/l10n/app_localizations.dart';
+import 'package:nariudyam/l10n/dynamic_localizations.dart';
 
 class AddServiceItemForm extends ConsumerStatefulWidget {
   const AddServiceItemForm({super.key});
@@ -47,7 +47,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
 
   @override
   Widget build(BuildContext context) {
-    final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
+    final appLocalizations = context.loc;
     return Padding(
       padding: EdgeInsets.only(
         left: 24,
@@ -65,7 +65,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(appLocalizations.newService,
+                  Text(appLocalizations.tr('Add a New Service'),
                       style: Theme.of(context).textTheme.headlineSmall),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -76,38 +76,44 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: appLocalizations.serviceName),
+                decoration: InputDecoration(
+                    labelText: appLocalizations.tr('Enter Service Name')),
                 validator: (v) => v == null || v.trim().isEmpty
-                    ? appLocalizations.pleaseEnterName
+                    ? appLocalizations.tr('Please Enter Valid Service Name')
                     : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: appLocalizations.description),
+                decoration: InputDecoration(
+                    labelText:
+                        appLocalizations.tr('Enter Service Description')),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _priceController,
-                decoration: InputDecoration(labelText: appLocalizations.price),
+                decoration: InputDecoration(
+                    labelText: appLocalizations.tr('Enter Price')),
                 keyboardType: TextInputType.number,
                 validator: (v) => v == null || v.isEmpty
-                    ? appLocalizations.enterPrice
+                    ? appLocalizations.tr('Please Enter Price')
                     : double.tryParse(v) == null
-                        ? appLocalizations.invalidNumber
+                        ? appLocalizations.tr('Invalid Price, Please Try Again')
                         : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _durationController,
-                decoration:
-                    InputDecoration(labelText: appLocalizations.durationMinutes),
+                decoration: InputDecoration(
+                    labelText:
+                        appLocalizations.tr('Enter Duration in Minutes')),
                 keyboardType: TextInputType.number,
                 validator: (v) => v == null || v.isEmpty
-                    ? appLocalizations.enterDuration
+                    ? appLocalizations.tr('Please Enter Duration in Minutes')
                     : int.tryParse(v) == null
-                        ? appLocalizations.invalidNumber
+                        ? appLocalizations
+                            .tr('Invalid Duration, Please Try Again')
                         : null,
               ),
               const SizedBox(height: 24),
@@ -119,7 +125,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
                         width: 24,
                         child: CircularProgressIndicator(),
                       )
-                    : Text(appLocalizations.saveService),
+                    : Text(appLocalizations.tr('Save Service')),
               )
             ],
           ),
