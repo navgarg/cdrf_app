@@ -114,9 +114,9 @@ class _FavouriteCustomersScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('Favourite Customers')),
-      ),
+      // appBar: AppBar(
+      //   title: Text(context.tr('Favourite Customers')),
+      // ),
       body: Column(
         children: [
           Padding(
