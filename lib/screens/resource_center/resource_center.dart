@@ -10,6 +10,7 @@ import 'package:file_selector/file_selector.dart';
 
 import '../../services/resource/resource_service.dart';
 import '../../services/api/auth_service.dart';
+import '../../services/domain_recommendation_service.dart';
 import '../../services/general/messenger.dart';
 import '../../components/generic_list_tile.dart';
 import '../../l10n/dynamic_localizations.dart';
@@ -24,6 +25,7 @@ class ResourceCenterScreen extends ConsumerStatefulWidget {
 
 class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
   final _service = ResourceService();
+  final _recommendationService = const DomainRecommendationService();
 
   Future<void> _pickAndUpload() async {
     const XTypeGroup typeGroup = XTypeGroup(
@@ -37,21 +39,24 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
     if (kIsWeb) {
       ref
           .read(messengerProvider)
-          .showError(context.tr('Upload not supported on web yet'));
+          .showError('Upload not supported on web yet');
       return;
     }
 
     final file = File(picked.path);
     final user = ref.read(userProvider);
     if (user == null) return;
+    final uploadedMessage = 'Uploaded ${picked.name}';
     try {
       await _service.uploadResource(
           file: file, uploadedBy: user.uid, fileName: picked.name);
+      if (!mounted) return;
       ref
           .read(messengerProvider)
-          .showSuccess(context.tr('Uploaded ${picked.name}'));
+          .showSuccess(uploadedMessage);
     } catch (e) {
-      ref.read(messengerProvider).showError(context.tr('Upload failed: $e'));
+      if (!mounted) return;
+      ref.read(messengerProvider).showError('Upload failed: $e');
     }
   }
 
@@ -169,11 +174,69 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final user = ref.watch(userProvider);
+    final domain = user?.businessDomain;
+    final recommendations = _recommendationService.getRecommendations(domain);
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withAlpha(140),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.tr('Business Recommendations'),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  context.tr(
+                    'Suggestions for ${domain ?? 'your business domain'}',
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                ...recommendations.map(
+                  (recommendation) => Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.tr(recommendation.title),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          context.tr(recommendation.description),
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           // Upload tile at the top
           GenericListTile(
             leading: Icon(Icons.upload_file,
