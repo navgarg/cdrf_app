@@ -12,7 +12,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get welcomeMessage => 'Welcome';
 
   @override
-  String get appName => 'NariUdyam';
+  String get appName => 'Nari Udyam';
 
   @override
   String get dashboard => 'Dashboard';

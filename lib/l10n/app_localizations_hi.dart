@@ -12,7 +12,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get welcomeMessage => 'स्वागत है';
 
   @override
-  String get appName => 'NariUdyam';
+  String get appName => 'Nari Udyam';
 
   @override
   String get dashboard => 'डैशबोर्ड';

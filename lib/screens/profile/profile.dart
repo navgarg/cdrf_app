@@ -253,12 +253,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
               onTap: () async {
+                final exportedMessage = context.tr('Transactions Exported');
                 await ref
                     .read(excelServiceProvider)
                     .exportAllAnalyticsToExcel();
+                if (!context.mounted) return;
                 ref
                     .read(messengerProvider)
-                    .showSuccess(context.tr('Transactions Exported'));
+                    .showSuccess(exportedMessage);
               },
             ),
             GenericListTile(
@@ -272,13 +274,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
               onTap: () async {
+                final onboardingExportedMessage =
+                    context.tr('Onboarding Data Exported');
                 await ref
                     .read(onboardingExcelServiceProvider)
                     .exportOnboardingDataToExcel(
                         []); // todo: pass actual list here
+                if (!context.mounted) return;
                 ref
                     .read(messengerProvider)
-                    .showSuccess(context.tr('Onboarding Data Exported'));
+                    .showSuccess(onboardingExportedMessage);
               },
             ),
 
@@ -293,7 +298,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
-              onTap: () => context.push('/resource_centre'),
+              onTap: () => context.go('/resource_centre'),
             ),
 
             const SizedBox(height: 32),

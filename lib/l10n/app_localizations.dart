@@ -109,7 +109,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'NariUdyam'**
+  /// **'Nari Udyam'**
   String get appName;
 
   /// No description provided for @dashboard.

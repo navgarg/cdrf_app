@@ -95,7 +95,7 @@ class _MyAppState extends ConsumerState<NariUdyam> {
     return MaterialApp.router(
       key: ValueKey(locale.languageCode), // Force rebuild when locale changes
       debugShowCheckedModeBanner: false,
-      title: "Nari Udhyam",
+      title: "Nari Udyam",
       scaffoldMessengerKey: messenger.scaffoldMessengerKey,
       theme: theme,
       routerConfig: router,
