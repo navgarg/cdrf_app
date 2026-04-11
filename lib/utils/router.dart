@@ -13,6 +13,7 @@ import '../screens/inventory/inventory.dart';
 import '../screens/schedule/schedule.dart';
 import '../screens/profile/profile.dart';
 import '../screens/resource_center/resource_center.dart';
+import '../screens/resource_center/domain_recommendations_screen.dart';
 import '../screens/analytics/advanced_analytics_screen.dart';
 import '../services/api/auth_service.dart';
 import '../services/admin/admin_provider.dart';
@@ -141,7 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             currentSubtitle = 'Nari Udyam'; // Default subtitle
           }
           return AppShellLayout(
-            currentPath: state.fullPath ?? '',
+            currentPath: state.uri.path,
             subtitle: currentSubtitle,
             child: child,
           );
@@ -181,6 +182,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/resource_centre',
             builder: (context, state) => const ResourceCenterScreen(),
+            routes: [
+              GoRoute(
+                path: 'recommendations',
+                builder: (context, state) =>
+                    const DomainRecommendationsScreen(),
+              ),
+            ],
           ),
         ],
       ),
@@ -195,7 +203,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) {
           return AppShellLayout(
-            currentPath: state.fullPath ?? '',
+            currentPath: state.uri.path,
             subtitle: 'Nari Udyam',
             child: child,
           );
@@ -216,6 +224,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/admin/resources',
             builder: (context, state) => const ResourceCenterScreen(),
+            routes: [
+              GoRoute(
+                path: 'recommendations',
+                builder: (context, state) =>
+                    const DomainRecommendationsScreen(),
+              ),
+            ],
           ),
         ],
       ),

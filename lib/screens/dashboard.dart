@@ -286,7 +286,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       trailing: Icon(Icons.arrow_forward_ios,
                           size: 16, color: Colors.grey.shade600),
-                      onTap: () => context.push('/resource_centre'),
+                      onTap: () => context.go('/resource_centre'),
                     ),
                   ],
                 );

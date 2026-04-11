@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/admin/admin_analytics_service.dart';
 import '../../services/general/excel_service.dart';
 import '../../config/admin_config.dart';
+import '../../components/generic_list_tile.dart';
 import '../../l10n/dynamic_localizations.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
@@ -125,6 +127,22 @@ class AdminDashboardScreen extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 32),
+
+                if (isAdmin) ...[
+                  GenericListTile(
+                    leading: Icon(Icons.upload_file,
+                        color: theme.colorScheme.primary, size: 28),
+                    titleWidget: Text(
+                      context.tr('Add Resource to Resource Centre'),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    trailing: Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey.shade600),
+                    onTap: () => context.go('/admin/resources'),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Export Analytics button
                 if (isAdmin)

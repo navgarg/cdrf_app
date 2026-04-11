@@ -46,6 +46,11 @@ class AppShellLayout extends ConsumerWidget {
       '/customer_order': context.tr('Customer Order'),
       '/profile': context.tr('Profile'),
       '/advanced_analytics': context.tr('Advanced Analytics'),
+      '/resource_centre': context.tr('Resource Centre'),
+      '/admin': context.tr('Admin Portal'),
+      '/admin/users': context.tr('Manage Users'),
+      '/admin/analytics': context.tr('Analytics'),
+      '/admin/resources': context.tr('Resources'),
     };
     final String pageTitle =
         routeTitles[currentPath ?? ''] ?? context.tr('Nari Udyam');

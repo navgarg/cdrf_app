@@ -4,13 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_selector/file_selector.dart';
 
 import '../../services/resource/resource_service.dart';
 import '../../services/api/auth_service.dart';
-import '../../services/domain_recommendation_service.dart';
+import '../../services/admin/admin_provider.dart';
 import '../../services/general/messenger.dart';
 import '../../components/generic_list_tile.dart';
 import '../../l10n/dynamic_localizations.dart';
@@ -25,7 +26,6 @@ class ResourceCenterScreen extends ConsumerStatefulWidget {
 
 class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
   final _service = ResourceService();
-  final _recommendationService = const DomainRecommendationService();
 
   Future<void> _pickAndUpload() async {
     const XTypeGroup typeGroup = XTypeGroup(
@@ -37,9 +37,7 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
     if (picked == null) return;
 
     if (kIsWeb) {
-      ref
-          .read(messengerProvider)
-          .showError('Upload not supported on web yet');
+      ref.read(messengerProvider).showError('Upload not supported on web yet');
       return;
     }
 
@@ -51,9 +49,7 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
       await _service.uploadResource(
           file: file, uploadedBy: user.uid, fileName: picked.name);
       if (!mounted) return;
-      ref
-          .read(messengerProvider)
-          .showSuccess(uploadedMessage);
+      ref.read(messengerProvider).showSuccess(uploadedMessage);
     } catch (e) {
       if (!mounted) return;
       ref.read(messengerProvider).showError('Upload failed: $e');
@@ -174,85 +170,44 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = ref.watch(userProvider);
-    final domain = user?.businessDomain;
-    final recommendations = _recommendationService.getRecommendations(domain);
+    final isAdmin = ref.watch(isAdminProvider);
+    final recommendationsRoute = isAdmin
+        ? '/admin/resources/recommendations'
+        : '/resource_centre/recommendations';
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withAlpha(140),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.tr('Business Recommendations'),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  context.tr(
-                    'Suggestions for ${domain ?? 'your business domain'}',
-                  ),
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 16),
-                ...recommendations.map(
-                  (recommendation) => Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.tr(recommendation.title),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          context.tr(recommendation.description),
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Upload tile at the top
           GenericListTile(
-            leading: Icon(Icons.upload_file,
+            leading: Icon(Icons.lightbulb,
                 color: theme.colorScheme.primary, size: 28),
             titleWidget: Text(
-              context.tr('Upload Resource (PDF/Image)'),
+              context.tr('Business Recommendations'),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
-            trailing: Icon(Icons.add_circle,
-                size: 28, color: theme.colorScheme.primary),
-            onTap: _pickAndUpload,
+            trailing: Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.grey.shade600),
+            onTap: () => context.push(recommendationsRoute),
           ),
           const SizedBox(height: 16),
+          if (isAdmin) ...[
+            GenericListTile(
+              leading: Icon(Icons.upload_file,
+                  color: theme.colorScheme.primary, size: 28),
+              titleWidget: Text(
+                context.tr('Upload Resource (PDF/Image)'),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.add_circle,
+                  size: 28, color: theme.colorScheme.primary),
+              onTap: _pickAndUpload,
+            ),
+            const SizedBox(height: 16),
+          ],
           const Divider(height: 1, thickness: 2),
           const SizedBox(height: 8),
-          // File list grouped by date
           Expanded(
             child: _buildList(),
           ),
