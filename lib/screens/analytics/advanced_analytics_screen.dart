@@ -4,9 +4,27 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:nariudyam/services/api/analytics_service.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'package:nariudyam/providers/locale_provider.dart';
+import 'package:nariudyam/services/voice/voice_output_service.dart';
 
 class AdvancedAnalyticsScreen extends ConsumerWidget {
   const AdvancedAnalyticsScreen({super.key});
+
+  Future<void> _speakSummary(
+    BuildContext context,
+    WidgetRef ref,
+    String summary,
+  ) async {
+    final spokenText = await VoiceOutputService.instance.speak(
+      text: summary,
+      languageCode: ref.read(localeProvider).languageCode,
+    );
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(spokenText)),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,13 +43,13 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
           // Revenue by Product/Service
           _buildSectionTitle(context.tr('Revenue by Product/Service'), theme),
           const SizedBox(height: 12),
-          _buildProductRevenueChart(analyticsService, theme, context),
+          _buildProductRevenueChart(analyticsService, theme, context, ref),
           const SizedBox(height: 24),
 
           // Revenue by Payment Mode
           _buildSectionTitle(context.tr('Revenue by Payment Mode'), theme),
           const SizedBox(height: 12),
-          _buildPaymentModeChart(analyticsService, theme, context),
+          _buildPaymentModeChart(analyticsService, theme, context, ref),
           const SizedBox(height: 24),
 
           // Inventory Reorder Alerts
@@ -142,7 +160,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
   }
 
   Widget _buildProductRevenueChart(AnalyticsService analyticsService,
-      ThemeData theme, BuildContext context) {
+      ThemeData theme, BuildContext context, WidgetRef ref) {
     return StreamBuilder<List<ProductRevenueData>>(
       stream: analyticsService.getProductRevenueStream(),
       builder: (ctx, snapshot) {
@@ -180,6 +198,27 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
           ),
           child: Column(
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    context.tr('Summary'),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  IconButton(
+                    tooltip: context.tr('Listen to graph summary'),
+                    onPressed: () => _speakSummary(
+                      context,
+                      ref,
+                      'Revenue by product summary. '
+                      'The top ${data.length} items contribute a total of rupees '
+                      '${data.fold<double>(0, (sum, item) => sum + item.revenue).toStringAsFixed(0)}. '
+                      'The leading item is ${data.first.productName} with rupees ${data.first.revenue.toStringAsFixed(0)} in revenue.',
+                    ),
+                    icon: const Icon(Icons.volume_up_outlined),
+                  ),
+                ],
+              ),
               SizedBox(
                 height: 180,
                 child: PieChart(
@@ -243,7 +282,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
   }
 
   Widget _buildPaymentModeChart(AnalyticsService analyticsService,
-      ThemeData theme, BuildContext context) {
+      ThemeData theme, BuildContext context, WidgetRef ref) {
     return StreamBuilder<List<PaymentModeData>>(
       stream: analyticsService.getPaymentModeStream(),
       builder: (ctx, snapshot) {
@@ -283,6 +322,29 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
           ),
           child: Column(
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    context.tr('Summary'),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  IconButton(
+                    tooltip: context.tr('Listen to graph summary'),
+                    onPressed: () => _speakSummary(
+                      context,
+                      ref,
+                      'Payment mode summary. '
+                      'Total revenue across payment modes is rupees '
+                      '${data.fold<double>(0, (sum, item) => sum + item.revenue).toStringAsFixed(0)}. '
+                      'The leading payment mode is ${labels[data.first.method] ?? 'Unknown'} '
+                      'with rupees ${data.first.revenue.toStringAsFixed(0)} '
+                      'and ${data.first.transactionCount} transactions.',
+                    ),
+                    icon: const Icon(Icons.volume_up_outlined),
+                  ),
+                ],
+              ),
               // By Revenue
               Text(
                 context.tr('By Revenue'),
@@ -503,7 +565,7 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                       ),
                       child: Text(
                         context.tr('Low Stock'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.red,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

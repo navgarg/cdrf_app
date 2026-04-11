@@ -9,7 +9,9 @@ import '../models/user.dart';
 import '../services/api/dashboard_service.dart';
 import '../components/generic_list_tile.dart';
 import '../l10n/dynamic_localizations.dart';
+import '../providers/locale_provider.dart';
 import '../services/translation_service.dart';
+import '../services/voice/voice_output_service.dart';
 
 enum DashboardView { daily, weekly, monthly }
 
@@ -67,6 +69,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         );
       }
     });
+  }
+
+  Future<void> _speakDashboardSummary(List<DailySummary> data) async {
+    if (data.isEmpty) return;
+
+    final totalSales = data.fold<double>(0, (sum, item) => sum + item.sales);
+    final totalProfit = data.fold<double>(0, (sum, item) => sum + item.profit);
+    final bestEntry = data.reduce((a, b) => a.sales >= b.sales ? a : b);
+
+    final periodLabel = switch (_dashboardView) {
+      DashboardView.daily => 'today',
+      DashboardView.weekly => 'this weekly view',
+      DashboardView.monthly => 'this monthly view',
+    };
+
+    final summary =
+        'Summary for $periodLabel. Total sales are rupees ${totalSales.toStringAsFixed(0)}. '
+        'Total profit is rupees ${totalProfit.toStringAsFixed(0)}. '
+        'The highest sales point is rupees ${bestEntry.sales.toStringAsFixed(0)} '
+        'with profit rupees ${bestEntry.profit.toStringAsFixed(0)}.';
+
+    final spokenText = await VoiceOutputService.instance.speak(
+      text: summary,
+      languageCode: ref.read(localeProvider).languageCode,
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(spokenText)),
+    );
   }
 
   @override
@@ -138,9 +170,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: DashboardChart(
-                        data: data,
-                        dashboardView: _dashboardView,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                context.tr('Graph Summary'),
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              IconButton(
+                                tooltip: context.tr('Listen to graph summary'),
+                                onPressed: () => _speakDashboardSummary(data),
+                                icon: const Icon(Icons.volume_up_outlined),
+                              ),
+                            ],
+                          ),
+                          DashboardChart(
+                            data: data,
+                            dashboardView: _dashboardView,
+                          ),
+                        ],
                       ),
                     ),
                     Container(

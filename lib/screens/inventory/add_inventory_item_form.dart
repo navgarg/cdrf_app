@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/services/general/messenger.dart';
+import 'package:nariudyam/services/voice/voice_input_service.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../l10n/dynamic_localizations.dart';
+import '../../providers/locale_provider.dart';
 
 class AddInventoryItemForm extends ConsumerStatefulWidget {
   const AddInventoryItemForm({super.key});
@@ -23,10 +27,12 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
   final _stockQuantityController = TextEditingController();
   final _reorderThresholdController = TextEditingController();
   final _unitController = TextEditingController();
+  TextEditingController? _activeListeningController;
   bool _isLoading = false;
 
   @override
   void dispose() {
+    VoiceInputService.instance.stopListening();
     _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
@@ -40,6 +46,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
   Future<void> _fetchProductDetails(String barcode) async {
     final url =
         Uri.parse('https://api.upcitemdb.com/prod/trial/lookup?upc=$barcode');
+    final productNotFound = context.tr('Product details not found.');
 
     try {
       final response = await http.get(url);
@@ -54,14 +61,15 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 (item['lowest_recorded_price'] ?? 0.0).toString();
           });
         } else {
-          _showSnackBar(context.tr('Product details not found.'));
+          _showSnackBar(productNotFound);
         }
       } else {
-        _showSnackBar(context
-            .tr('Failed to load product details: ${response.statusCode}'));
+        _showSnackBar(
+          'Failed to load product details: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      _showSnackBar(context.tr('Error fetching product details: $e'));
+      _showSnackBar('Error fetching product details: $e');
     }
   }
 
@@ -70,6 +78,58 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  String _normalizedVoiceText(String text, {bool numeric = false}) {
+    final trimmed = text.trim();
+    if (!numeric) return trimmed;
+
+    final match = RegExp(r'-?\d+(?:[.,]\d+)?').firstMatch(trimmed);
+    if (match == null) return trimmed;
+    return match.group(0)!.replaceAll(',', '.');
+  }
+
+  Future<void> _listenIntoField(
+    TextEditingController controller, {
+    bool numeric = false,
+  }) async {
+    final languageCode = ref.read(localeProvider).languageCode;
+    final messenger = ref.read(messengerProvider);
+    final microphoneError = context.tr('Microphone permission is required.');
+
+    if (_activeListeningController == controller &&
+        VoiceInputService.instance.isListening) {
+      await VoiceInputService.instance.stopListening();
+      if (mounted) {
+        setState(() => _activeListeningController = null);
+      }
+      return;
+    }
+
+    final started = await VoiceInputService.instance.startListening(
+      languageCode: languageCode,
+      onResult: (text, isFinal) {
+        if (!mounted) return;
+        setState(() {
+          controller.text = _normalizedVoiceText(text, numeric: numeric);
+          controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: controller.text.length),
+          );
+          if (isFinal) {
+            _activeListeningController = null;
+          }
+        });
+      },
+    );
+
+    if (!started) {
+      messenger.showError(microphoneError);
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _activeListeningController = controller);
+    }
   }
 
   Future<void> _submitForm() async {
@@ -129,25 +189,34 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 ],
               ),
               const SizedBox(height: 24),
-              TextFormField(
+              VoiceTextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: context.tr('Item Name'),
                 ),
+                onMicTap: () => _listenIntoField(_nameController),
+                isListening: _activeListeningController == _nameController,
                 validator: (value) =>
                     value!.isEmpty ? context.tr('Please enter a name') : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              VoiceTextFormField(
                 controller: _descriptionController,
                 decoration:
                     InputDecoration(labelText: context.tr('Description')),
+                maxLines: 2,
+                onMicTap: () => _listenIntoField(_descriptionController),
+                isListening:
+                    _activeListeningController == _descriptionController,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              VoiceTextFormField(
                 controller: _priceController,
                 decoration: InputDecoration(labelText: context.tr('Price')),
                 keyboardType: TextInputType.number,
+                onMicTap: () =>
+                    _listenIntoField(_priceController, numeric: true),
+                isListening: _activeListeningController == _priceController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return context.tr('Please enter a price');
@@ -159,10 +228,13 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              VoiceTextFormField(
                 controller: _costController,
                 decoration: InputDecoration(labelText: context.tr('Cost')),
                 keyboardType: TextInputType.number,
+                onMicTap: () =>
+                    _listenIntoField(_costController, numeric: true),
+                isListening: _activeListeningController == _costController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return context.tr('Please enter a cost');
@@ -174,27 +246,39 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              VoiceTextFormField(
                 controller: _stockQuantityController,
                 decoration:
                     InputDecoration(labelText: context.tr('Stock Quantity')),
                 keyboardType: TextInputType.number,
+                onMicTap: () =>
+                    _listenIntoField(_stockQuantityController, numeric: true),
+                isListening:
+                    _activeListeningController == _stockQuantityController,
                 validator: (value) => value!.isEmpty
                     ? context.tr('Please enter stock quantity')
                     : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              VoiceTextFormField(
                 controller: _reorderThresholdController,
                 decoration:
                     InputDecoration(labelText: context.tr('Reorder Threshold')),
                 keyboardType: TextInputType.number,
+                onMicTap: () => _listenIntoField(
+                  _reorderThresholdController,
+                  numeric: true,
+                ),
+                isListening:
+                    _activeListeningController == _reorderThresholdController,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              VoiceTextFormField(
                 controller: _unitController,
                 decoration: InputDecoration(
                     labelText: context.tr('Unit (e.g., pcs, kg)')),
+                onMicTap: () => _listenIntoField(_unitController),
+                isListening: _activeListeningController == _unitController,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
