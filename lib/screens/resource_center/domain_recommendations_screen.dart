@@ -60,6 +60,22 @@ class DomainRecommendationsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      context.tr(recommendation.category),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Text(
                     context.tr(recommendation.title),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -70,6 +86,32 @@ class DomainRecommendationsScreen extends ConsumerWidget {
                   Text(
                     context.tr(recommendation.description),
                     style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  ...recommendation.actionPoints.map(
+                    (point) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Icon(
+                              Icons.circle,
+                              size: 7,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              context.tr(point),
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
