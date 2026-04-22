@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/services/api/transaction_service.dart';
 import 'package:flutter/foundation.dart';
 
@@ -27,13 +28,16 @@ class DashboardService {
             final Map<DateTime, double> dailySales = {};
             final Map<DateTime, double> dailyProfits = {};
             for (var transaction in transactions) {
+              if (transaction.transactionType != TransactionType.sale) continue;
               final date = DateTime(transaction.timestamp.year,
                   transaction.timestamp.month, transaction.timestamp.day);
-              dailySales.update(date, (value) => value + transaction.price,
-                  ifAbsent: () => transaction.price);
-              dailyProfits.update(date,
-                  (value) => value + (transaction.price - transaction.cost),
-                  ifAbsent: () => (transaction.price - transaction.cost));
+              final revenue = transaction.price * transaction.quantity;
+              final profit =
+                  (transaction.price - transaction.cost) * transaction.quantity;
+              dailySales.update(date, (value) => value + revenue,
+                  ifAbsent: () => revenue);
+              dailyProfits.update(date, (value) => value + profit,
+                  ifAbsent: () => profit);
             }
 
             final List<DailySummary> data = [];
@@ -68,16 +72,18 @@ class DashboardService {
             final Map<DateTime, double> weeklySales = {};
             final Map<DateTime, double> weeklyProfits = {};
             for (var transaction in transactions) {
+              if (transaction.transactionType != TransactionType.sale) continue;
               final date = DateTime(transaction.timestamp.year,
                   transaction.timestamp.month, transaction.timestamp.day);
               final startOfWeek =
                   date.subtract(Duration(days: date.weekday - 1));
-              weeklySales.update(
-                  startOfWeek, (value) => value + transaction.price,
-                  ifAbsent: () => transaction.price);
-              weeklyProfits.update(startOfWeek,
-                  (value) => value + (transaction.price - transaction.cost),
-                  ifAbsent: () => (transaction.price - transaction.cost));
+              final revenue = transaction.price * transaction.quantity;
+              final profit =
+                  (transaction.price - transaction.cost) * transaction.quantity;
+              weeklySales.update(startOfWeek, (value) => value + revenue,
+                  ifAbsent: () => revenue);
+              weeklyProfits.update(startOfWeek, (value) => value + profit,
+                  ifAbsent: () => profit);
             }
 
             final List<DailySummary> data = [];
@@ -115,12 +121,13 @@ class DashboardService {
             final Map<DateTime, double> intervalProfits = {};
 
             final List<DateTime> intervals = [];
-            for (int i = 8; i < 24; i += 4) {
+            for (int i = 0; i < 24; i += 4) {
               intervals.add(DateTime(
                   focusedDate.year, focusedDate.month, focusedDate.day, i));
             }
 
             for (var transaction in transactions) {
+              if (transaction.transactionType != TransactionType.sale) continue;
               final transactionDateTime = transaction.timestamp;
               if (transactionDateTime.year == focusedDate.year &&
                   transactionDateTime.month == focusedDate.month &&
@@ -142,12 +149,15 @@ class DashboardService {
                 }
 
                 if (currentIntervalStart != null) {
-                  intervalSales.update(currentIntervalStart,
-                      (value) => value + transaction.price,
-                      ifAbsent: () => transaction.price);
-                  intervalProfits.update(currentIntervalStart,
-                      (value) => value + (transaction.price - transaction.cost),
-                      ifAbsent: () => (transaction.price - transaction.cost));
+                  final revenue = transaction.price * transaction.quantity;
+                  final profit = (transaction.price - transaction.cost) *
+                      transaction.quantity;
+                  intervalSales.update(
+                      currentIntervalStart, (value) => value + revenue,
+                      ifAbsent: () => revenue);
+                  intervalProfits.update(
+                      currentIntervalStart, (value) => value + profit,
+                      ifAbsent: () => profit);
                 }
               }
             }

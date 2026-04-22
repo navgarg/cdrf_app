@@ -353,6 +353,7 @@ class CartBottomSheet extends ConsumerWidget {
       ),
     );
     if (rating == null) return; // user dismissed
+    if (!context.mounted) return;
     // debug
     // ignore: avoid_print
     print('[OrderFlow] Got rating: $rating');
@@ -367,6 +368,7 @@ class CartBottomSheet extends ConsumerWidget {
       ),
     );
     if (paymentMethod == null) return;
+    if (!context.mounted) return;
     // ignore: avoid_print
     print('[OrderFlow] Payment method selected: $paymentMethod');
 
@@ -381,6 +383,7 @@ class CartBottomSheet extends ConsumerWidget {
         ),
       );
       if (confirmed != true) return; // aborted
+      if (!context.mounted) return;
       // ignore: avoid_print
       print('[OrderFlow] QR payment confirmed');
     }
@@ -398,7 +401,7 @@ class CartBottomSheet extends ConsumerWidget {
       try {
         await transactionService.addTransaction(
           productId: item.id,
-          itemName: context.tr(item.name), // Translate product/service name
+          itemName: item.name,
           quantity: quantity,
           price: price,
           cost: cost,
@@ -409,6 +412,8 @@ class CartBottomSheet extends ConsumerWidget {
         // continue attempting remaining items
       }
     }
+
+    if (!context.mounted) return;
 
     // 5. Clear cart
     ref.read(cartProvider.notifier).clearCart();

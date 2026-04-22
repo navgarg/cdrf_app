@@ -1,8 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/product_item.dart';
+import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
+import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:flutter/foundation.dart';
 
 final inventoryServiceProvider = Provider((ref) => InventoryService(ref));
@@ -12,6 +14,16 @@ final productItemProvider =
   final inventoryService = ref.watch(inventoryServiceProvider);
   return inventoryService.streamProductItem(itemId);
 });
+
+class InventorySaleRequest {
+  final ProductItem item;
+  final int quantity;
+
+  const InventorySaleRequest({
+    required this.item,
+    required this.quantity,
+  });
+}
 
 class InventoryService {
   final Ref _ref;
@@ -150,6 +162,69 @@ class InventoryService {
       _ref
           .read(messengerProvider)
           .showError('Failed to update product: ${e.toString()}');
+      return false;
+    }
+  }
+
+  Future<bool> recordBulkSales({
+    required List<InventorySaleRequest> sales,
+    required PaymentMethod paymentMethod,
+  }) async {
+    if (sales.isEmpty) return false;
+
+    try {
+      final user = _ref.read(userProvider);
+      if (user == null) throw Exception('User not logged in!');
+
+      final batch = _firestore.batch();
+      final now = DateTime.now();
+      final inventoryCollection = _getInventoryProductItemsCollection();
+      final transactionsCollection = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('businesses')
+          .doc(user.uid)
+          .collection('transactions');
+
+      for (final sale in sales) {
+        if (sale.quantity <= 0) {
+          throw Exception('Quantity must be greater than zero.');
+        }
+        if (sale.quantity > sale.item.stockQuantity) {
+          throw Exception(
+            'Not enough stock for ${sale.item.name}. Available: ${sale.item.stockQuantity}',
+          );
+        }
+
+        final inventoryDoc = inventoryCollection.doc(sale.item.id);
+        batch.update(inventoryDoc, {
+          'stockQuantity': sale.item.stockQuantity - sale.quantity,
+          'lastSoldDate': now,
+        });
+
+        final transactionDoc = transactionsCollection.doc();
+        final transaction = Transaction(
+          id: transactionDoc.id,
+          productId: sale.item.id,
+          itemName: sale.item.name,
+          quantity: sale.quantity,
+          price: sale.item.price,
+          cost: sale.item.cost,
+          transactionType: TransactionType.sale,
+          timestamp: now,
+          businessId: user.uid,
+          paymentMethod: paymentMethod,
+        );
+        batch.set(transactionDoc, transaction.toMap());
+      }
+
+      await batch.commit();
+      _ref.read(messengerProvider).showSuccess('Sales logged successfully!');
+      return true;
+    } catch (e) {
+      _ref
+          .read(messengerProvider)
+          .showError('Failed to log sales: ${e.toString()}');
       return false;
     }
   }

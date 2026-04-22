@@ -6,6 +6,7 @@ import 'package:nariudyam/services/api/inventory_service.dart';
 import 'package:nariudyam/services/api/services_service.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'package:nariudyam/screens/inventory/bulk_voice_sales_form.dart';
 
 final productsProvider = StreamProvider.autoDispose<List<ProductItem>>((ref) {
   return ref.watch(inventoryServiceProvider).streamInventoryProductItems();
@@ -48,6 +49,45 @@ class CartNotifier extends StateNotifier<Map<String, double>> {
 class CustomerOrderScreen extends ConsumerWidget {
   const CustomerOrderScreen({super.key});
 
+  void _showBulkVoiceSalesDialog(
+    BuildContext context,
+    List<ProductItem> items,
+  ) {
+    showGeneralDialog(
+      context: context,
+      barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
+      barrierDismissible: true,
+      barrierLabel: context.tr('Log Today\'s Sales'),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: BulkVoiceSalesForm(items: items),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+              .animate(animation),
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
@@ -71,85 +111,102 @@ class CustomerOrderScreen extends ConsumerWidget {
                   : context.tr('No products found.')));
         }
         final onSurface = theme.colorScheme.onSurface;
-        return ListView.separated(
+        return ListView(
           padding: const EdgeInsets.all(16.0),
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            dynamic item = items[index];
-            String itemName =
-                context.tr(item.name); // Translate product/service name
-            double itemPrice = item.price;
-            String itemUnit = '';
-            String itemId = item.id;
-
-            if (!isService && item is ProductItem) {
-              itemUnit = context.tr(item.unit); // Translate unit name
-            }
-
-            return Container(
-              decoration: BoxDecoration(
-                color: itemBlockColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(13), // 0.05 opacity
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+          children: [
+            if (!isService)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: FilledButton.icon(
+                  onPressed: () => _showBulkVoiceSalesDialog(
+                    context,
+                    items.cast<ProductItem>(),
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 12.0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(102), // 0.4 opacity
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          !isService ? Icons.inventory_2 : Icons.content_cut,
-                          size: 28,
-                          color: onSurface.withAlpha(153), // 0.6 opacity
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(itemName,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: onSurface)),
-                          const SizedBox(height: 2),
-                          Text(
-                              '₹${itemPrice.toStringAsFixed(2)}${!isService ? ' per $itemUnit' : ''}',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  color:
-                                      onSurface.withAlpha(153))), // 0.6 opacity
-                        ],
-                      ),
-                    ),
-                    _AddToCartButton(
-                      itemId: itemId,
-                      isService: isService,
-                      productItem:
-                          !isService && item is ProductItem ? item : null,
-                    )
-                  ],
+                  icon: const Icon(Icons.mic),
+                  label: Text(context.tr('Log Today\'s Sales by Voice')),
                 ),
               ),
-            );
-          },
+            ...items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final dynamic item = entry.value;
+              final String itemName = context.tr(item.name);
+              final double itemPrice = item.price;
+              var itemUnit = '';
+              final String itemId = item.id;
+
+              if (!isService && item is ProductItem) {
+                itemUnit = context.tr(item.unit);
+              }
+
+              return Padding(
+                padding:
+                    EdgeInsets.only(bottom: index == items.length - 1 ? 0 : 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: itemBlockColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(13),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 12.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(102),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              !isService
+                                  ? Icons.inventory_2
+                                  : Icons.content_cut,
+                              size: 28,
+                              color: onSurface.withAlpha(153),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(itemName,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: onSurface)),
+                              const SizedBox(height: 2),
+                              Text(
+                                  '₹${itemPrice.toStringAsFixed(2)}${!isService ? ' per $itemUnit' : ''}',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: onSurface.withAlpha(153))),
+                            ],
+                          ),
+                        ),
+                        _AddToCartButton(
+                          itemId: itemId,
+                          isService: isService,
+                          productItem:
+                              !isService && item is ProductItem ? item : null,
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),

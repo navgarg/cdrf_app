@@ -88,20 +88,23 @@ class AnalyticsService {
           final name = transaction.itemName ?? 'Unknown';
           // Only include if it's in the services collection
           if (!serviceNames.contains(name)) continue;
+          final revenue = transaction.price * transaction.quantity;
+          final profit =
+              (transaction.price - transaction.cost) * transaction.quantity;
 
           if (productMap.containsKey(name)) {
             final existing = productMap[name]!;
             productMap[name] = ProductRevenueData(
               productName: name,
-              revenue: existing.revenue + transaction.price,
-              profit: existing.profit + (transaction.price - transaction.cost),
+              revenue: existing.revenue + revenue,
+              profit: existing.profit + profit,
               salesCount: existing.salesCount + transaction.quantity,
             );
           } else {
             productMap[name] = ProductRevenueData(
               productName: name,
-              revenue: transaction.price,
-              profit: transaction.price - transaction.cost,
+              revenue: revenue,
+              profit: profit,
               salesCount: transaction.quantity,
             );
           }
@@ -136,20 +139,23 @@ class AnalyticsService {
           final name = transaction.itemName ?? 'Unknown';
           // Only include if it's in the inventory collection
           if (!inventoryNames.contains(name)) continue;
+          final revenue = transaction.price * transaction.quantity;
+          final profit =
+              (transaction.price - transaction.cost) * transaction.quantity;
 
           if (productMap.containsKey(name)) {
             final existing = productMap[name]!;
             productMap[name] = ProductRevenueData(
               productName: name,
-              revenue: existing.revenue + transaction.price,
-              profit: existing.profit + (transaction.price - transaction.cost),
+              revenue: existing.revenue + revenue,
+              profit: existing.profit + profit,
               salesCount: existing.salesCount + transaction.quantity,
             );
           } else {
             productMap[name] = ProductRevenueData(
               productName: name,
-              revenue: transaction.price,
-              profit: transaction.price - transaction.cost,
+              revenue: revenue,
+              profit: profit,
               salesCount: transaction.quantity,
             );
           }
@@ -176,17 +182,18 @@ class AnalyticsService {
 
       for (final transaction in sales) {
         final method = transaction.paymentMethod;
+        final revenue = transaction.price * transaction.quantity;
         if (paymentMap.containsKey(method)) {
           final existing = paymentMap[method]!;
           paymentMap[method] = PaymentModeData(
             method: method,
-            revenue: existing.revenue + transaction.price,
+            revenue: existing.revenue + revenue,
             transactionCount: existing.transactionCount + 1,
           );
         } else {
           paymentMap[method] = PaymentModeData(
             method: method,
-            revenue: transaction.price,
+            revenue: revenue,
             transactionCount: 1,
           );
         }
@@ -236,9 +243,10 @@ class AnalyticsService {
       double totalCost = 0;
 
       for (final transaction in sales) {
-        totalRevenue += transaction.price;
-        totalCost += transaction.cost;
-        totalProfit += (transaction.price - transaction.cost);
+        totalRevenue += transaction.price * transaction.quantity;
+        totalCost += transaction.cost * transaction.quantity;
+        totalProfit +=
+            (transaction.price - transaction.cost) * transaction.quantity;
       }
 
       final profitMargin =

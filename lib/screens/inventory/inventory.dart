@@ -105,51 +105,51 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 child: Text(context.tr('No inventory items found. Add some!')),
               );
             }
-            return ListView.builder(
+            return ListView(
               padding: const EdgeInsets.all(8.0),
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return GenericListTile(
-                  leading: const Icon(Icons.inventory_2,
-                      color: Colors.black, size: 28),
-                  titleWidget: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr(item.name), // Translate product name
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        '${item.stockQuantity} ${context.tr(item.unit)}', // Translate unit
-                        style: TextStyle(
-                            fontSize: 14, color: Colors.grey.shade600),
-                      ),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '₹${item.price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      const Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey),
-                    ],
-                  ),
-                  onTap: () => showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
-                    builder: (context) =>
-                        InventoryItemDetailScreen(itemId: item.id),
-                  ),
-                );
-              },
+              children: [
+                ...items.map((item) {
+                  return GenericListTile(
+                    leading: const Icon(Icons.inventory_2,
+                        color: Colors.black, size: 28),
+                    titleWidget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.tr(item.name), // Translate product name
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          '${item.stockQuantity} ${context.tr(item.unit)}', // Translate unit
+                          style: TextStyle(
+                              fontSize: 14, color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '₹${item.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        const Icon(Icons.arrow_forward_ios,
+                            size: 16, color: Colors.grey),
+                      ],
+                    ),
+                    onTap: () => showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
+                      builder: (context) =>
+                          InventoryItemDetailScreen(itemId: item.id),
+                    ),
+                  );
+                }),
+              ],
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
