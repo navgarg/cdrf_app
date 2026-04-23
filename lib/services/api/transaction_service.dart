@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
@@ -80,6 +80,7 @@ class TransactionService {
   }
 
   Future<void> addTransaction({
+    String? transactionId,
     required String productId,
     String? itemName,
     required int quantity,
@@ -95,6 +96,7 @@ class TransactionService {
 
       final newTransaction = Transaction(
         id: '', // Firestore will generate this
+        transactionId: transactionId,
         productId: productId,
         itemName: itemName,
         quantity: quantity,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 // For now I'm using the Material icons only, we can change it later
 class AppIcons {

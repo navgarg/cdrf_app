@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:intl/intl.dart';
 import '../models/favourite_customer.dart';
-import '../services/api/fav_customer_service.dart';
-import '../services/api/schedule_service.dart';
+import 'package:nariudyam/providers/fav_customer_providers.dart';
+import 'package:nariudyam/providers/schedule_providers.dart';
 import '../services/general/messenger.dart';
 import '../l10n/dynamic_localizations.dart';
 
@@ -68,7 +68,7 @@ class _AddAppointmentFormState extends ConsumerState<AddAppointmentForm> {
 
   @override
   Widget build(BuildContext context) {
-    final userId = ref.watch(authServiceProvider).currentUser?.uid;
+    final userId = ref.watch(authServiceProvider).currentUserId;
     final favouriteCustomersAsync =
         ref.watch(favouriteCustomersProvider(userId));
 

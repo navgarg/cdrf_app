@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nariudyam/components/regular_button.dart';
-import '../../services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import '../../services/general/messenger.dart';
 import '../../l10n/dynamic_localizations.dart';
+
+// firebase (previous implementation)
+// import '../../services/api/auth_service.dart';
 
 final loginStateProvider =
     StateProvider<LoginState>((ref) => LoginState.phoneInput);
@@ -56,7 +59,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               curve: Curves.easeInOut,
             );
             setState(() => _isLoading = false);
-            ref.read(messengerProvider).showSuccess(context.tr('Verification code sent!'));
+            ref
+                .read(messengerProvider)
+                .showSuccess(context.tr('Verification code sent!'));
           },
           onError: (String message) {
             setState(() => _isLoading = false);
@@ -82,7 +87,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (mounted && verified) {
-      ref.read(messengerProvider).showSuccess(context.tr('Successfully logged in!'));
+      ref
+          .read(messengerProvider)
+          .showSuccess(context.tr('Successfully logged in!'));
     }
   }
 
@@ -169,8 +176,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     Text(
                       context.tr('Enter your phone number'),
-                      style:
-                          const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
@@ -191,7 +198,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           return context.tr('Please enter your phone number');
                         }
                         if (value.length < 10) {
-                          return context.tr('Please enter a valid phone number');
+                          return context
+                              .tr('Please enter a valid phone number');
                         }
                         return null;
                       },
@@ -231,7 +239,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   Text(
                     context.tr('Enter verification code'),
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),

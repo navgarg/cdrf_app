@@ -1,14 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿// firebase (previous implementation)
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+// firebase (previous implementation)
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import '../../models/user.dart';
+
 import '../../components/domain_card.dart';
 import '../../l10n/dynamic_localizations.dart';
 import '../../models/business_domain.dart';
-import '../../models/user.dart';
-import '../../services/api/auth_service.dart';
-import '../../services/api/schedule_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
+import 'package:nariudyam/providers/schedule_providers.dart';
 import '../../services/general/messenger.dart';
 
 class _BusinessDomainInfo {
@@ -23,18 +27,18 @@ class BusinessDomainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<_BusinessDomainInfo> domains = [
-      _BusinessDomainInfo(
-          context.tr('Beauty Parlor'), 'assets/icons/onboarding/beauty_parlor.png'),
+      _BusinessDomainInfo(context.tr('Beauty Parlor'),
+          'assets/icons/onboarding/beauty_parlor.png'),
       _BusinessDomainInfo(
           context.tr('Tailor Shop'), 'assets/icons/onboarding/tailor_shop.png'),
-      _BusinessDomainInfo(
-          context.tr('Tiffin Services'), 'assets/icons/onboarding/tiffin_service.png'),
-      _BusinessDomainInfo(
-          context.tr('Grocery Seller'), 'assets/icons/onboarding/grocery_seller.png'),
-      _BusinessDomainInfo(
-          context.tr('Convenience Store'), 'assets/icons/onboarding/convenience_store.png'),
-      _BusinessDomainInfo(
-          context.tr('Other Business'), 'assets/icons/onboarding/other_business.png'),
+      _BusinessDomainInfo(context.tr('Tiffin Services'),
+          'assets/icons/onboarding/tiffin_service.png'),
+      _BusinessDomainInfo(context.tr('Grocery Seller'),
+          'assets/icons/onboarding/grocery_seller.png'),
+      _BusinessDomainInfo(context.tr('Convenience Store'),
+          'assets/icons/onboarding/convenience_store.png'),
+      _BusinessDomainInfo(context.tr('Other Business'),
+          'assets/icons/onboarding/other_business.png'),
     ]; //todo: make other business button functional
 
     Future<void> selectDomain(String domain) async {
@@ -42,6 +46,8 @@ class BusinessDomainScreen extends ConsumerWidget {
       if (user == null) return;
 
       try {
+        // firebase (previous implementation)
+        /*
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -54,6 +60,17 @@ class BusinessDomainScreen extends ConsumerWidget {
             .get();
         if (updatedDoc.exists) {
           final userModel = UserModel.fromFirestore(updatedDoc);
+          ref.read(userProvider.notifier).state = userModel;
+        }
+        */
+
+        await ref.read(authServiceProvider).updateUserProfile({
+          'businessDomain': domain,
+        });
+
+        // Refresh the user provider to reflect the business domain
+        final userModel = await ref.read(authServiceProvider).loadUserModel();
+        if (userModel != null) {
           ref.read(userProvider.notifier).state = userModel;
         }
 
@@ -113,3 +130,4 @@ class BusinessDomainScreen extends ConsumerWidget {
     );
   }
 }
+

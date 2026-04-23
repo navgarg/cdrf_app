@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../l10n/dynamic_localizations.dart';
+
+// firebase (previous implementation)
+// import 'package:nariudyam/services/api/inventory_service.dart';
 
 class AddInventoryItemForm extends ConsumerStatefulWidget {
   const AddInventoryItemForm({super.key});

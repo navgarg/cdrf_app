@@ -40,6 +40,19 @@ ios/Runner/GeneratedPluginRegistrant.*
 
 # Other
 pubspec.lock
+# Local working artifacts
+current_diff.txt
+final_diff.txt
+
+# Local output captures
+dart_analyze_output.txt
+test_output.txt
+
+# Local tooling (may contain secrets)
+tools/firebase_export/serviceAccountKey.json
+tools/firebase_export/node_modules/
+tools/firebase_export/out/
+tools/
 # Miscellaneous
 *.class
 *.log

@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
   final String uid;
@@ -42,6 +42,7 @@ class UserModel {
   final bool onboardingCompleted;
   final List<String> favouriteCustomerIds;
   final bool financialTransactionsEnabled;
+  final bool isAdmin;
 
   UserModel({
     required this.uid,
@@ -51,7 +52,6 @@ class UserModel {
     this.deviceToken,
     required this.createdAt,
     required this.lastLoginAt,
-
     this.language,
     this.education,
     this.ageRange,
@@ -85,6 +85,7 @@ class UserModel {
     this.onboardingCompleted = false,
     this.favouriteCustomerIds = const [],
     this.financialTransactionsEnabled = true,
+    this.isAdmin = false,
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -98,7 +99,6 @@ class UserModel {
       deviceToken: data['deviceToken'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       lastLoginAt: (data['lastLoginAt'] as Timestamp).toDate(),
-
       language: data['language'],
       education: data['education'],
       ageRange: data['ageRange'],
@@ -130,8 +130,88 @@ class UserModel {
       giveDiscountsToRepeatCustomers: data['giveDiscountsToRepeatCustomers'],
       handleCustomerComplaints: data['handleCustomerComplaints'],
       onboardingCompleted: data['onboardingCompleted'] ?? false,
-      favouriteCustomerIds: List<String>.from(data['favouriteCustomerIds'] ?? []),
-      financialTransactionsEnabled: data['financialTransactionsEnabled'] ?? true,
+      favouriteCustomerIds:
+          List<String>.from(data['favouriteCustomerIds'] ?? []),
+      financialTransactionsEnabled:
+          data['financialTransactionsEnabled'] ?? true,
+      isAdmin: data['isAdmin'] ?? false,
+    );
+  }
+
+  /// Factory for creating UserModel from a plain Map (used with Supabase)
+  /// Supports both camelCase and snake_case keys
+  factory UserModel.fromMap(Map<String, dynamic> data) {
+    // Helper to parse DateTime from various formats
+    DateTime parseDateTime(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is DateTime) return value;
+      if (value is Timestamp) return value.toDate();
+      if (value is String) return DateTime.parse(value);
+      return DateTime.now();
+    }
+
+    return UserModel(
+      uid: data['uid'] ?? '',
+      phoneNumber: data['phoneNumber'] ?? data['phone_number'] ?? '',
+      name: data['name'],
+      profilePicUrl: data['profilePicUrl'] ?? data['profile_pic_url'],
+      deviceToken: data['deviceToken'] ?? data['device_token'],
+      createdAt: parseDateTime(data['createdAt'] ?? data['created_at']),
+      lastLoginAt: parseDateTime(data['lastLoginAt'] ?? data['last_login_at']),
+      language: data['language'],
+      education: data['education'],
+      ageRange: data['ageRange'] ?? data['age_range'],
+      businessDomain: data['businessDomain'] ?? data['business_domain'],
+      respondentName: data['respondentName'] ?? data['respondent_name'],
+      age: data['age'],
+      educationLevel: data['educationLevel'] ?? data['education_level'],
+      yearsRunningBusiness:
+          data['yearsRunningBusiness'] ?? data['years_running_business'],
+      numEmployees: data['numEmployees'] ?? data['num_employees'],
+      ownershipType: data['ownershipType'] ?? data['ownership_type'],
+      digitalPayments: data['digitalPayments'] ?? data['digital_payments'],
+      socialMediaPromotion:
+          data['socialMediaPromotion'] ?? data['social_media_promotion'],
+      recordIncomeExpenses:
+          data['recordIncomeExpenses'] ?? data['record_income_expenses'],
+      financialRecordsMethod:
+          data['financialRecordsMethod'] ?? data['financial_records_method'],
+      monthlyProfit: data['monthlyProfit'] ?? data['monthly_profit'],
+      separateBusinessHouseholdMoney: data['separateBusinessHouseholdMoney'] ??
+          data['separate_business_household_money'],
+      saveReinvestForGrowth:
+          data['saveReinvestForGrowth'] ?? data['save_reinvest_for_growth'],
+      accessToCreditLoans:
+          data['accessToCreditLoans'] ?? data['access_to_credit_loans'],
+      productAvailabilityKnowledge: data['productAvailabilityKnowledge'] ??
+          data['product_availability_knowledge'],
+      stockCheckFrequency:
+          data['stockCheckFrequency'] ?? data['stock_check_frequency'],
+      runOutOfProducts: data['runOutOfProducts'] ?? data['run_out_of_products'],
+      checkExpiryDates: data['checkExpiryDates'] ?? data['check_expiry_dates'],
+      purchaseSuppliesInBulk:
+          data['purchaseSuppliesInBulk'] ?? data['purchase_supplies_in_bulk'],
+      trackProductSales:
+          data['trackProductSales'] ?? data['track_product_sales'],
+      maintainCustomerList:
+          data['maintainCustomerList'] ?? data['maintain_customer_list'],
+      rememberCustomerPreferences: data['rememberCustomerPreferences'] ??
+          data['remember_customer_preferences'],
+      informCustomersAboutOffers: data['informCustomersAboutOffers'] ??
+          data['inform_customers_about_offers'],
+      askForFeedback: data['askForFeedback'] ?? data['ask_for_feedback'],
+      giveDiscountsToRepeatCustomers: data['giveDiscountsToRepeatCustomers'] ??
+          data['give_discounts_to_repeat_customers'],
+      handleCustomerComplaints: data['handleCustomerComplaints'] ??
+          data['handle_customer_complaints'],
+      onboardingCompleted:
+          data['onboardingCompleted'] ?? data['onboarding_completed'] ?? false,
+      favouriteCustomerIds: List<String>.from(
+          data['favouriteCustomerIds'] ?? data['favourite_customer_ids'] ?? []),
+      financialTransactionsEnabled: data['financialTransactionsEnabled'] ??
+          data['financial_transactions_enabled'] ??
+          true,
+      isAdmin: data['isAdmin'] ?? data['is_admin'] ?? false,
     );
   }
 
@@ -143,7 +223,6 @@ class UserModel {
       'deviceToken': deviceToken,
       'createdAt': createdAt,
       'lastLoginAt': lastLoginAt,
-
       'language': language,
       'education': education,
       'ageRange': ageRange,
@@ -177,6 +256,7 @@ class UserModel {
       'onboardingCompleted': onboardingCompleted,
       'favouriteCustomerIds': favouriteCustomerIds,
       'financialTransactionsEnabled': financialTransactionsEnabled,
+      'isAdmin': isAdmin,
     };
   }
 
@@ -188,7 +268,6 @@ class UserModel {
     String? deviceToken,
     DateTime? createdAt,
     DateTime? lastLoginAt,
-
     String? language,
     String? education,
     String? ageRange,
@@ -222,6 +301,7 @@ class UserModel {
     bool? onboardingCompleted,
     List<String>? favouriteCustomerIds,
     bool? financialTransactionsEnabled,
+    bool? isAdmin,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -231,7 +311,6 @@ class UserModel {
       deviceToken: deviceToken ?? this.deviceToken,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
-
       language: language ?? this.language,
       education: education ?? this.education,
       ageRange: ageRange ?? this.ageRange,
@@ -245,26 +324,37 @@ class UserModel {
       digitalPayments: digitalPayments ?? this.digitalPayments,
       socialMediaPromotion: socialMediaPromotion ?? this.socialMediaPromotion,
       recordIncomeExpenses: recordIncomeExpenses ?? this.recordIncomeExpenses,
-      financialRecordsMethod: financialRecordsMethod ?? this.financialRecordsMethod,
+      financialRecordsMethod:
+          financialRecordsMethod ?? this.financialRecordsMethod,
       monthlyProfit: monthlyProfit ?? this.monthlyProfit,
-      separateBusinessHouseholdMoney: separateBusinessHouseholdMoney ?? this.separateBusinessHouseholdMoney,
-      saveReinvestForGrowth: saveReinvestForGrowth ?? this.saveReinvestForGrowth,
+      separateBusinessHouseholdMoney:
+          separateBusinessHouseholdMoney ?? this.separateBusinessHouseholdMoney,
+      saveReinvestForGrowth:
+          saveReinvestForGrowth ?? this.saveReinvestForGrowth,
       accessToCreditLoans: accessToCreditLoans ?? this.accessToCreditLoans,
-      productAvailabilityKnowledge: productAvailabilityKnowledge ?? this.productAvailabilityKnowledge,
+      productAvailabilityKnowledge:
+          productAvailabilityKnowledge ?? this.productAvailabilityKnowledge,
       stockCheckFrequency: stockCheckFrequency ?? this.stockCheckFrequency,
       runOutOfProducts: runOutOfProducts ?? this.runOutOfProducts,
       checkExpiryDates: checkExpiryDates ?? this.checkExpiryDates,
-      purchaseSuppliesInBulk: purchaseSuppliesInBulk ?? this.purchaseSuppliesInBulk,
+      purchaseSuppliesInBulk:
+          purchaseSuppliesInBulk ?? this.purchaseSuppliesInBulk,
       trackProductSales: trackProductSales ?? this.trackProductSales,
       maintainCustomerList: maintainCustomerList ?? this.maintainCustomerList,
-      rememberCustomerPreferences: rememberCustomerPreferences ?? this.rememberCustomerPreferences,
-      informCustomersAboutOffers: informCustomersAboutOffers ?? this.informCustomersAboutOffers,
+      rememberCustomerPreferences:
+          rememberCustomerPreferences ?? this.rememberCustomerPreferences,
+      informCustomersAboutOffers:
+          informCustomersAboutOffers ?? this.informCustomersAboutOffers,
       askForFeedback: askForFeedback ?? this.askForFeedback,
-      giveDiscountsToRepeatCustomers: giveDiscountsToRepeatCustomers ?? this.giveDiscountsToRepeatCustomers,
-      handleCustomerComplaints: handleCustomerComplaints ?? this.handleCustomerComplaints,
+      giveDiscountsToRepeatCustomers:
+          giveDiscountsToRepeatCustomers ?? this.giveDiscountsToRepeatCustomers,
+      handleCustomerComplaints:
+          handleCustomerComplaints ?? this.handleCustomerComplaints,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       favouriteCustomerIds: favouriteCustomerIds ?? this.favouriteCustomerIds,
-      financialTransactionsEnabled: financialTransactionsEnabled ?? this.financialTransactionsEnabled,
+      financialTransactionsEnabled:
+          financialTransactionsEnabled ?? this.financialTransactionsEnabled,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 }

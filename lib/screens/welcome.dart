@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/regular_button.dart';
-import '../services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import '../l10n/dynamic_localizations.dart';
+
+// firebase (previous implementation)
+// import '../services/api/auth_service.dart';
 
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});

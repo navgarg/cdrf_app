@@ -1,35 +1,54 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'dart:async';
-import 'firebase_options.dart';
+// firebase (previous implementation)
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'firebase_options.dart';
+import 'config/supabase_config.dart';
 import 'providers/locale_provider.dart';
-import 'services/api/fcm_service.dart';
+// firebase (previous implementation)
+// import 'services/api/fcm_service.dart';
 import 'services/general/messenger.dart';
 import 'services/general/settings.dart';
 import 'services/translation_service.dart';
 import 'utils/router.dart';
 import 'utils/theme.dart';
 
+// firebase (previous implementation)
+/*
 // Define a background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('Background message received: ${message.messageId}');
 }
+*/
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // firebase (previous implementation)
+  /*
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  */
 
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
+  );
+
+  // firebase (previous implementation)
+  /*
   // Initialize background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  */
 
   // Run app
   runApp(
@@ -80,7 +99,8 @@ class _MyAppState extends ConsumerState<NariUdyam> {
 
   Future<void> _initServices() async {
     await ref.read(settingsProvider).init();
-    await ref.read(fcmServiceProvider).initialize();
+    // firebase (previous implementation)
+    // await ref.read(fcmServiceProvider).initialize();
     // Initialize translation service
     await TranslationService().initialize();
   }

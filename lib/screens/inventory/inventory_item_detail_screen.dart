@@ -1,13 +1,20 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
-import 'package:nariudyam/services/api/transaction_service.dart';
+import 'package:uuid/uuid.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
+import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import '../../models/product_item.dart';
-import 'package:nariudyam/services/api/fav_customer_service.dart'; // Import FavouriteCustomerService
-import '../../services/api/auth_service.dart';
+import 'package:nariudyam/providers/fav_customer_providers.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import '../../l10n/dynamic_localizations.dart';
+
+// firebase (previous implementation)
+// import 'package:nariudyam/services/api/inventory_service.dart';
+// import 'package:nariudyam/services/api/transaction_service.dart';
+// import 'package:nariudyam/services/api/fav_customer_service.dart';
+// import '../../services/api/auth_service.dart';
 
 class InventoryItemDetailScreen extends ConsumerWidget {
   // final InventoryItem item;
@@ -308,16 +315,21 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                       );
 
                   if (success) {
-                    await ref.read(transactionServiceProvider).addTransaction(
-                          productId: item.id,
-                          itemName: item.name,
-                          quantity: quantityToSell,
-                          price: item.price,
-                          cost: item.cost,
-                          transactionType: TransactionType.sale,
-                          paymentMethod: paymentMethod,
-                          customerId: customerId,
-                        );
+                    try {
+                      await ref.read(transactionServiceProvider).addTransaction(
+                            transactionId: const Uuid().v4(),
+                            productId: item.id,
+                            itemName: item.name,
+                            quantity: quantityToSell,
+                            price: item.price,
+                            cost: item.cost,
+                            transactionType: TransactionType.sale,
+                            paymentMethod: paymentMethod,
+                            customerId: customerId,
+                          );
+                    } catch (_) {
+                      // TransactionService already surfaces the error via messenger.
+                    }
                   }
                 }
               },

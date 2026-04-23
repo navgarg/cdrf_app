@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nariudyam/services/api/services_service.dart';
+import 'package:nariudyam/providers/services_providers.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 
 class AddServiceItemForm extends ConsumerStatefulWidget {
