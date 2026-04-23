@@ -1,17 +1,20 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
 
 import '../../components/generic_list_tile.dart';
 import '../../components/regular_button.dart';
-import '../../services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import '../../services/general/messenger.dart';
 import '../../services/general/excel_service.dart';
 import '../../services/general/onboarding_excel_service.dart';
 import '../../l10n/dynamic_localizations.dart';
 import '../../providers/locale_provider.dart';
 import '../../services/translation_service.dart';
+
+// firebase (previous implementation)
+// import '../../services/api/auth_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});

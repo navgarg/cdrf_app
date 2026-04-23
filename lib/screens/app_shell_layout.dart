@@ -1,13 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import 'package:nariudyam/screens/schedule/schedule.dart';
 import '../components/cart_bottom_sheet.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import '../components/customer_order_service_fab.dart';
 import '../services/admin/admin_provider.dart';
 import '../l10n/dynamic_localizations.dart';
+
+// firebase (previous implementation)
+// import 'package:nariudyam/services/api/auth_service.dart';
 
 final inventoryFabPressedProvider = StateProvider<bool>((ref) => false);
 

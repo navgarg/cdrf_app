@@ -1,20 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/product_item.dart';
-import 'package:nariudyam/models/service_item.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
-import 'package:nariudyam/services/api/services_service.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
+import 'package:nariudyam/providers/services_providers.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'package:nariudyam/screens/inventory/bulk_voice_sales_form.dart';
 
-final productsProvider = StreamProvider.autoDispose<List<ProductItem>>((ref) {
-  return ref.watch(inventoryServiceProvider).streamInventoryProductItems();
-});
-
-final servicesProvider = StreamProvider.autoDispose<List<ServiceItem>>((ref) {
-  return ref.watch(servicesServiceProvider).streamServiceItems();
-});
+// firebase (previous implementation)
+// import 'package:nariudyam/services/api/inventory_service.dart';
+// import 'package:nariudyam/services/api/services_service.dart';
+// import 'package:nariudyam/services/api/auth_service.dart';
 
 // Cart stores quantity as double to support fractional (e.g. 0.5 kg) quantities.
 final cartProvider = StateNotifierProvider<CartNotifier, Map<String, double>>(
@@ -95,8 +91,8 @@ class CustomerOrderScreen extends ConsumerWidget {
 
     final itemsAsyncValue = isService
         // Beauty Parlor => show services on order page
-        ? ref.watch(servicesProvider)
-        : ref.watch(productsProvider);
+        ? ref.watch(serviceItemsProvider)
+        : ref.watch(inventoryItemsProvider);
 
     // Colors sourced from theme (no hard-coded hex values here)
     final theme = Theme.of(context);

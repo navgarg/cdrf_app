@@ -1,19 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:nariudyam/components/generic_list_tile.dart';
-import 'package:nariudyam/models/product_item.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
 import '../app_shell_layout.dart';
 import 'add_inventory_item_form.dart';
 import 'inventory_item_detail_screen.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'package:nariudyam/services/translation_service.dart';
 
-final inventoryItemsProvider =
-    StreamProvider.autoDispose<List<ProductItem>>((ref) {
-  return ref.watch(inventoryServiceProvider).streamInventoryProductItems();
-});
+// firebase (previous implementation)
+// import 'package:nariudyam/services/api/inventory_service.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});

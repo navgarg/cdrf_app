@@ -1,12 +1,167 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/transaction.dart';
-import 'package:nariudyam/services/api/transaction_service.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
-import 'package:nariudyam/services/api/services_service.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/providers/transaction_providers.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
+import 'package:nariudyam/providers/services_providers.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 
+// Firebase (previous implementation)
+// import 'package:nariudyam/services/api/transaction_service.dart';
+// import 'package:nariudyam/services/api/inventory_service.dart';
+// import 'package:nariudyam/services/api/services_service.dart';
+// import 'package:nariudyam/services/api/auth_service.dart';
+
 final analyticsServiceProvider = Provider((ref) => AnalyticsService(ref));
+
+final overallMetricsProvider = Provider<Map<String, double>>((ref) {
+  final transactionsAsync = ref.watch(allTransactionsStreamProvider);
+  if (!transactionsAsync.hasValue) return {};
+
+  final sales = transactionsAsync.value!
+      .where((t) => t.transactionType == TransactionType.sale)
+      .toList();
+
+  double totalRevenue = 0;
+  double totalProfit = 0;
+  double totalCost = 0;
+
+  for (final transaction in sales) {
+    totalRevenue += (transaction.price * transaction.quantity);
+    totalCost += (transaction.cost * transaction.quantity);
+    totalProfit += ((transaction.price - transaction.cost) * transaction.quantity);
+  }
+
+  // Count "transactions" as orders/checkouts when transaction_id exists.
+  // Rows without a transaction_id are treated as their own order.
+  final orderKeys = <String>{};
+  for (final t in sales) {
+    final key = (t.transactionId != null && t.transactionId!.trim().isNotEmpty)
+        ? t.transactionId!
+        : t.id;
+    orderKeys.add(key);
+  }
+
+  final profitMargin =
+      totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0.0;
+
+  return {
+    'totalRevenue': totalRevenue,
+    'totalProfit': totalProfit,
+    'totalCost': totalCost,
+    'profitMargin': profitMargin,
+    'totalTransactions': orderKeys.length.toDouble(),
+  };
+});
+
+final paymentModeDataProvider = Provider<List<PaymentModeData>>((ref) {
+  final transactionsAsync = ref.watch(allTransactionsStreamProvider);
+  if (!transactionsAsync.hasValue) return [];
+
+  final sales = transactionsAsync.value!
+      .where((t) => t.transactionType == TransactionType.sale)
+      .toList();
+
+  final Map<PaymentMethod, double> revenueByMethod = {};
+  final Map<PaymentMethod, Set<String>> orderKeysByMethod = {};
+
+  for (final transaction in sales) {
+    final method = transaction.paymentMethod;
+
+    revenueByMethod[method] =
+        (revenueByMethod[method] ?? 0) + (transaction.price * transaction.quantity);
+
+    final orderKey =
+        (transaction.transactionId != null && transaction.transactionId!.trim().isNotEmpty)
+            ? transaction.transactionId!
+            : transaction.id;
+    (orderKeysByMethod[method] ??= <String>{}).add(orderKey);
+  }
+
+  final result = revenueByMethod.entries.map((entry) {
+    final method = entry.key;
+    return PaymentModeData(
+      method: method,
+      revenue: entry.value,
+      transactionCount: (orderKeysByMethod[method]?.length ?? 0),
+    );
+  }).toList();
+
+  return result..sort((a, b) => b.revenue.compareTo(a.revenue));
+});
+
+final inventoryReorderDataProvider = Provider<List<InventoryReorderData>>((ref) {
+  final itemsAsync = ref.watch(inventoryItemsProvider);
+  if (!itemsAsync.hasValue) return [];
+
+  final products = itemsAsync.value!;
+  final List<InventoryReorderData> reorderData = [];
+
+  for (final product in products) {
+    if (product.stockQuantity <= product.reorderThreshold) {
+      reorderData.add(InventoryReorderData(
+        productName: product.name,
+        currentStock: product.stockQuantity,
+        reorderThreshold: product.reorderThreshold,
+        timesReached: 1,
+      ));
+    }
+  }
+
+  return reorderData
+    ..sort((a, b) => a.currentStock.compareTo(b.currentStock));
+});
+
+final productRevenueDataProvider = Provider<List<ProductRevenueData>>((ref) {
+  final transactionsAsync = ref.watch(allTransactionsStreamProvider);
+  if (!transactionsAsync.hasValue) return [];
+
+  final sales = transactionsAsync.value!
+      .where((t) => t.transactionType == TransactionType.sale)
+      .toList();
+
+  final user = ref.watch(userProvider);
+  final isService = user?.businessDomain?.trim().toLowerCase() == 'beauty parlor';
+
+  Set<String> itemNames = {};
+
+  if (isService) {
+    final servicesAsync = ref.watch(serviceItemsProvider);
+    if (!servicesAsync.hasValue) return [];
+    itemNames = servicesAsync.value!.map((s) => s.name).toSet();
+  } else {
+    final inventoryAsync = ref.watch(inventoryItemsProvider);
+    if (!inventoryAsync.hasValue) return [];
+    itemNames = inventoryAsync.value!.map((i) => i.name).toSet();
+  }
+
+  final Map<String, ProductRevenueData> productMap = {};
+
+  for (final transaction in sales) {
+    final name = transaction.itemName ?? 'Unknown';
+    if (!itemNames.contains(name)) continue;
+
+    if (productMap.containsKey(name)) {
+      final existing = productMap[name]!;
+      productMap[name] = ProductRevenueData(
+        productName: name,
+        revenue: existing.revenue + (transaction.price * transaction.quantity),
+        profit: existing.profit + ((transaction.price - transaction.cost) * transaction.quantity),
+        salesCount: existing.salesCount + transaction.quantity.toInt(),
+      );
+    } else {
+      productMap[name] = ProductRevenueData(
+        productName: name,
+        revenue: transaction.price * transaction.quantity,
+        profit: (transaction.price - transaction.cost) * transaction.quantity,
+        salesCount: transaction.quantity.toInt(),
+      );
+    }
+  }
+
+  return productMap.values.toList()
+    ..sort((a, b) => b.revenue.compareTo(a.revenue));
+});
 
 class ProductRevenueData {
   final String productName;
@@ -177,30 +332,33 @@ class AnalyticsService {
           .where((t) => t.transactionType == TransactionType.sale)
           .toList();
 
-      // Group by payment method
-      final Map<PaymentMethod, PaymentModeData> paymentMap = {};
+      // Group by payment method, counting distinct orders via transactionId.
+      final Map<PaymentMethod, double> revenueByMethod = {};
+      final Map<PaymentMethod, Set<String>> orderKeysByMethod = {};
 
       for (final transaction in sales) {
         final method = transaction.paymentMethod;
-        final revenue = transaction.price * transaction.quantity;
-        if (paymentMap.containsKey(method)) {
-          final existing = paymentMap[method]!;
-          paymentMap[method] = PaymentModeData(
-            method: method,
-            revenue: existing.revenue + revenue,
-            transactionCount: existing.transactionCount + 1,
-          );
-        } else {
-          paymentMap[method] = PaymentModeData(
-            method: method,
-            revenue: revenue,
-            transactionCount: 1,
-          );
-        }
+
+        revenueByMethod[method] =
+            (revenueByMethod[method] ?? 0) + (transaction.price * transaction.quantity);
+
+        final orderKey =
+            (transaction.transactionId != null && transaction.transactionId!.trim().isNotEmpty)
+                ? transaction.transactionId!
+                : transaction.id;
+        (orderKeysByMethod[method] ??= <String>{}).add(orderKey);
       }
 
-      return paymentMap.values.toList()
-        ..sort((a, b) => b.revenue.compareTo(a.revenue));
+      final result = revenueByMethod.entries.map((entry) {
+        final method = entry.key;
+        return PaymentModeData(
+          method: method,
+          revenue: entry.value,
+          transactionCount: (orderKeysByMethod[method]?.length ?? 0),
+        );
+      }).toList();
+
+      return result..sort((a, b) => b.revenue.compareTo(a.revenue));
     });
   }
 
@@ -242,11 +400,19 @@ class AnalyticsService {
       double totalProfit = 0;
       double totalCost = 0;
 
+      final orderKeys = <String>{};
+
       for (final transaction in sales) {
         totalRevenue += transaction.price * transaction.quantity;
         totalCost += transaction.cost * transaction.quantity;
         totalProfit +=
             (transaction.price - transaction.cost) * transaction.quantity;
+
+        final orderKey =
+            (transaction.transactionId != null && transaction.transactionId!.trim().isNotEmpty)
+                ? transaction.transactionId!
+                : transaction.id;
+        orderKeys.add(orderKey);
       }
 
       final profitMargin =
@@ -257,7 +423,7 @@ class AnalyticsService {
         'totalProfit': totalProfit,
         'totalCost': totalCost,
         'profitMargin': profitMargin,
-        'totalTransactions': sales.length.toDouble(),
+        'totalTransactions': orderKeys.length.toDouble(),
       };
     });
   }

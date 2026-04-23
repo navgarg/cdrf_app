@@ -1,8 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/api/fav_customer_service.dart';
-import '../../services/api/auth_service.dart';
+import 'package:nariudyam/providers/fav_customer_providers.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import '../../l10n/dynamic_localizations.dart';
+
+// firebase (previous implementation)
+// import '../../services/api/fav_customer_service.dart';
+// import '../../services/api/auth_service.dart';
 
 final favouriteCustomerFabPressedProvider = StateProvider<bool>((ref) => false);
 

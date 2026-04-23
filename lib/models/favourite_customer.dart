@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FavouriteCustomer {
   final String id;
@@ -20,7 +20,8 @@ class FavouriteCustomer {
   });
 
   factory FavouriteCustomer.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
+      DocumentSnapshot<Map<String, dynamic>> snapshot,
+      SnapshotOptions? options) {
     final data = snapshot.data();
     return FavouriteCustomer(
       id: snapshot.id,
@@ -33,12 +34,57 @@ class FavouriteCustomer {
     );
   }
 
+  factory FavouriteCustomer.fromMap(Map<String, dynamic> data, String id) {
+    DateTime? parseDateTimeNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is Timestamp) return value.toDate();
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    return FavouriteCustomer(
+      id: id,
+      name: data['name'] ?? '',
+      phoneNumber: data['phoneNumber'] ?? data['phone_number'],
+      creditOutstanding: (data['creditOutstanding'] as num?)?.toDouble() ??
+          (data['credit_outstanding'] as num?)?.toDouble(),
+      lastPurchaseDate: parseDateTimeNullable(
+          data['lastPurchaseDate'] ?? data['last_purchase_date']),
+      avgMonthlySpend: (data['avgMonthlySpend'] as num?)?.toDouble() ??
+          (data['avg_monthly_spend'] as num?)?.toDouble(),
+      loyaltyStatus: data['loyaltyStatus'] ?? data['loyalty_status'],
+    );
+  }
+
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
       'phone_number': phoneNumber,
       'credit_outstanding': creditOutstanding,
-      'last_purchase_date': lastPurchaseDate != null ? Timestamp.fromDate(lastPurchaseDate!) : null,
+      'last_purchase_date': lastPurchaseDate != null
+          ? Timestamp.fromDate(lastPurchaseDate!)
+          : null,
+      'avg_monthly_spend': avgMonthlySpend,
+      'loyalty_status': loyaltyStatus,
+    };
+  }
+
+  Map<String, dynamic> toSupabaseMap(
+      {required String userId, required String businessId}) {
+    return {
+      'user_id': userId,
+      'business_id': businessId,
+      'name': name,
+      'phone_number': phoneNumber,
+      'credit_outstanding': creditOutstanding,
+      'last_purchase_date': lastPurchaseDate?.toIso8601String(),
       'avg_monthly_spend': avgMonthlySpend,
       'loyalty_status': loyaltyStatus,
     };

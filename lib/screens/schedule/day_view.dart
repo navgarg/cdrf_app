@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:nariudyam/models/appointment.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'package:nariudyam/models/favourite_customer.dart';
-import 'package:nariudyam/services/api/fav_customer_service.dart';
+import 'package:nariudyam/providers/fav_customer_providers.dart';
 import 'package:collection/collection.dart';
+
+// firebase (previous implementation)
+// import 'package:nariudyam/services/api/auth_service.dart';
+// import 'package:nariudyam/services/api/fav_customer_service.dart';
 
 class DayView extends ConsumerWidget {
   final List<Appointment> allAppointments;

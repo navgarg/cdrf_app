@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/general/settings.dart';
 
@@ -9,11 +9,9 @@ final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeData>((ref) {
 });
 
 class ThemeNotifier extends StateNotifier<ThemeData> {
-  final bool _isDarkMode;
-
-  ThemeNotifier(this._isDarkMode)
+  ThemeNotifier(bool isDarkMode)
       : super(
-          _isDarkMode ? _darkTheme : _lightTheme,
+          isDarkMode ? _darkTheme : _lightTheme,
         );
   // Custom colors for orange theme
   static const Color _primaryColor =

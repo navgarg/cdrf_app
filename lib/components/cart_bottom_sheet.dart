@@ -1,15 +1,19 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/screens/customer_order.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
+import 'package:nariudyam/providers/services_providers.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/components/rating_bottom_sheet.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/components/qr_payment_bottom_sheet.dart';
-import 'package:nariudyam/services/api/transaction_service.dart';
+import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
+
+import 'package:uuid/uuid.dart';
 
 class CartBottomSheet extends ConsumerWidget {
   const CartBottomSheet({super.key});
@@ -20,8 +24,8 @@ class CartBottomSheet extends ConsumerWidget {
     final user = ref.watch(userProvider);
     final isService = user?.businessDomain == 'Beauty Parlor';
 
-    final products = ref.watch(productsProvider).asData?.value ?? [];
-    final services = ref.watch(servicesProvider).asData?.value ?? [];
+    final products = ref.watch(inventoryItemsProvider).asData?.value ?? [];
+    final services = ref.watch(serviceItemsProvider).asData?.value ?? [];
 
     double total = 0;
     final cartItems = <Map<String, dynamic>>[];
@@ -390,17 +394,26 @@ class CartBottomSheet extends ConsumerWidget {
 
     // 4. Persist each cart line as a transaction (sale). For services there is no stock update here.
     final transactionService = ref.read(transactionServiceProvider);
+    final String sharedTransactionId = const Uuid().v4();
+
+    bool allSucceeded = true;
+    Object? lastError;
+
     for (final entry in cartItems) {
       final item = entry['item'];
       final double qtyDouble = entry['quantity'] as double;
       final int quantity = qtyDouble.round(); // Transaction model uses int
-      final double price = item.price;
+      final double price = item.price; // Multiply by qty later in UI if needed, but DB ideally stores unit price, wait user said "shows 20rs even if i buy 5 qty"
+      // Let's store unit price but wait... wait! Does the prompt mean we should store total price, OR calculate properly on dashboard?
+      // "revenue is not being calculated properly qty is not being multiplied white calculating revenue only base price is being added " -> means I need to multiply it in dashboard service.
       final double cost = (item is ProductItem)
           ? (item.cost)
           : 0.0; // service has no cost field
       try {
         await transactionService.addTransaction(
+          transactionId: sharedTransactionId,
           productId: item.id,
+          // Store canonical name in DB; translate only at render-time.
           itemName: item.name,
           quantity: quantity,
           price: price,
@@ -408,12 +421,26 @@ class CartBottomSheet extends ConsumerWidget {
           transactionType: TransactionType.sale,
           paymentMethod: paymentMethod,
         );
-      } catch (_) {
-        // continue attempting remaining items
+      } catch (e) {
+        allSucceeded = false;
+        lastError = e;
+        break;
       }
     }
 
     if (!context.mounted) return;
+    if (!allSucceeded) {
+      try {
+        ref
+            .read(messengerProvider)
+            .showError('Order failed. Please try again. ${lastError ?? ''}');
+      } catch (_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Order failed. Please try again.')),
+        );
+      }
+      return;
+    }
 
     // 5. Clear cart
     ref.read(cartProvider.notifier).clearCart();

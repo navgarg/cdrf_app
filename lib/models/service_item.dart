@@ -1,4 +1,4 @@
-class ServiceItem {
+﻿class ServiceItem {
   final String id;
   final String name;
   final String? description;
@@ -14,12 +14,26 @@ class ServiceItem {
   });
 
   factory ServiceItem.fromMap(Map<String, dynamic> data, String id) {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return ServiceItem(
       id: id,
       name: data['name'] ?? '',
       description: data['description'],
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
-      duration: data['duration'] ?? 0,
+      price: parseDouble(data['price']),
+      duration: parseInt(data['duration']),
     );
   }
 

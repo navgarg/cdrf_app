@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart'; // Import for kDebugMode
@@ -8,24 +8,34 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:nariudyam/models/product_item.dart';
-import 'package:nariudyam/services/api/auth_service.dart';
-import 'package:nariudyam/services/api/fav_customer_service.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
-import 'package:nariudyam/services/api/transaction_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
+import 'package:nariudyam/providers/fav_customer_providers.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
+import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/services/general/messenger.dart';
+import 'package:nariudyam/services/interfaces/i_auth_service.dart';
+import 'package:nariudyam/services/interfaces/i_favourite_customer_service.dart';
+import 'package:nariudyam/services/interfaces/i_transaction_service.dart';
+
+// firebase (previous implementation)
+// import 'package:nariudyam/services/api/auth_service.dart';
+// import 'package:nariudyam/services/api/fav_customer_service.dart';
+// import 'package:nariudyam/services/api/inventory_service.dart';
+// import 'package:nariudyam/services/api/transaction_service.dart';
 
 final excelServiceProvider = Provider((ref) => ExcelService(ref));
 
 class ExcelService {
   final Ref _ref;
-  final TransactionService _transactionService;
-  final AuthService _authService;
-  final FavouriteCustomerService _favouriteCustomerService;
+  final ITransactionService _transactionService;
+  final IAuthService _authService;
+  final IFavouriteCustomerService _favouriteCustomerService;
 
-  ExcelService(this._ref) 
+  ExcelService(this._ref)
       : _transactionService = _ref.read(transactionServiceProvider),
         _authService = _ref.read(authServiceProvider),
-        _favouriteCustomerService = _ref.read(favouriteCustomerServiceProvider(_ref.read(authServiceProvider).currentUser?.uid));
+        _favouriteCustomerService = _ref.read(favouriteCustomerServiceProvider(
+            _ref.read(authServiceProvider).currentUserId));
 
   Future<bool> _requestStoragePermission() async {
     if (await Permission.manageExternalStorage.isGranted ||
@@ -85,7 +95,8 @@ class ExcelService {
       return;
     }
 
-    final excel = Excel.createExcel(); // Use createExcel() as createStorage() is not defined
+    final excel = Excel
+        .createExcel(); // Use createExcel() as createStorage() is not defined
 
     // Customer Analytics Sheet
     await _addCustomerAnalyticsSheet(excel);
@@ -105,7 +116,8 @@ class ExcelService {
     }
 
     try {
-      final filePath = await _saveExcelToDownloads(Uint8List.fromList(excelBytes), 'Analytics.xlsx');
+      final filePath = await _saveExcelToDownloads(
+          Uint8List.fromList(excelBytes), 'Analytics.xlsx');
       if (kDebugMode) {
         print('Excel file saved to: $filePath');
       }
@@ -116,7 +128,9 @@ class ExcelService {
       if (kDebugMode) {
         print('Error saving Excel file: $e');
       }
-      _ref.read(messengerProvider).showError('Failed to save all analytics Excel file.');
+      _ref
+          .read(messengerProvider)
+          .showError('Failed to save all analytics Excel file.');
     }
   }
 
@@ -132,7 +146,7 @@ class ExcelService {
       TextCellValue('Loyalty Status'),
     ]);
 
-    final userId = _authService.currentUser?.uid;
+    final userId = _authService.currentUserId;
     if (userId == null) {
       if (kDebugMode) {
         print('User not logged in.');
@@ -140,7 +154,8 @@ class ExcelService {
       return;
     }
 
-    final customers = await _favouriteCustomerService.streamFavouriteCustomers().first;
+    final customers =
+        await _favouriteCustomerService.streamFavouriteCustomers().first;
 
     for (var customer in customers) {
       customerSheet.appendRow([
@@ -148,7 +163,9 @@ class ExcelService {
         TextCellValue(customer.name),
         TextCellValue(customer.phoneNumber ?? 'N/A'),
         DoubleCellValue(customer.creditOutstanding ?? 0.0),
-        TextCellValue(customer.lastPurchaseDate != null ? DateFormat('yyyy-MM-dd HH:mm').format(customer.lastPurchaseDate!) : 'N/A'),
+        TextCellValue(customer.lastPurchaseDate != null
+            ? DateFormat('yyyy-MM-dd HH:mm').format(customer.lastPurchaseDate!)
+            : 'N/A'),
         DoubleCellValue(customer.avgMonthlySpend ?? 0.0),
         TextCellValue(customer.loyaltyStatus ?? 'N/A'),
       ]);
@@ -166,7 +183,7 @@ class ExcelService {
       TextCellValue('Timestamp'),
     ]);
 
-    final userId = _authService.currentUser?.uid;
+    final userId = _authService.currentUserId;
     if (userId == null) {
       if (kDebugMode) {
         print('User not logged in.');
@@ -185,7 +202,8 @@ class ExcelService {
             .first;
       } catch (e) {
         if (kDebugMode) {
-          print('Error fetching inventory item for product ID ${transaction.productId}: $e');
+          print(
+              'Error fetching inventory item for product ID ${transaction.productId}: $e');
         }
         _ref.read(messengerProvider).showError(
             'Error fetching inventory item for product ID ${transaction.productId}: $e');
@@ -225,7 +243,7 @@ class ExcelService {
       TextCellValue('Value'),
     ]);
 
-    final userId = _authService.currentUser?.uid;
+    final userId = _authService.currentUserId;
     if (userId == null) {
       if (kDebugMode) {
         print('User not logged in.');
@@ -234,8 +252,13 @@ class ExcelService {
     }
 
     // Example: Total Sales (replace with actual calculation)
-    final totalSales = await _transactionService.streamTransactions().first.then((transactions) =>
-        transactions.fold(0.0, (sum, transaction) => sum + (transaction.price * transaction.quantity)));
+    final totalSales = await _transactionService
+        .streamTransactions()
+        .first
+        .then((transactions) => transactions.fold(
+            0.0,
+            (sum, transaction) =>
+                sum + (transaction.price * transaction.quantity)));
 
     adminSheet.appendRow([
       TextCellValue('Total Sales'),
@@ -243,14 +266,18 @@ class ExcelService {
     ]);
 
     // Example: Number of Transactions
-    final numberOfTransactions = await _transactionService.streamTransactions().first.then((transactions) => transactions.length);
+    final numberOfTransactions = await _transactionService
+        .streamTransactions()
+        .first
+        .then((transactions) => transactions.length);
     adminSheet.appendRow([
       TextCellValue('Number of Transactions'),
       IntCellValue(numberOfTransactions),
     ]);
 
     // Example: Average Transaction Value
-    final averageTransactionValue = numberOfTransactions > 0 ? totalSales / numberOfTransactions : 0.0;
+    final averageTransactionValue =
+        numberOfTransactions > 0 ? totalSales / numberOfTransactions : 0.0;
     adminSheet.appendRow([
       TextCellValue('Average Transaction Value'),
       DoubleCellValue(averageTransactionValue),

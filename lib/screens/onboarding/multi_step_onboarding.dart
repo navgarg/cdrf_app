@@ -1,11 +1,17 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿// firebase (previous implementation)
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+// firebase (previous implementation)
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import '../../models/user.dart';
+
 import '../../components/regular_button.dart';
 import '../../models/onboarding_step.dart';
-import '../../services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
+import '../../providers/locale_provider.dart';
 import '../../services/general/messenger.dart';
 import '../../l10n/dynamic_localizations.dart';
 
@@ -26,7 +32,7 @@ class _MultiStepOnboardingScreenState
     OnboardingStep(
       title: 'Please select a language',
       firestoreField: 'language',
-      options: ['English', 'हिन्दी', 'తెలుగు', 'മലയാളം', 'ಕನ್ನಡ', 'தமிழ்'],
+      options: ['English', 'Hindi / हिन्दी', 'Telugu / తెలుగు'],
     ),
     OnboardingStep(
       title: 'What age range do you fall into?',
@@ -116,7 +122,7 @@ class _MultiStepOnboardingScreenState
     ),
     OnboardingStep(
       title:
-          'Do you save or reinvest part of your earnings for business growth (e.g., new chair, training, décor)?',
+          'Do you save or reinvest part of your earnings for business growth (e.g., new chair, training, d�cor)?',
       firestoreField: 'saveReinvestForGrowth',
       options: ['Regularly', 'Occasionally', 'Never'],
     ),
@@ -232,17 +238,39 @@ class _MultiStepOnboardingScreenState
 
     try {
       if (step.firestoreField != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .update({step.firestoreField!: value});
+        String finalValue = value;
+
+        // Handle locale update explicitly if it's the language step
+        if (step.firestoreField == 'language') {
+          const Map<String, String> languagesMap = {
+            'English': 'en',
+            'Hindi / हिन्दी': 'hi',
+            'Telugu / తెలుగు': 'te',
+          };
+          final langCode = languagesMap[value];
+          if (langCode != null) {
+            finalValue = langCode;
+            ref.read(localeProvider.notifier).setLocale(Locale(langCode));
+          }
+        }
+
+        await ref.read(authServiceProvider).updateUserProfile({
+          step.firestoreField!: finalValue,
+        });
       }
 
       if (isLastStep) {
+        // firebase (previous implementation)
+        /*
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .update({'onboardingCompleted': true});
+        */
+
+        await ref.read(authServiceProvider).updateUserProfile({
+          'onboardingCompleted': true,
+        });
 
         context.go('/onboarding/business_domain');
       } else {

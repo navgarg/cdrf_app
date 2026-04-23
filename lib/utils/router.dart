@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/screens/onboarding/business_domain.dart';
@@ -15,7 +15,7 @@ import '../screens/profile/profile.dart';
 import '../screens/resource_center/resource_center.dart';
 import '../screens/resource_center/domain_recommendations_screen.dart';
 import '../screens/analytics/advanced_analytics_screen.dart';
-import '../services/api/auth_service.dart';
+import '../providers/auth_providers.dart';
 import '../services/admin/admin_provider.dart';
 import '../screens/admin/admin_dashboard.dart';
 import '../screens/admin/admin_users.dart';
@@ -24,22 +24,47 @@ import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import '../screens/customer_order.dart';
 import '../screens/faqs/faqs_screen.dart';
 
+// firebase (previous implementation)
+// import '../services/api/auth_service.dart';
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Notifier to trigger router redirects when auth or user state changes
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen(authStateProvider, (_, __) => notifyListeners());
+    _ref.listen(userProvider, (_, __) => notifyListeners());
+    _ref.listen(isAdminProvider, (_, __) => notifyListeners());
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-  final user = ref.watch(userProvider);
-  final isAdmin = ref.watch(isAdminProvider);
+  // Ensures `userProvider` is hydrated on session restore.
+  ref.read(authUserSyncProvider);
+
+  final notifier = RouterNotifier(ref);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/auth',
     debugLogDiagnostics: true,
+    refreshListenable: notifier,
     redirect: (context, state) {
-      // final isLoading = authState.isLoading;
-      // if (isLoading) return null;
+      final authState = ref.read(authStateProvider);
+      final user = ref.read(userProvider);
+      final isAdmin = ref.read(isAdminProvider);
+
       final isLoading = authState.isLoading || authState.isReloading;
+
+      // Catch Supabase deep links that GoRouter tries to parse incorrectly
+      if (state.uri.scheme == 'io.supabase.flutter' ||
+          state.uri.host == 'login-callback') {
+        return '/auth';
+      }
+
       if (isLoading || authState.hasError) return null;
 
       final isAuthenticated = authState.valueOrNull != null;

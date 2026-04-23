@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:collection/collection.dart';
 
@@ -6,6 +6,7 @@ enum TransactionType { sale, purchase }
 
 class Transaction {
   final String id;
+  final String? transactionId;
   final String productId;
   final String? itemName;
   final int quantity;
@@ -19,6 +20,7 @@ class Transaction {
 
   Transaction({
     required this.id,
+    this.transactionId,
     required this.productId,
     this.itemName,
     required this.quantity,
@@ -32,28 +34,67 @@ class Transaction {
   });
 
   factory Transaction.fromMap(Map<String, dynamic> data, String id) {
+    DateTime parseDateTime(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is DateTime) return value.toLocal();
+      if (value is Timestamp) return value.toDate().toLocal();
+      if (value is String) {
+        try {
+          return DateTime.parse(value).toLocal();
+        } catch (_) {
+          return DateTime.now();
+        }
+      }
+      if (value is int) {
+        // Assume millisecondsSinceEpoch
+        return DateTime.fromMillisecondsSinceEpoch(value).toLocal();
+      }
+      return DateTime.now();
+    }
+
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return Transaction(
       id: id,
-      productId: data['productId'] as String? ?? 'unknown',
-      itemName: data['itemName'] as String?,
-      quantity: (data['quantity'] as int?) ?? 0,
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
-      cost: (data['cost'] as num?)?.toDouble() ?? 0.0,
+      transactionId: data['transactionId'] ?? data['transaction_id'],
+      productId: (data['productId'] as String?) ??
+          (data['product_id'] as String?) ??
+          'unknown',
+      itemName: (data['itemName'] as String?) ?? (data['item_name'] as String?),
+      quantity: parseInt(data['quantity']),
+      price: parseDouble(data['price']),
+      cost: parseDouble(data['cost']),
       transactionType: TransactionType.values.firstWhereOrNull((e) =>
-              e.toString() == 'TransactionType.${data['transactionType'] as String?}') ??
+              e.toString() ==
+              'TransactionType.${(data['transactionType'] as String?) ?? (data['transaction_type'] as String?)}') ??
           TransactionType.sale,
-      timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      businessId: data['businessId'] as String? ?? 'unknown',
+      timestamp: parseDateTime(data['timestamp']),
+      businessId: (data['businessId'] as String?) ??
+          (data['business_id'] as String?) ??
+          'unknown',
       paymentMethod: PaymentMethod.values.firstWhereOrNull((e) =>
-              e.toString() == 'PaymentMethod.${data['paymentMethod'] as String?}') ??
+              e.toString() ==
+              'PaymentMethod.${(data['paymentMethod'] as String?) ?? (data['payment_method'] as String?)}') ??
           PaymentMethod.cash,
-      customerId: data['customerId'] as String?,
+      customerId:
+          (data['customerId'] as String?) ?? (data['customer_id'] as String?),
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'productId': productId,
+    return {      'transaction_id': transactionId,      'productId': productId,
       'itemName': itemName,
       'quantity': quantity,
       'price': price,

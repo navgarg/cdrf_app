@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:nariudyam/components/dashboard_chart.dart';
 import 'package:go_router/go_router.dart';
-import '../services/api/auth_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
+import 'package:nariudyam/providers/transaction_providers.dart';
 import '../models/user.dart';
 import '../services/api/dashboard_service.dart';
 import '../components/generic_list_tile.dart';
@@ -12,6 +13,9 @@ import '../l10n/dynamic_localizations.dart';
 import '../providers/locale_provider.dart';
 import '../services/translation_service.dart';
 import '../services/voice/voice_output_service.dart';
+
+// firebase (previous implementation)
+// import '../services/api/auth_service.dart';
 
 enum DashboardView { daily, weekly, monthly }
 
@@ -105,63 +109,52 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final userModel = ref.watch(userProvider);
     final dashboardService = ref.watch(dashboardServiceProvider);
-
-    Stream<List<DailySummary>> dataStream = Stream.value([]);
-    switch (_dashboardView) {
-      case DashboardView.daily:
-        dataStream = dashboardService.getDailyData(_focusedDate);
-        break;
-      case DashboardView.weekly:
-        dataStream = dashboardService.getWeeklyData(_focusedDate);
-        break;
-      case DashboardView.monthly:
-        dataStream = dashboardService.getMonthlyData(_focusedDate);
-        break;
-    }
+    final transactionsAsync = ref.watch(allTransactionsStreamProvider);
 
     return userModel == null
         ? const Center(child: CircularProgressIndicator())
-        : _buildDashboard(context, userModel, dataStream);
+        : transactionsAsync.when(
+            data: (transactions) {
+              List<DailySummary> data = [];
+              switch (_dashboardView) {
+                case DashboardView.daily:
+                  data = dashboardService.getDailyData(transactions, _focusedDate);
+                  break;
+                case DashboardView.weekly:
+                  data = dashboardService.getWeeklyData(transactions, _focusedDate);
+                  break;
+                case DashboardView.monthly:
+                  data = dashboardService.getMonthlyData(transactions, _focusedDate);
+                  break;
+              }
+              return _buildDashboard(context, userModel, data);
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text(context.tr('Error: $err'))),
+          );
   }
 
   Widget _buildDashboard(BuildContext context, UserModel user,
-      Stream<List<DailySummary>> dataStream) {
+      List<DailySummary> data) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           _buildToggleButtons(),
           const SizedBox(height: 24),
-          StreamBuilder<List<DailySummary>>(
-              stream: dataStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return _buildDateNavigator(null);
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                      child: Text(context.tr('Error: ${snapshot.error}')));
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Column(
-                    children: [
-                      _buildDateNavigator([]),
-                      const SizedBox(height: 16),
-                      Center(
-                        child: Text(
-                            context.tr('No data available for this period.')),
-                      ),
-                    ],
-                  );
-                }
-                final data = snapshot.data!;
-                final totalProfit =
-                    data.fold<double>(0.0, (sum, item) => sum + item.profit);
-                // final todayProfit = data.isNotEmpty
-                //     ? data.last.profit
-                //     : 0.0; // Assuming last item is today's or most recent
-                final bestProfit = data.isNotEmpty
-                    ? data.map((e) => e.profit).reduce((a, b) => a > b ? a : b)
+          if (data.isEmpty) ...[
+            _buildDateNavigator([]),
+            const SizedBox(height: 16),
+            Center(
+              child: Text(context.tr('No data available for this period.')),
+            ),
+          ] else ...[
+            Builder(
+              builder: (context) {
+                final totalSales =
+                    data.fold<double>(0.0, (sum, item) => sum + item.sales);
+                final bestSales = data.isNotEmpty
+                    ? data.map((e) => e.sales).reduce((a, b) => a > b ? a : b)
                     : 0.0;
 
                 return Column(
@@ -201,65 +194,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       child: Column(
                         children: [
-                          // _buildSummaryRow(context.tr('Today'),
-                          //     todayProfit.toStringAsFixed(2)),
-                          // const Divider(),
                           _buildSummaryRow(context.tr('Best'),
-                              bestProfit.toStringAsFixed(2)),
+                              bestSales.toStringAsFixed(2)),
                           const Divider(),
                           _buildSummaryRow(context.tr('Total'),
-                              totalProfit.toStringAsFixed(2)),
+                              totalSales.toStringAsFixed(2)),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Container(
-                    //   padding: const EdgeInsets.all(16),
-                    //   decoration: BoxDecoration(
-                    //     color: Theme.of(context).colorScheme.primaryContainer,
-                    //     borderRadius: BorderRadius.circular(15),
-                    //   ),
-                    //   child: Row(
-                    //     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    //     children: [
-                    //       Column(
-                    //         children: [
-                    //           Text(
-                    //             appLocalizations.revenue,
-                    //             style: Theme.of(context).textTheme.titleMedium,
-                    //           ),
-                    //           Text(
-                    //             '₹ 0',
-                    //             style: Theme.of(context)
-                    //                 .textTheme
-                    //                 .headlineMedium
-                    //                 ?.copyWith(
-                    //                   color: Colors.green,
-                    //                 ),
-                    //           ),
-                    //         ],
-                    //       ),
-                    //       Column(
-                    //         children: [
-                    //           Text(
-                    //             appLocalizations.expenses,
-                    //             style: Theme.of(context).textTheme.titleMedium,
-                    //           ),
-                    //           Text(
-                    //             '₹ 0',
-                    //             style: Theme.of(context)
-                    //                 .textTheme
-                    //                 .headlineMedium
-                    //                 ?.copyWith(
-                    //                   color: Colors.red,
-                    //                 ),
-                    //           ),
-                    //         ],
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 24),
                     // Advanced Analytics tile (navigates to separate page)
                     GenericListTile(
                       leading: Icon(Icons.insights,
@@ -290,7 +233,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                   ],
                 );
-              }),
+              }
+            )
+          ]
         ]),
       ),
     );

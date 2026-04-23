@@ -12,7 +12,9 @@ final favCustomerServiceProvider =
     FutureProvider<List<FavouriteCustomer>>((ref) async {
   final user = ref.watch(userProvider);
   final currentDomain = ref.watch(currentDomainProvider);
-  if (user == null || user.uid == null || currentDomain == null) {
+  // Previous implementation:
+  // if (user == null || user.uid == null || currentDomain == null) {
+  if (user == null || currentDomain == null) {
     return [];
   }
   final favCustomerService = FavouriteCustomerService(ref, user.uid,

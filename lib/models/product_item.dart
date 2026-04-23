@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProductItem {
   final String id;
@@ -28,17 +28,51 @@ class ProductItem {
   });
 
   factory ProductItem.fromMap(Map<String, dynamic> data, String id) {
+    DateTime? parseDateTimeNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is Timestamp) return value.toDate();
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {
+          return null;
+        }
+      }
+      if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      return null;
+    }
+
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return ProductItem(
       id: id,
       name: data['name'] ?? '',
       description: data['description'],
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
-      cost: (data['cost'] as num?)?.toDouble() ?? 0.0,
-      stockQuantity: data['stockQuantity'] ?? 0,
-      reorderThreshold: data['reorderThreshold'] ?? 0,
+      price: parseDouble(data['price']),
+      cost: parseDouble(data['cost']),
+      stockQuantity: parseInt(data['stockQuantity'] ?? data['stock_quantity']),
+      reorderThreshold:
+          parseInt(data['reorderThreshold'] ?? data['reorder_threshold']),
       unit: data['unit'] ?? 'Packs',
-      lastPurchasedDate: (data['lastPurchasedDate'] as Timestamp?)?.toDate(),
-      lastSoldDate: (data['lastSoldDate'] as Timestamp?)?.toDate(),
+      lastPurchasedDate: parseDateTimeNullable(
+          data['lastPurchasedDate'] ?? data['last_purchased_date']),
+      lastSoldDate:
+          parseDateTimeNullable(data['lastSoldDate'] ?? data['last_sold_date']),
       location: data['location'],
     );
   }

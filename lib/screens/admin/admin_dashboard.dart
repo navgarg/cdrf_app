@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../services/api/auth_service.dart';
-import '../../services/admin/admin_analytics_service.dart';
+import 'package:nariudyam/providers/auth_providers.dart';
+import 'package:nariudyam/providers/admin_providers.dart';
 import '../../services/general/excel_service.dart';
 import '../../config/admin_config.dart';
 import '../../components/generic_list_tile.dart';
 import '../../l10n/dynamic_localizations.dart';
+
+// firebase (previous implementation)
+// import '../../services/api/auth_service.dart';
+// import '../../services/admin/admin_analytics_service.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});

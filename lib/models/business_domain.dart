@@ -1,4 +1,4 @@
-enum BusinessDomain {
+﻿enum BusinessDomain {
   beautyParlor,
   tailorShop,
   tiffinServices,

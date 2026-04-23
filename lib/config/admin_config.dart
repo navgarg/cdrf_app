@@ -1,4 +1,4 @@
-class AdminConfig {
+﻿class AdminConfig {
   static const List<String> adminPhoneNumbers = [
     '+911234567890',
   ];
