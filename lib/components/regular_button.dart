@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class RegularButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -19,13 +19,14 @@ class RegularButton extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
 
     final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-        minimumSize: const Size(double.infinity, 64),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+      backgroundColor: theme.colorScheme.primary,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      minimumSize: const Size(double.infinity, 68),
+      tapTargetSize: MaterialTapTargetSize.padded,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
     );
 
     if (isLoading) {
@@ -47,11 +48,13 @@ class RegularButton extends StatelessWidget {
         style: buttonStyle,
         icon: Icon(
           icon!,
-          size: 24,
+          size: 30,
         ),
         label: Text(
           text,
           style: const TextStyle(fontSize: 24),
+          softWrap: true,
+          textAlign: TextAlign.center,
         ),
       );
     } else {
@@ -61,6 +64,8 @@ class RegularButton extends StatelessWidget {
         child: Text(
           text,
           style: const TextStyle(fontSize: 24),
+          softWrap: true,
+          textAlign: TextAlign.center,
         ),
       );
     }

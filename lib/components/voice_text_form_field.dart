@@ -22,18 +22,29 @@ class VoiceTextFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       decoration: decoration.copyWith(
         suffixIcon: IconButton(
           tooltip: 'Voice input',
+          style: IconButton.styleFrom(
+            backgroundColor: isListening
+                ? theme.colorScheme.primary
+                : theme.colorScheme.primaryContainer,
+            foregroundColor: isListening
+                ? theme.colorScheme.onPrimary
+                : theme.colorScheme.primary,
+            minimumSize: const Size(48, 48),
+          ),
           icon: Icon(
             isListening ? Icons.mic : Icons.mic_none,
-            color: isListening ? Theme.of(context).colorScheme.primary : null,
+            size: 30,
           ),
           onPressed: onMicTap,
         ),
       ),
+      style: theme.textTheme.bodyLarge,
       validator: validator,
       keyboardType: keyboardType,
       maxLines: maxLines,
