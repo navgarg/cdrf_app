@@ -1,4 +1,4 @@
-﻿// firebase (previous implementation)
+// firebase (previous implementation)
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +13,10 @@ import '../../models/onboarding_step.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import '../../providers/locale_provider.dart';
 import '../../services/general/messenger.dart';
+import '../../services/voice/voice_input_service.dart';
+import '../../services/voice/voice_output_service.dart';
 import '../../l10n/dynamic_localizations.dart';
+import '../../utils/app_visuals.dart';
 
 class MultiStepOnboardingScreen extends ConsumerStatefulWidget {
   const MultiStepOnboardingScreen({super.key});
@@ -26,6 +29,8 @@ class MultiStepOnboardingScreen extends ConsumerStatefulWidget {
 class _MultiStepOnboardingScreenState
     extends ConsumerState<MultiStepOnboardingScreen> {
   final _pageController = PageController();
+  final Map<int, TextEditingController> _textControllers = {};
+  int? _listeningStepIndex;
 
   // all the onboarding steps
   final List<OnboardingStep> _steps = [
@@ -226,6 +231,9 @@ class _MultiStepOnboardingScreenState
   @override
   void dispose() {
     _pageController.dispose();
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -272,6 +280,7 @@ class _MultiStepOnboardingScreenState
           'onboardingCompleted': true,
         });
 
+        if (!mounted) return;
         context.go('/onboarding/business_domain');
       } else {
         _pageController.nextPage(
@@ -280,10 +289,57 @@ class _MultiStepOnboardingScreenState
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ref
           .read(messengerProvider)
           .showError(context.tr('Failed to save progress: $e'));
     }
+  }
+
+  Future<void> _speakQuestion(OnboardingStep step) async {
+    await VoiceOutputService.instance.speak(
+      text: step.title,
+      languageCode: ref.read(localeProvider).languageCode,
+    );
+  }
+
+  Future<void> _toggleVoiceAnswer(
+    int index,
+    TextEditingController controller,
+  ) async {
+    if (_listeningStepIndex == index &&
+        VoiceInputService.instance.isListening) {
+      await VoiceInputService.instance.stopListening();
+      if (mounted) {
+        setState(() => _listeningStepIndex = null);
+      }
+      return;
+    }
+
+    final messenger = ref.read(messengerProvider);
+    final started = await VoiceInputService.instance.startListening(
+      languageCode: ref.read(localeProvider).languageCode,
+      onResult: (text, isFinal) {
+        if (!mounted) return;
+        setState(() {
+          controller.text = text;
+          controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: controller.text.length),
+          );
+          if (isFinal) {
+            _listeningStepIndex = null;
+          }
+        });
+      },
+    );
+
+    if (!mounted) return;
+    if (!started) {
+      messenger.showError(context.tr('Microphone permission is required.'));
+      return;
+    }
+
+    setState(() => _listeningStepIndex = index);
   }
 
   @override
@@ -300,12 +356,19 @@ class _MultiStepOnboardingScreenState
   }
 
   Widget _buildStepPage(OnboardingStep step, int index) {
+    final progressText = '${index + 1} / ${_steps.length}';
     if (step.isTextInput == true) {
+      final controller = _textControllers.putIfAbsent(
+        index,
+        () => TextEditingController(),
+      );
       return SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            _buildProgress(index, progressText),
+            const SizedBox(height: 12),
             Text(
               context.tr("Hello!"),
               textAlign: TextAlign.center,
@@ -337,7 +400,7 @@ class _MultiStepOnboardingScreenState
                 : const SizedBox.shrink(),
             const SizedBox(height: 8),
             Text(
-              step.title,
+              context.tr(step.title),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 24,
@@ -345,15 +408,55 @@ class _MultiStepOnboardingScreenState
                 fontWeight: FontWeight.w500,
               ),
             ),
+            IconButton(
+              tooltip: context.tr('Listen'),
+              onPressed: () => _speakQuestion(step),
+              icon: const Icon(Icons.volume_up_outlined),
+            ),
             Padding(
               padding:
                   const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
               child: TextField(
+                controller: controller,
+                style: Theme.of(context).textTheme.bodyLarge,
                 decoration: InputDecoration(
                   hintText: context.tr('Enter your answer'),
+                  prefixIcon: Icon(
+                    Icons.edit_note,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 32,
+                  ),
+                  suffixIcon: IconButton(
+                    tooltip: context.tr('Voice input'),
+                    onPressed: () => _toggleVoiceAnswer(index, controller),
+                    icon: Icon(
+                      _listeningStepIndex == index ? Icons.mic : Icons.mic_none,
+                      color: _listeningStepIndex == index
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                  ),
                   border: const OutlineInputBorder(),
                 ),
-                onSubmitted: (value) => _onOptionSelected(index, value),
+                onSubmitted: (value) {
+                  if (value.trim().isNotEmpty) {
+                    _onOptionSelected(index, value.trim());
+                  }
+                },
+              ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
+              child: RegularButton(
+                text: context.tr('Continue'),
+                icon: Icons.arrow_forward,
+                onPressed: () {
+                  final value = controller.text.trim();
+                  if (value.isNotEmpty) {
+                    _onOptionSelected(index, value);
+                  }
+                },
               ),
             ),
           ],
@@ -365,6 +468,8 @@ class _MultiStepOnboardingScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            _buildProgress(index, progressText),
+            const SizedBox(height: 12),
             Text(
               context.tr("Hello!"),
               textAlign: TextAlign.center,
@@ -384,7 +489,7 @@ class _MultiStepOnboardingScreenState
             ),
             const SizedBox(height: 8),
             Text(
-              step.title,
+              context.tr(step.title),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 24,
@@ -392,13 +497,19 @@ class _MultiStepOnboardingScreenState
                 fontWeight: FontWeight.w500,
               ),
             ),
+            IconButton(
+              tooltip: context.tr('Listen'),
+              onPressed: () => _speakQuestion(step),
+              icon: const Icon(Icons.volume_up_outlined),
+            ),
             if (step.options != null && step.options!.isNotEmpty)
               ...step.options!.map(
                 (option) => Padding(
                   padding: const EdgeInsets.symmetric(
                       vertical: 8.0, horizontal: 24.0),
                   child: RegularButton(
-                    text: option,
+                    text: context.tr(option),
+                    icon: AppVisuals.optionIcon(option),
                     onPressed: () => _onOptionSelected(index, option),
                   ),
                 ),
@@ -409,5 +520,35 @@ class _MultiStepOnboardingScreenState
         ),
       );
     }
+  }
+
+  Widget _buildProgress(int index, String progressText) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            Icon(Icons.flag_outlined, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  minHeight: 12,
+                  value: (index + 1) / _steps.length,
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              progressText,
+              style: theme.textTheme.labelLarge,
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
