@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
@@ -229,7 +229,7 @@ class _AddToCartButton extends ConsumerWidget {
     final qtyMap = ref.watch(cartProvider);
     final qty = qtyMap[itemId];
     final notifier = ref.read(cartProvider.notifier);
-    final onPrimary = theme.colorScheme.onPrimary;
+    const onPrimary = Colors.white;
 
     // Determine increment size (0.5 for weight-based products with kg unit)
     final bool isWeightProduct =
@@ -237,19 +237,27 @@ class _AddToCartButton extends ConsumerWidget {
     final double step = isWeightProduct ? 0.5 : 1.0;
 
     if (qty == null) {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: onPrimary,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          elevation: 0,
+      return SizedBox(
+        width: 104,
+        height: 48,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: onPrimary,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            elevation: 0,
+          ),
+          onPressed: () => notifier.addToCart(itemId, quantityDelta: step),
+          icon: const Icon(Icons.add_shopping_cart, size: 18),
+          label: Text(
+            context.tr('Add'),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        onPressed: () => notifier.addToCart(itemId, quantityDelta: step),
-        child: Text(context.tr('Add'),
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16, color: onPrimary)),
       );
     }
 
@@ -273,19 +281,19 @@ class _AddToCartButton extends ConsumerWidget {
         children: [
           GestureDetector(
             onTap: () => notifier.removeFromCart(itemId, quantityDelta: step),
-            child: Icon(Icons.remove, color: onPrimary, size: 16),
+            child: const Icon(Icons.remove, color: onPrimary, size: 18),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text(
               displayQty(),
-              style: TextStyle(
+              style: const TextStyle(
                   fontWeight: FontWeight.bold, fontSize: 16, color: onPrimary),
             ),
           ),
           GestureDetector(
             onTap: () => notifier.addToCart(itemId, quantityDelta: step),
-            child: Icon(Icons.add, color: onPrimary, size: 16),
+            child: const Icon(Icons.add, color: onPrimary, size: 18),
           ),
         ],
       ),
