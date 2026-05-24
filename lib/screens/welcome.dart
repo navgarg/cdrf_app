@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/regular_button.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import '../l10n/dynamic_localizations.dart';
+import '../utils/app_visuals.dart';
 
 // firebase (previous implementation)
 // import '../services/api/auth_service.dart';
@@ -17,6 +18,17 @@ class WelcomeScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        Image.asset(
+          AppVisuals.appIcon,
+          width: 120,
+          height: 120,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            Icons.storefront,
+            size: 96,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 12),
         Text(
           context.tr('Login'),
           style: const TextStyle(

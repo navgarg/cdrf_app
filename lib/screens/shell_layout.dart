@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../utils/app_visuals.dart';
 // TODO: Add import for your localization solution, e.g.:
 // import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // or your custom i18n package
@@ -18,19 +19,31 @@ class OnboardingLayout extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Replace with video/whatever
           Container(
             width: double.infinity,
             height: size.height * 0.50,
-            color: Colors.black45, // If image, keep it darkened like this
-            child: Opacity(
-              opacity: 0.3,
-              child: Container(
-                color: Colors.black, // Replace this part with the image?
-              ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  top: 42,
+                  child: Opacity(
+                    opacity: 0.18,
+                    child: Image.asset(
+                      AppVisuals.appIcon,
+                      width: size.width * 0.75,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+                Container(color: Colors.black.withAlpha(35)),
+              ],
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -45,7 +58,7 @@ class OnboardingLayout extends StatelessWidget {
                           'Nari Udyam', // TODO: Replace with AppLocalizations.of(context)!.appName
                           style: TextStyle(
                             fontFamily: 'Rochester',
-                            fontSize: 46,
+                            fontSize: 50,
                             color: Colors.white,
                             fontWeight: FontWeight.w400,
                           ),
@@ -55,9 +68,8 @@ class OnboardingLayout extends StatelessWidget {
                           'Vyapar chalati, Naari ka saathi', // TODO: Replace with AppLocalizations.of(context)!.appTagline
                           style: TextStyle(
                             fontFamily: 'PatrickHand',
-                            fontSize: 18,
+                            fontSize: 20,
                             color: Colors.white,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -70,7 +82,7 @@ class OnboardingLayout extends StatelessWidget {
                     alignment: Alignment.bottomCenter,
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.fromLTRB(12, 18, 12, 12),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
                         borderRadius: const BorderRadius.only(
