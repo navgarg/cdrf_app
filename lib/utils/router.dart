@@ -93,9 +93,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (!user.onboardingCompleted) {
             return '/onboarding/multi_step';
           }
-          // If onboarding is done, send to dashboard
+          // Ask users to confirm/select their business domain on every login.
           else {
-            return '/dashboard';
+            return '/onboarding/business_domain';
           }
         }
 
