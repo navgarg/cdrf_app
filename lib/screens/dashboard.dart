@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
@@ -118,24 +118,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               List<DailySummary> data = [];
               switch (_dashboardView) {
                 case DashboardView.daily:
-                  data = dashboardService.getDailyData(transactions, _focusedDate);
+                  data =
+                      dashboardService.getDailyData(transactions, _focusedDate);
                   break;
                 case DashboardView.weekly:
-                  data = dashboardService.getWeeklyData(transactions, _focusedDate);
+                  data = dashboardService.getWeeklyData(
+                      transactions, _focusedDate);
                   break;
                 case DashboardView.monthly:
-                  data = dashboardService.getMonthlyData(transactions, _focusedDate);
+                  data = dashboardService.getMonthlyData(
+                      transactions, _focusedDate);
                   break;
               }
               return _buildDashboard(context, userModel, data);
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text(context.tr('Error: $err'))),
+            error: (err, stack) =>
+                Center(child: Text(context.tr('Error: $err'))),
           );
   }
 
-  Widget _buildDashboard(BuildContext context, UserModel user,
-      List<DailySummary> data) {
+  Widget _buildDashboard(
+      BuildContext context, UserModel user, List<DailySummary> data) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -146,95 +150,105 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             _buildDateNavigator([]),
             const SizedBox(height: 16),
             Center(
-              child: Text(context.tr('No data available for this period.')),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.bar_chart_outlined,
+                    size: 72,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.tr('No data available for this period.'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
             ),
           ] else ...[
-            Builder(
-              builder: (context) {
-                final totalSales =
-                    data.fold<double>(0.0, (sum, item) => sum + item.sales);
-                final bestSales = data.isNotEmpty
-                    ? data.map((e) => e.sales).reduce((a, b) => a > b ? a : b)
-                    : 0.0;
+            Builder(builder: (context) {
+              final totalSales =
+                  data.fold<double>(0.0, (sum, item) => sum + item.sales);
+              final bestSales = data.isNotEmpty
+                  ? data.map((e) => e.sales).reduce((a, b) => a > b ? a : b)
+                  : 0.0;
 
-                return Column(
-                  children: [
-                    _buildDateNavigator(data),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                context.tr('Graph Summary'),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              IconButton(
-                                tooltip: context.tr('Listen to graph summary'),
-                                onPressed: () => _speakDashboardSummary(data),
-                                icon: const Icon(Icons.volume_up_outlined),
-                              ),
-                            ],
-                          ),
-                          DashboardChart(
-                            data: data,
-                            dashboardView: _dashboardView,
-                          ),
-                        ],
-                      ),
+              return Column(
+                children: [
+                  _buildDateNavigator(data),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              context.tr('Graph Summary'),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            IconButton(
+                              tooltip: context.tr('Listen to graph summary'),
+                              onPressed: () => _speakDashboardSummary(data),
+                              icon: const Icon(Icons.volume_up_outlined),
+                            ),
+                          ],
+                        ),
+                        DashboardChart(
+                          data: data,
+                          dashboardView: _dashboardView,
+                        ),
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildSummaryRow(context.tr('Best'),
-                              bestSales.toStringAsFixed(2)),
-                          const Divider(),
-                          _buildSummaryRow(context.tr('Total'),
-                              totalSales.toStringAsFixed(2)),
-                        ],
-                      ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    const SizedBox(height: 24),
-                    // Advanced Analytics tile (navigates to separate page)
-                    GenericListTile(
-                      leading: Icon(Icons.insights,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 28),
-                      titleWidget: Text(
-                        context.tr('Advanced Analytics'),
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey.shade600),
-                      onTap: () => context.push('/advanced_analytics'),
+                    child: Column(
+                      children: [
+                        _buildSummaryRow(Icons.trending_up, context.tr('Best'),
+                            bestSales.toStringAsFixed(2)),
+                        const Divider(),
+                        _buildSummaryRow(Icons.payments_outlined,
+                            context.tr('Total'), totalSales.toStringAsFixed(2)),
+                      ],
                     ),
-                    // Resource Centre tile (navigates to separate page)
-                    GenericListTile(
-                      leading: Icon(Icons.folder,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 28),
-                      titleWidget: Text(
-                        context.tr('Resource Centre'),
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey.shade600),
-                      onTap: () => context.go('/resource_centre'),
+                  ),
+                  const SizedBox(height: 24),
+                  // Advanced Analytics tile (navigates to separate page)
+                  GenericListTile(
+                    leading: Icon(Icons.insights,
+                        color: Theme.of(context).colorScheme.primary, size: 28),
+                    titleWidget: Text(
+                      context.tr('Advanced Analytics'),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                  ],
-                );
-              }
-            )
+                    trailing: Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey.shade600),
+                    onTap: () => context.push('/advanced_analytics'),
+                  ),
+                  // Resource Centre tile (navigates to separate page)
+                  GenericListTile(
+                    leading: Icon(Icons.folder,
+                        color: Theme.of(context).colorScheme.primary, size: 28),
+                    titleWidget: Text(
+                      context.tr('Resource Centre'),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    trailing: Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey.shade600),
+                    onTap: () => context.go('/resource_centre'),
+                  ),
+                ],
+              );
+            })
           ]
         ]),
       ),
@@ -297,7 +311,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   String _getNavigatorHeaderText(List<DailySummary>? data) {
     if (data == null || data.isEmpty) {
-      return '';
+      return switch (_dashboardView) {
+        DashboardView.daily => DateFormat('MMM dd, yyyy').format(_focusedDate),
+        DashboardView.weekly => context.tr('This week'),
+        DashboardView.monthly => DateFormat('MMM yyyy').format(_focusedDate),
+      };
     }
 
     final firstDate = data.first.date;
@@ -326,23 +344,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
-  Widget _buildSummaryRow(String title, String value) {
+  Widget _buildSummaryRow(IconData icon, String title, String value) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Icon(icon, color: theme.colorScheme.primary),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
           Text(
             '₹ $value',
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

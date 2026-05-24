@@ -1,4 +1,4 @@
-﻿import 'package:fl_chart/fl_chart.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api/dashboard_service.dart';
@@ -44,7 +44,8 @@ class DashboardChart extends StatelessWidget {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 60,
+                        reservedSize:
+                            dashboardView == DashboardView.daily ? 78 : 62,
                         interval: 1.0,
                         getTitlesWidget: (value, meta) => _getBottomTitles(
                           value,
@@ -134,7 +135,7 @@ class DashboardChart extends StatelessWidget {
               (endHour24 % 12 == 0 ? 12 : endHour24 % 12).toString();
           String endAmPm = endHour24 < 12 ? 'AM' : 'PM';
 
-          text = '$startHour12$startAmPm-$endHour12$endAmPm';
+          text = '$startHour12$startAmPm\n$endHour12$endAmPm';
           break;
         case DashboardView.weekly:
           text = '${data[index].date.day}';
@@ -151,7 +152,21 @@ class DashboardChart extends StatelessWidget {
 
       return SideTitleWidget(
         meta: meta,
-        child: Text(text),
+        space: 10,
+        child: SizedBox(
+          width: dashboardView == DashboardView.daily ? 46 : 58,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: dashboardView == DashboardView.daily ? 2 : 1,
+            overflow: TextOverflow.visible,
+            style: TextStyle(
+              fontSize: dashboardView == DashboardView.daily ? 12 : 13,
+              fontWeight: FontWeight.w600,
+              height: 1.05,
+            ),
+          ),
+        ),
       );
     }
     return SideTitleWidget(
