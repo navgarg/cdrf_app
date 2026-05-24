@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import 'package:nariudyam/screens/schedule/schedule.dart';
+import 'package:nariudyam/screens/customer_order.dart';
 import '../components/cart_bottom_sheet.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import '../components/customer_order_service_fab.dart';
@@ -57,10 +58,9 @@ class AppShellLayout extends ConsumerWidget {
     };
     final String pageTitle =
         routeTitles[currentPath ?? ''] ?? context.tr('Nari Udyam');
-    final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
-    final bool showBackButton =
-        GoRouter.of(context).canPop() && !isTopLevelRoute;
     final isAdmin = ref.watch(isAdminProvider);
+    final bool showBackButton = !_isDirectNavigationRoute(currentPath, isAdmin);
+    final cartCountLabel = _cartCountLabel(ref);
 
     void showCartSheet() {
       showModalBottomSheet(
@@ -99,7 +99,13 @@ class AppShellLayout extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.arrow_back_ios_new,
                             color: Colors.white),
-                        onPressed: () => context.pop(),
+                        onPressed: () {
+                          if (GoRouter.of(context).canPop()) {
+                            context.pop();
+                          } else {
+                            context.go(_fallbackRoute(isAdmin));
+                          }
+                        },
                         padding: EdgeInsets.zero,
                         iconSize: 22,
                       )
@@ -134,8 +140,7 @@ class AppShellLayout extends ConsumerWidget {
                     ),
                     if (currentPath == '/customer_order')
                       IconButton(
-                        icon: const Icon(Icons.shopping_cart,
-                            color: Colors.white),
+                        icon: _CartIconBadge(countLabel: cartCountLabel),
                         onPressed: showCartSheet,
                         iconSize: 28,
                       )
@@ -169,40 +174,49 @@ class AppShellLayout extends ConsumerWidget {
             ? [
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.home),
+                  activeIcon: const Icon(Icons.home_filled),
                   label: context.tr('Home'),
                 ),
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.people),
+                  activeIcon: const Icon(Icons.people_alt),
                   label: context.tr('Users'),
                 ),
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.analytics),
+                  activeIcon: const Icon(Icons.analytics),
                   label: context.tr('Analytics'),
                 ),
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.folder),
+                  activeIcon: const Icon(Icons.folder),
                   label: context.tr('Resources'),
                 ),
               ]
             : [
                 BottomNavigationBarItem(
                   icon: const Icon(Icons.home),
+                  activeIcon: const Icon(Icons.home_filled),
                   label: context.tr('Home'),
                 ),
                 BottomNavigationBarItem(
-                  icon: const Icon(Icons.inventory),
+                  icon: const Icon(Icons.inventory_2_outlined),
+                  activeIcon: const Icon(Icons.inventory_2),
                   label: context.tr('Inventory'),
                 ),
                 BottomNavigationBarItem(
-                  icon: const Icon(Icons.calendar_today),
+                  icon: const Icon(Icons.event_available_outlined),
+                  activeIcon: const Icon(Icons.event_available),
                   label: context.tr('Schedule'),
                 ),
                 BottomNavigationBarItem(
-                  icon: const Icon(Icons.shopping_cart),
+                  icon: const Icon(Icons.shopping_basket_outlined),
+                  activeIcon: const Icon(Icons.shopping_basket),
                   label: context.tr('Order'),
                 ),
                 BottomNavigationBarItem(
-                  icon: const Icon(Icons.person),
+                  icon: const Icon(Icons.person_outline),
+                  activeIcon: const Icon(Icons.person),
                   label: context.tr('Profile'),
                 ),
               ],
@@ -226,6 +240,36 @@ class AppShellLayout extends ConsumerWidget {
       if (path.startsWith('/profile')) return 4;
       return 0; // Default to home
     }
+  }
+
+  bool _isDirectNavigationRoute(String? path, bool isAdmin) {
+    if (path == null) return true;
+    if (isAdmin) {
+      return path == '/admin' ||
+          path == '/admin/users' ||
+          path == '/admin/analytics' ||
+          path == '/admin/resources';
+    }
+
+    return path == '/dashboard' ||
+        path == '/inventory' ||
+        path == '/schedule' ||
+        path == '/customer_order' ||
+        path == '/profile';
+  }
+
+  String _fallbackRoute(bool isAdmin) {
+    return isAdmin ? '/admin' : '/dashboard';
+  }
+
+  String? _cartCountLabel(WidgetRef ref) {
+    final cart = ref.watch(cartProvider);
+    final totalQuantity =
+        cart.values.fold<double>(0, (total, quantity) => total + quantity);
+    if (totalQuantity <= 0) return null;
+    if (totalQuantity > 99) return '99+';
+    if (totalQuantity % 1 == 0) return totalQuantity.toStringAsFixed(0);
+    return totalQuantity.toStringAsFixed(1);
   }
 
   Widget? _buildFab(BuildContext context, WidgetRef ref) {
@@ -303,5 +347,49 @@ class AppShellLayout extends ConsumerWidget {
     if ((currentPath ?? '') != destination) {
       context.go(destination);
     }
+  }
+}
+
+class _CartIconBadge extends StatelessWidget {
+  final String? countLabel;
+
+  const _CartIconBadge({required this.countLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasItems = countLabel != null;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(
+          hasItems ? Icons.shopping_cart : Icons.shopping_cart_outlined,
+          color: Colors.white,
+        ),
+        if (hasItems)
+          Positioned(
+            right: -8,
+            top: -8,
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(999),
+                border:
+                    Border.all(color: Theme.of(context).colorScheme.primary),
+              ),
+              child: Text(
+                countLabel!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
