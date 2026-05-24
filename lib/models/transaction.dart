@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:collection/collection.dart';
 
@@ -94,7 +94,9 @@ class Transaction {
   }
 
   Map<String, dynamic> toMap() {
-    return {      'transaction_id': transactionId,      'productId': productId,
+    return {
+      'transaction_id': transactionId,
+      'productId': productId,
       'itemName': itemName,
       'quantity': quantity,
       'price': price,

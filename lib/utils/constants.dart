@@ -1,4 +1,4 @@
-﻿// App-wide constants
+// App-wide constants
 // App Info
 class AppInfo {
   static const String name = 'Nari Udyam';

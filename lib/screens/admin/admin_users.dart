@@ -1,4 +1,4 @@
-﻿// firebase (previous implementation)
+// firebase (previous implementation)
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,4 +117,3 @@ class AdminUsersScreen extends ConsumerWidget {
     );
   }
 }
-

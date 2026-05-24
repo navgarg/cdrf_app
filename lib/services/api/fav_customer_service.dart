@@ -94,15 +94,24 @@ class FavouriteCustomerService {
   }) async {
     try {
       final updates = <String, dynamic>{};
-      if (name != null) updates['name'] = name;
-      if (phoneNumber != null) updates['phone_number'] = phoneNumber;
-      if (creditOutstanding != null)
+      if (name != null) {
+        updates['name'] = name;
+      }
+      if (phoneNumber != null) {
+        updates['phone_number'] = phoneNumber;
+      }
+      if (creditOutstanding != null) {
         updates['credit_outstanding'] = creditOutstanding;
-      if (lastPurchaseDate != null)
+      }
+      if (lastPurchaseDate != null) {
         updates['last_purchase_date'] = Timestamp.fromDate(lastPurchaseDate);
-      if (avgMonthlySpend != null)
+      }
+      if (avgMonthlySpend != null) {
         updates['avg_monthly_spend'] = avgMonthlySpend;
-      if (loyaltyStatus != null) updates['loyalty_status'] = loyaltyStatus;
+      }
+      if (loyaltyStatus != null) {
+        updates['loyalty_status'] = loyaltyStatus;
+      }
 
       if (updates.isNotEmpty) {
         await _getCollection().doc(customerId).update(updates);

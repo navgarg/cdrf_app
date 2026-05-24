@@ -1,4 +1,4 @@
-﻿class ServiceItem {
+class ServiceItem {
   final String id;
   final String name;
   final String? description;

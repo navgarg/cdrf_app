@@ -1,4 +1,4 @@
-﻿// firebase (previous implementation)
+// firebase (previous implementation)
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 
@@ -237,4 +237,3 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
     );
   }
 }
-

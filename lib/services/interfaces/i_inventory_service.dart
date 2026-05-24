@@ -1,4 +1,4 @@
-﻿import '../../models/product_item.dart';
+import '../../models/product_item.dart';
 
 abstract class IInventoryService {
   Stream<List<ProductItem>> streamInventoryProductItems();

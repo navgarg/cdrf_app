@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/backend_config.dart';

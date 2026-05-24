@@ -1,4 +1,5 @@
-﻿import 'package:translator/translator.dart';
+import 'package:flutter/foundation.dart';
+import 'package:translator/translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
@@ -45,7 +46,7 @@ class TranslationService {
       }
       _isInitialized = true;
     } catch (e) {
-      print('Error loading translation cache: $e');
+      debugPrint('Error loading translation cache: $e');
       _isInitialized = true;
     }
   }
@@ -106,7 +107,7 @@ class TranslationService {
 
         await Future.delayed(const Duration(milliseconds: 100));
       } catch (e) {
-        print(
+        debugPrint(
             'Translation error for "${request.text}" to ${request.targetLanguage}: $e');
         request.completer.complete(request.text);
         await Future.delayed(const Duration(seconds: 1));
@@ -136,7 +137,7 @@ class TranslationService {
       final String encoded = json.encode(_cache);
       await prefs.setString(_cacheKey, encoded);
     } catch (e) {
-      print('Error saving translation cache: $e');
+      debugPrint('Error saving translation cache: $e');
     }
   }
 
@@ -146,7 +147,7 @@ class TranslationService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_cacheKey);
     } catch (e) {
-      print('Error clearing translation cache: $e');
+      debugPrint('Error clearing translation cache: $e');
     }
   }
 

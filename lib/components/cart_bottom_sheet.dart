@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/screens/customer_order.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
@@ -403,7 +403,8 @@ class CartBottomSheet extends ConsumerWidget {
       final item = entry['item'];
       final double qtyDouble = entry['quantity'] as double;
       final int quantity = qtyDouble.round(); // Transaction model uses int
-      final double price = item.price; // Multiply by qty later in UI if needed, but DB ideally stores unit price, wait user said "shows 20rs even if i buy 5 qty"
+      final double price = item
+          .price; // Multiply by qty later in UI if needed, but DB ideally stores unit price, wait user said "shows 20rs even if i buy 5 qty"
       // Let's store unit price but wait... wait! Does the prompt mean we should store total price, OR calculate properly on dashboard?
       // "revenue is not being calculated properly qty is not being multiplied white calculating revenue only base price is being added " -> means I need to multiply it in dashboard service.
       final double cost = (item is ProductItem)

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/providers/services_providers.dart';
@@ -93,6 +93,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
     );
 
     if (!started) {
+      if (!mounted) return;
       messenger.showError(context.tr('Microphone permission is required.'));
       return;
     }

@@ -1,4 +1,4 @@
-﻿class ResourceEntry {
+class ResourceEntry {
   final String id;
   final String name;
   final String url;

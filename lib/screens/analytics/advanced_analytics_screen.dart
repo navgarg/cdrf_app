@@ -44,22 +44,19 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
             children: [
               _buildOverallMetricsSection(ref, theme, context),
               const SizedBox(height: 24),
-
-              _buildSectionTitle(context.tr('Revenue by Product/Service'), theme),
+              _buildSectionTitle(
+                  context.tr('Revenue by Product/Service'), theme),
               const SizedBox(height: 12),
               _buildProductRevenueChart(ref, theme, context),
               const SizedBox(height: 24),
-
               _buildSectionTitle(context.tr('Revenue by Payment Mode'), theme),
               const SizedBox(height: 12),
               _buildPaymentModeChart(ref, theme, context),
               const SizedBox(height: 24),
-
               _buildSectionTitle(context.tr('Inventory Reorder Alerts'), theme),
               const SizedBox(height: 12),
               _buildInventoryReorderList(ref, theme, context),
               const SizedBox(height: 24),
-
               _buildSectionTitle(context.tr('Top Products by Revenue'), theme),
               const SizedBox(height: 12),
               _buildTopProductsList(ref, theme, context),
@@ -163,8 +160,9 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
     final domain = user?.businessDomain?.trim().toLowerCase();
     final isService = domain == 'beauty parlor';
 
-    final itemsAsync =
-        isService ? ref.watch(serviceItemsProvider) : ref.watch(inventoryItemsProvider);
+    final itemsAsync = isService
+        ? ref.watch(serviceItemsProvider)
+        : ref.watch(inventoryItemsProvider);
 
     if (itemsAsync.isLoading) {
       return Container(
@@ -550,7 +548,8 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
+                Icon(Icons.info_outline,
+                    color: Colors.orange.shade700, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -583,7 +582,8 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
                   style: const TextStyle(fontSize: 12),
                 ),
                 trailing: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.red.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -611,8 +611,9 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
     final domain = user?.businessDomain?.trim().toLowerCase();
     final isService = domain == 'beauty parlor';
 
-    final itemsAsync =
-        isService ? ref.watch(serviceItemsProvider) : ref.watch(inventoryItemsProvider);
+    final itemsAsync = isService
+        ? ref.watch(serviceItemsProvider)
+        : ref.watch(inventoryItemsProvider);
 
     if (itemsAsync.isLoading) {
       return Container(

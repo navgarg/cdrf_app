@@ -1,4 +1,4 @@
-﻿import '../../models/favourite_customer.dart';
+import '../../models/favourite_customer.dart';
 
 abstract class IFavouriteCustomerService {
   Stream<List<FavouriteCustomer>> streamFavouriteCustomers();

@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../components/payment_selection_bottom_sheet.dart';
@@ -101,7 +101,8 @@ class TransactionServiceSupabase implements ITransactionService {
         final combined =
             '${e.message} ${e.details ?? ''} ${e.hint ?? ''}'.toLowerCase();
 
-        final missingTransactionIdColumn = combined.contains('transaction_id') &&
+        final missingTransactionIdColumn = combined
+                .contains('transaction_id') &&
             (combined.contains('column') || combined.contains('schema cache'));
 
         if (missingTransactionIdColumn) {

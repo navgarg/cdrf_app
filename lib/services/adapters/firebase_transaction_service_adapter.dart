@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../interfaces/i_transaction_service.dart';
 import '../api/transaction_service.dart' as firebase;
