@@ -62,6 +62,7 @@ dependencies:
   flutter_tts: 3.8.5
   speech_to_text: ^7.0.0
   uuid: ^4.5.3
+  video_player: ^2.10.1
 
 dev_dependencies:
   flutter_test:
@@ -89,6 +90,7 @@ flutter:
   assets:
     - assets/icons/app/
     - assets/icons/onboarding/
+    - assets/videos/
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

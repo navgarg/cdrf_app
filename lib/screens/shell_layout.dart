@@ -1,16 +1,48 @@
 import 'package:flutter/material.dart';
-import '../utils/app_visuals.dart';
+import 'package:video_player/video_player.dart';
 // TODO: Add import for your localization solution, e.g.:
 // import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // or your custom i18n package
 
-class OnboardingLayout extends StatelessWidget {
+class OnboardingLayout extends StatefulWidget {
   final Widget child;
 
   const OnboardingLayout({
     super.key,
     required this.child,
   });
+
+  @override
+  State<OnboardingLayout> createState() => _OnboardingLayoutState();
+}
+
+class _OnboardingLayoutState extends State<OnboardingLayout> {
+  late final VideoPlayerController _videoController;
+  bool _isVideoReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _videoController = VideoPlayerController.asset(
+      'assets/videos/onboarding_background.mp4',
+    )
+      ..setLooping(true)
+      ..setVolume(0);
+
+    _videoController.initialize().then((_) {
+      if (!mounted) return;
+      setState(() => _isVideoReady = true);
+      _videoController.play();
+    }).catchError((Object error) {
+      debugPrint('Onboarding video could not be initialized: $error');
+    });
+  }
+
+  @override
+  void dispose() {
+    _videoController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,19 +60,18 @@ class OnboardingLayout extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Positioned(
-                  top: 42,
-                  child: Opacity(
-                    opacity: 0.18,
-                    child: Image.asset(
-                      AppVisuals.appIcon,
-                      width: size.width * 0.75,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const SizedBox.shrink(),
+                if (_isVideoReady)
+                  Positioned.fill(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: _videoController.value.size.width,
+                        height: _videoController.value.size.height,
+                        child: VideoPlayer(_videoController),
+                      ),
                     ),
                   ),
-                ),
-                Container(color: Colors.black.withAlpha(35)),
+                Container(color: Colors.black.withAlpha(70)),
               ],
             ),
           ),
@@ -90,7 +121,7 @@ class OnboardingLayout extends StatelessWidget {
                           topRight: Radius.circular(30),
                         ),
                       ),
-                      child: child,
+                      child: widget.child,
                     ),
                   ),
                 ),
