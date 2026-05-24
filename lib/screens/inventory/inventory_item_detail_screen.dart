@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
@@ -27,30 +27,38 @@ class InventoryItemDetailScreen extends ConsumerWidget {
     final itemAsync = ref.watch(productItemProvider(itemId));
 
     return itemAsync.when(
-        loading: () =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (err, stack) => Scaffold(
-            body: Center(child: Text(context.tr('Error: ${err.toString()}')))),
+        loading: () => _buildSheetContainer(
+              context,
+              child: const SizedBox(
+                height: 220,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ),
+        error: (err, stack) => _buildSheetContainer(
+              context,
+              child: SizedBox(
+                height: 220,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      context.tr('Error: ${err.toString()}'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         data: (item) {
           return DraggableScrollableSheet(
             initialChildSize: 0.4, // Initial height of the bottom sheet
             minChildSize: 0.4, // Minimum height
             maxChildSize: 1.0, // Maximum height (full screen)
-            expand: true,
+            expand: false,
+            shouldCloseOnMinExtent: true,
             builder: (BuildContext context, ScrollController scrollController) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).canvasColor,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha((255 * 0.1).round()),
-                      blurRadius: 10,
-                      spreadRadius: 5,
-                    )
-                  ],
-                ),
+              return _buildSheetContainer(
+                context,
                 child: SingleChildScrollView(
                   controller: scrollController,
                   padding: const EdgeInsets.all(16.0),
@@ -125,6 +133,23 @@ class InventoryItemDetailScreen extends ConsumerWidget {
             },
           );
         });
+  }
+
+  Widget _buildSheetContainer(BuildContext context, {required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).canvasColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha((255 * 0.1).round()),
+            blurRadius: 10,
+            spreadRadius: 5,
+          )
+        ],
+      ),
+      child: child,
+    );
   }
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
