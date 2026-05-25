@@ -192,10 +192,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.translate,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
+              titleWidget: _buildSettingsTileText(
                 context.tr('Languages'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                context.tr('Change app language'),
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
@@ -206,10 +205,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.notifications_none_outlined,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
+              titleWidget: _buildSettingsTileText(
                 context.tr('Notifications'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                context.tr('Manage alerts and reminders'),
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
@@ -218,10 +216,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.favorite_border_rounded,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
+              titleWidget: _buildSettingsTileText(
                 context.tr('Favourite Customers'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                context.tr('Save customers you visit often'),
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
@@ -230,10 +227,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.request_quote_outlined,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
+              titleWidget: _buildSettingsTileText(
                 context.tr('Financial Transactions'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                context.tr('Show money tracking features'),
               ),
               trailing: Switch(
                 value: user.financialTransactionsEnabled,
@@ -248,10 +244,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.download,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
+              titleWidget: _buildSettingsTileText(
                 context.tr('Export Transactions to Excel'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                context.tr('Download sales and analytics data'),
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
@@ -267,10 +262,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.upload_file,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
+              titleWidget: _buildSettingsTileText(
                 context.tr('Export Onboarding Data to Excel'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                context.tr('Download onboarding answers'),
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
@@ -292,10 +286,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             GenericListTile(
               leading: Icon(Icons.folder,
                   color: theme.colorScheme.primary, size: 28),
-              titleWidget: Text(
+              titleWidget: _buildSettingsTileText(
                 context.tr('Resource Centre'),
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                context.tr('Open learning files and recommendations'),
               ),
               trailing: Icon(Icons.arrow_forward_ios,
                   size: 16, color: Colors.grey.shade600),
@@ -341,6 +334,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const Divider(),
         ],
       ),
+    );
+  }
+
+  Widget _buildSettingsTileText(String title, String subtitle) {
+    return Builder(
+      builder: (context) {
+        final theme = Theme.of(context);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withAlpha(150),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
