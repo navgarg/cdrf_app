@@ -7,6 +7,7 @@ import 'add_inventory_item_form.dart';
 import 'inventory_item_detail_screen.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'package:nariudyam/services/translation_service.dart';
+import 'package:nariudyam/utils/app_visuals.dart';
 
 // firebase (previous implementation)
 // import 'package:nariudyam/services/api/inventory_service.dart';
@@ -109,6 +110,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 ...items.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
+                  final itemName = context.tr(item.name);
+                  final itemUnit = context.tr(item.unit);
                   return Padding(
                     padding: EdgeInsets.only(
                         bottom: index == items.length - 1 ? 0 : 12),
@@ -144,7 +147,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 ),
                                 child: Center(
                                   child: Icon(
-                                    Icons.inventory_2,
+                                    AppVisuals.itemIcon(
+                                      item.name,
+                                      displayedName: itemName,
+                                      unit: item.unit,
+                                      displayedUnit: itemUnit,
+                                    ),
                                     size: 28,
                                     color: onSurface.withAlpha(153),
                                   ),
@@ -156,7 +164,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      context.tr(item.name),
+                                      itemName,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -167,7 +175,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${item.stockQuantity} ${context.tr(item.unit)}',
+                                      '${item.stockQuantity} $itemUnit',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: onSurface.withAlpha(153),
