@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'package:nariudyam/providers/locale_provider.dart';
+import 'package:nariudyam/services/voice/voice_output_service.dart';
 
 const double skippedRating = -1;
 
-class RatingBottomSheet extends StatefulWidget {
+class RatingBottomSheet extends ConsumerStatefulWidget {
   final void Function(double rating) onSubmit;
   const RatingBottomSheet({super.key, required this.onSubmit});
 
   @override
-  State<RatingBottomSheet> createState() => _RatingBottomSheetState();
+  ConsumerState<RatingBottomSheet> createState() => _RatingBottomSheetState();
 }
 
-class _RatingBottomSheetState extends State<RatingBottomSheet> {
+class _RatingBottomSheetState extends ConsumerState<RatingBottomSheet> {
   int _rating = 5; // default full rating
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      VoiceOutputService.instance.speak(
+        text: 'How was the customer experience?',
+        languageCode: ref.read(localeProvider).languageCode,
+      );
+    });
+  }
 
   void _select(int starIndex) {
     setState(() {
@@ -27,7 +43,7 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
       onTap: () => _select(index),
       child: Icon(
         filled ? Icons.star_rounded : Icons.star_border_rounded,
-        size: 42,
+        size: 50,
         color: Colors.amber,
       ),
     );
@@ -39,7 +55,7 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
     final onSurface = theme.colorScheme.onSurface;
     final primary = theme.colorScheme.primary;
     return Container(
-      height: 380,
+      height: 420,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -58,9 +74,9 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const Spacer(),
-                  Text('Rate Experience',
+                  Text(context.tr('Rate Experience'),
                       style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: onSurface)),
                   const Spacer(),
@@ -69,7 +85,9 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            Text('Tap stars to rate',
+            Icon(Icons.record_voice_over_outlined, color: primary, size: 34),
+            const SizedBox(height: 8),
+            Text(context.tr('Tap stars to rate'),
                 style:
                     TextStyle(color: onSurface.withAlpha(179))), // 0.7 opacity
             const SizedBox(height: 20),
@@ -99,7 +117,7 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       icon: const Icon(Icons.check),
-                      label: const Text('Continue'),
+                      label: Text(context.tr('Continue')),
                       onPressed: () {
                         // Parent is responsible for popping with a result.
                         widget.onSubmit(_rating.toDouble());
@@ -109,9 +127,10 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
                   const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
-                    child: TextButton(
+                    child: OutlinedButton.icon(
                       onPressed: () => widget.onSubmit(skippedRating),
-                      child: const Text('Skip'),
+                      icon: const Icon(Icons.skip_next),
+                      label: Text(context.tr('Skip')),
                     ),
                   ),
                 ],

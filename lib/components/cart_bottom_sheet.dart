@@ -7,6 +7,7 @@ import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/components/rating_bottom_sheet.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/components/qr_payment_bottom_sheet.dart';
+import 'package:nariudyam/components/app_empty_state.dart';
 import 'package:nariudyam/components/item_visual.dart';
 import 'package:nariudyam/components/success_bottom_sheet.dart';
 import 'package:nariudyam/models/business_domain.dart';
@@ -145,12 +146,12 @@ class CartBottomSheet extends ConsumerWidget {
                   padding: const EdgeInsets.only(
                       left: 16.0, right: 16.0, bottom: 100.0),
                   child: cartItems.isEmpty
-                      ? Center(
-                          child: Text(context.tr('Your cart is empty.'),
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  color:
-                                      onSurface.withAlpha(153))), // 0.6 opacity
+                      ? AppEmptyState(
+                          icon: Icons.shopping_cart_outlined,
+                          title: context.tr('Your cart is empty.'),
+                          message: context.tr(
+                            'Add items from the order screen to review them here.',
+                          ),
                         )
                       : ListView.separated(
                           itemCount: cartItems.length,
@@ -288,11 +289,24 @@ class CartBottomSheet extends ConsumerWidget {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    Text('₹${totalPrice.toStringAsFixed(2)}',
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.primary
+                                            .withAlpha(24),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '₹${totalPrice.toStringAsFixed(2)}',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
-                                            color: onSurface)),
+                                            color: onSurface),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
