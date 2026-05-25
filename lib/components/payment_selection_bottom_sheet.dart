@@ -3,9 +3,18 @@ import '../l10n/dynamic_localizations.dart';
 
 enum PaymentMethod { qr, cash }
 
-class PaymentSelectionBottomSheet extends StatelessWidget {
+class PaymentSelectionBottomSheet extends StatefulWidget {
   final void Function(PaymentMethod method) onSelected;
   const PaymentSelectionBottomSheet({super.key, required this.onSelected});
+
+  @override
+  State<PaymentSelectionBottomSheet> createState() =>
+      _PaymentSelectionBottomSheetState();
+}
+
+class _PaymentSelectionBottomSheetState
+    extends State<PaymentSelectionBottomSheet> {
+  PaymentMethod? _selectedMethod;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +35,7 @@ class PaymentSelectionBottomSheet extends StatelessWidget {
     ];
 
     return Container(
-      height: 280,
+      height: 360,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -48,7 +57,7 @@ class PaymentSelectionBottomSheet extends StatelessWidget {
                   const Spacer(),
                   Text(context.tr('Select Payment'),
                       style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: onSurface)),
                   const Spacer(),
@@ -63,16 +72,22 @@ class PaymentSelectionBottomSheet extends StatelessWidget {
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, idx) {
                   final m = methods[idx];
+                  final method = m['method'] as PaymentMethod;
+                  final selected = _selectedMethod == method;
                   return InkWell(
                     borderRadius: BorderRadius.circular(18),
                     onTap: () {
-                      // Parent handles bottom sheet dismissal.
-                      onSelected(m['method'] as PaymentMethod);
+                      setState(() => _selectedMethod = method);
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: theme.cardColor,
+                        color:
+                            selected ? primary.withAlpha(30) : theme.cardColor,
                         borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: selected ? primary : Colors.transparent,
+                          width: 2,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: onSurface.withAlpha(13), // 0.05 opacity
@@ -85,24 +100,41 @@ class PaymentSelectionBottomSheet extends StatelessWidget {
                           horizontal: 16, vertical: 18),
                       child: Row(
                         children: [
-                          Icon(m['icon'] as IconData, size: 34, color: primary),
+                          Icon(m['icon'] as IconData, size: 42, color: primary),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(m['title'] as String,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
                                     color: onSurface)),
                           ),
-                          Icon(Icons.chevron_right,
-                              color: onSurface.withAlpha(128)), // 0.5 opacity
+                          Icon(
+                            selected ? Icons.check_circle : Icons.chevron_right,
+                            color:
+                                selected ? primary : onSurface.withAlpha(128),
+                            size: selected ? 28 : 24,
+                          ),
                         ],
                       ),
                     ),
                   );
                 },
               ),
-            )
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _selectedMethod == null
+                      ? null
+                      : () => widget.onSelected(_selectedMethod!),
+                  icon: const Icon(Icons.check),
+                  label: Text(context.tr('Continue')),
+                ),
+              ),
+            ),
           ],
         ),
       ),
