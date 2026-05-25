@@ -357,10 +357,13 @@ class CartBottomSheet extends ConsumerWidget {
       ),
     );
     if (rating == null) return; // user dismissed
+    final ratingSkipped = rating == skippedRating;
     if (!context.mounted) return;
     // debug
     // ignore: avoid_print
-    print('[OrderFlow] Got rating: $rating');
+    print(ratingSkipped
+        ? '[OrderFlow] Rating skipped'
+        : '[OrderFlow] Got rating: $rating');
 
     // 2. Payment selection bottom sheet
     paymentMethod = await showModalBottomSheet<PaymentMethod>(

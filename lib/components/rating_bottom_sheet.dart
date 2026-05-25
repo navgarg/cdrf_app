@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+const double skippedRating = -1;
+
 class RatingBottomSheet extends StatefulWidget {
   final void Function(double rating) onSubmit;
   const RatingBottomSheet({super.key, required this.onSubmit});
@@ -37,7 +39,7 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
     final onSurface = theme.colorScheme.onSurface;
     final primary = theme.colorScheme.primary;
     return Container(
-      height: 320,
+      height: 380,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -83,24 +85,36 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
                     color: onSurface)),
             const Spacer(),
             Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      icon: const Icon(Icons.check),
+                      label: const Text('Continue'),
+                      onPressed: () {
+                        // Parent is responsible for popping with a result.
+                        widget.onSubmit(_rating.toDouble());
+                      },
+                    ),
                   ),
-                  icon: const Icon(Icons.check),
-                  label: const Text('Continue'),
-                  onPressed: () {
-                    // Parent is responsible for popping with a result.
-                    widget.onSubmit(_rating.toDouble());
-                  },
-                ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => widget.onSubmit(skippedRating),
+                      child: const Text('Skip'),
+                    ),
+                  ),
+                ],
               ),
             )
           ],
