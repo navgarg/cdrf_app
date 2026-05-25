@@ -13,6 +13,7 @@ abstract class IInventoryService {
     required int stockQuantity,
     required int reorderThreshold,
     required String unit,
+    String? imageUrl,
   });
 
   Future<bool> updateProductItem(

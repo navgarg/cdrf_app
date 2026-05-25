@@ -118,6 +118,7 @@ class InventoryService {
     required int stockQuantity,
     required int reorderThreshold,
     required String unit,
+    String? imageUrl,
   }) async {
     try {
       final newItem = ProductItem(
@@ -129,6 +130,7 @@ class InventoryService {
         stockQuantity: stockQuantity,
         reorderThreshold: reorderThreshold,
         unit: unit,
+        imageUrl: imageUrl?.trim().isEmpty == true ? null : imageUrl?.trim(),
       );
       await _getInventoryProductItemsCollection().add(newItem);
       _ref.read(messengerProvider).showSuccess('Product added successfully!');

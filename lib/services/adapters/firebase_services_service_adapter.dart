@@ -20,12 +20,14 @@ class FirebaseServicesServiceAdapter implements IServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   }) {
     return _service.addServiceItem(
       name: name,
       description: description,
       price: price,
       duration: duration,
+      imageUrl: imageUrl,
     );
   }
 }

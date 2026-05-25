@@ -4,6 +4,7 @@ class ServiceItem {
   final String? description;
   final double price;
   final int duration; // in minutes
+  final String? imageUrl;
 
   ServiceItem({
     required this.id,
@@ -11,6 +12,7 @@ class ServiceItem {
     this.description,
     required this.price,
     required this.duration,
+    this.imageUrl,
   });
 
   factory ServiceItem.fromMap(Map<String, dynamic> data, String id) {
@@ -34,6 +36,7 @@ class ServiceItem {
       description: data['description'],
       price: parseDouble(data['price']),
       duration: parseInt(data['duration']),
+      imageUrl: data['imageUrl'] ?? data['image_url'],
     );
   }
 
@@ -43,6 +46,7 @@ class ServiceItem {
       'description': description,
       'price': price,
       'duration': duration,
+      'imageUrl': imageUrl,
     };
   }
 }

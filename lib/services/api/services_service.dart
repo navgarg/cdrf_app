@@ -127,6 +127,7 @@ class ServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   }) async {
     try {
       final user = _ref.read(userProvider);
@@ -143,6 +144,7 @@ class ServicesService {
         description: description,
         price: price,
         duration: duration,
+        imageUrl: imageUrl?.trim().isEmpty == true ? null : imageUrl?.trim(),
       );
       await _getCanonicalServicesCollection().add(newService);
       // Fire a cleanup attempt (no-op if already cleaned) to ensure 'products' disappears quickly after additions.

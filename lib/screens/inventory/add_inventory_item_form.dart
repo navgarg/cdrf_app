@@ -30,6 +30,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
   final _stockQuantityController = TextEditingController();
   final _reorderThresholdController = TextEditingController();
   final _unitController = TextEditingController();
+  final _imageUrlController = TextEditingController();
   TextEditingController? _activeListeningController;
   bool _isLoading = false;
 
@@ -43,6 +44,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
     _stockQuantityController.dispose();
     _reorderThresholdController.dispose();
     _unitController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -148,6 +150,9 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
             reorderThreshold:
                 int.tryParse(_reorderThresholdController.text) ?? 0,
             unit: _unitController.text,
+            imageUrl: _imageUrlController.text.trim().isEmpty
+                ? null
+                : _imageUrlController.text.trim(),
           );
 
       setState(() => _isLoading = false);
@@ -282,6 +287,16 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                     labelText: context.tr('Unit (e.g., pcs, kg)')),
                 onMicTap: () => _listenIntoField(_unitController),
                 isListening: _activeListeningController == _unitController,
+              ),
+              const SizedBox(height: 16),
+              VoiceTextFormField(
+                controller: _imageUrlController,
+                decoration: InputDecoration(
+                  labelText: context.tr('Photo URL (optional)'),
+                ),
+                keyboardType: TextInputType.url,
+                onMicTap: () => _listenIntoField(_imageUrlController),
+                isListening: _activeListeningController == _imageUrlController,
               ),
               const SizedBox(height: 24),
               ElevatedButton(

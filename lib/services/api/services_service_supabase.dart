@@ -75,6 +75,7 @@ class ServicesServiceSupabase implements IServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   }) async {
     try {
       final uid = _requireUserId();
@@ -89,6 +90,8 @@ class ServicesServiceSupabase implements IServicesService {
         'description': description,
         'price': price,
         'duration': duration,
+        if (imageUrl != null && imageUrl.trim().isNotEmpty)
+          'image_url': imageUrl.trim(),
       });
 
       _ref.read(messengerProvider).showSuccess('Service added successfully!');

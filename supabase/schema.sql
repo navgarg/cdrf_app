@@ -200,8 +200,12 @@ create table if not exists public.inventory_items (
   stock_quantity integer not null default 0,
   reorder_threshold integer not null default 0,
   unit text not null default '',
+  image_url text,
   created_at timestamptz not null default now()
 );
+
+alter table public.inventory_items
+add column if not exists image_url text;
 
 create index if not exists idx_inventory_items_user_id on public.inventory_items (user_id);
 create index if not exists idx_inventory_items_business_id on public.inventory_items (business_id);
@@ -215,8 +219,12 @@ create table if not exists public.services (
   description text,
   price numeric not null default 0,
   duration integer not null default 0,
+  image_url text,
   created_at timestamptz not null default now()
 );
+
+alter table public.services
+add column if not exists image_url text;
 
 create index if not exists idx_services_user_id on public.services (user_id);
 create index if not exists idx_services_business_id on public.services (business_id);

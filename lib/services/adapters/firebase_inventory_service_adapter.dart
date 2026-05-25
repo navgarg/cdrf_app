@@ -27,6 +27,7 @@ class FirebaseInventoryServiceAdapter implements IInventoryService {
     required int stockQuantity,
     required int reorderThreshold,
     required String unit,
+    String? imageUrl,
   }) {
     return _service.addProductItem(
       name: name,
@@ -36,6 +37,7 @@ class FirebaseInventoryServiceAdapter implements IInventoryService {
       stockQuantity: stockQuantity,
       reorderThreshold: reorderThreshold,
       unit: unit,
+      imageUrl: imageUrl,
     );
   }
 

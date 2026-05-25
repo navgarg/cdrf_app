@@ -20,6 +20,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _durationController = TextEditingController();
+  final _imageUrlController = TextEditingController();
   TextEditingController? _activeListeningController;
   bool _isLoading = false;
 
@@ -30,6 +31,7 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
     _descriptionController.dispose();
     _priceController.dispose();
     _durationController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -44,6 +46,9 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
               : _descriptionController.text.trim(),
           price: double.tryParse(_priceController.text.trim()) ?? 0.0,
           duration: int.tryParse(_durationController.text.trim()) ?? 0,
+          imageUrl: _imageUrlController.text.trim().isEmpty
+              ? null
+              : _imageUrlController.text.trim(),
         );
 
     setState(() => _isLoading = false);
@@ -184,6 +189,16 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
                         ? appLocalizations
                             .tr('Invalid Duration, Please Try Again')
                         : null,
+              ),
+              const SizedBox(height: 16),
+              VoiceTextFormField(
+                controller: _imageUrlController,
+                decoration: InputDecoration(
+                  labelText: appLocalizations.tr('Photo URL (optional)'),
+                ),
+                keyboardType: TextInputType.url,
+                onMicTap: () => _listenIntoField(_imageUrlController),
+                isListening: _activeListeningController == _imageUrlController,
               ),
               const SizedBox(height: 24),
               ElevatedButton(

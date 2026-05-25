@@ -8,5 +8,6 @@ abstract class IServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   });
 }

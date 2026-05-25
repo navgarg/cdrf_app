@@ -110,6 +110,7 @@ class InventoryServiceSupabase implements IInventoryService {
     required int stockQuantity,
     required int reorderThreshold,
     required String unit,
+    String? imageUrl,
   }) async {
     try {
       final uid = _requireUserId();
@@ -124,6 +125,8 @@ class InventoryServiceSupabase implements IInventoryService {
         'stock_quantity': stockQuantity,
         'reorder_threshold': reorderThreshold,
         'unit': unit,
+        if (imageUrl != null && imageUrl.trim().isNotEmpty)
+          'image_url': imageUrl.trim(),
       });
 
       _ref.read(messengerProvider).showSuccess('Product added successfully!');
