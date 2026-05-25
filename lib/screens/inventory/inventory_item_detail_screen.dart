@@ -4,11 +4,15 @@ import 'package:uuid/uuid.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/models/transaction.dart';
+import 'package:nariudyam/components/item_visual.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
+import 'package:nariudyam/providers/locale_provider.dart';
 import '../../models/product_item.dart';
 import 'package:nariudyam/providers/fav_customer_providers.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import '../../l10n/dynamic_localizations.dart';
+import 'package:nariudyam/services/voice/voice_output_service.dart';
+import 'package:nariudyam/utils/app_visuals.dart';
 
 // firebase (previous implementation)
 // import 'package:nariudyam/services/api/inventory_service.dart';
@@ -77,8 +81,37 @@ class InventoryItemDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        context.tr(item.name), // Translate product name
+                        context.tr(item.name),
                         style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 12.0),
+                      Row(
+                        children: [
+                          ItemVisual(
+                            imageUrl: item.imageUrl,
+                            fallbackIcon: AppVisuals.itemIcon(
+                              item.name,
+                              displayedName: context.tr(item.name),
+                              unit: item.unit,
+                              displayedUnit: context.tr(item.unit),
+                            ),
+                            iconColor: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withAlpha(153),
+                            size: 72,
+                            iconSize: 36,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FilledButton.tonalIcon(
+                              onPressed: () =>
+                                  _speakItemDetails(context, ref, item),
+                              icon: const Icon(Icons.volume_up),
+                              label: Text(context.tr('Read item details')),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16.0),
                       Row(
@@ -149,6 +182,32 @@ class InventoryItemDetailScreen extends ConsumerWidget {
         ],
       ),
       child: child,
+    );
+  }
+
+  Future<void> _speakItemDetails(
+    BuildContext context,
+    WidgetRef ref,
+    ProductItem item,
+  ) async {
+    final languageCode = ref.read(localeProvider).languageCode;
+    final unit = context.tr(item.unit);
+    final description = item.description?.trim();
+    final location = item.location?.trim();
+    final summary = [
+      context.tr(item.name),
+      '${context.tr('Amount')}: ${item.stockQuantity} $unit',
+      '${context.tr('Price')}: ₹${item.price.toStringAsFixed(2)} ${context.tr('Per')} $unit',
+      '${context.tr('Reorder Threshold')}: ${item.reorderThreshold} $unit',
+      if (location != null && location.isNotEmpty)
+        '${context.tr('Locations')}: ${context.tr(location)}',
+      if (description != null && description.isNotEmpty)
+        '${context.tr('Description')}: ${context.tr(description)}',
+    ].join('. ');
+
+    await VoiceOutputService.instance.speak(
+      text: summary,
+      languageCode: languageCode,
     );
   }
 

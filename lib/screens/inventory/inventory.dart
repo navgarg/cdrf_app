@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:nariudyam/providers/inventory_providers.dart';
+import 'package:nariudyam/components/item_visual.dart';
 import '../app_shell_layout.dart';
 import 'add_inventory_item_form.dart';
 import 'inventory_item_detail_screen.dart';
@@ -98,8 +99,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         return inventoryItemsAsyncValue.when(
           data: (items) {
             if (items.isEmpty) {
-              return Center(
-                child: Text(context.tr('No inventory items found. Add some!')),
+              return _EmptyInventoryState(
+                onAddPressed: _showAddInventoryItemDialog,
               );
             }
             final theme = Theme.of(context);
@@ -112,12 +113,22 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   final item = entry.value;
                   final itemName = context.tr(item.name);
                   final itemUnit = context.tr(item.unit);
+                  final isLowStock = item.reorderThreshold > 0 &&
+                      item.stockQuantity <= item.reorderThreshold;
                   return Padding(
                     padding: EdgeInsets.only(
                         bottom: index == items.length - 1 ? 0 : 12),
                     child: Material(
                       color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: isLowStock
+                            ? BorderSide(
+                                color: theme.colorScheme.error.withAlpha(170),
+                                width: 1.5,
+                              )
+                            : BorderSide.none,
+                      ),
                       elevation: 1,
                       shadowColor: Colors.black.withAlpha(25),
                       child: InkWell(
@@ -138,25 +149,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               horizontal: 16.0, vertical: 12.0),
                           child: Row(
                             children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha(102),
-                                  borderRadius: BorderRadius.circular(15),
+                              ItemVisual(
+                                imageUrl: item.imageUrl,
+                                fallbackIcon: AppVisuals.itemIcon(
+                                  item.name,
+                                  displayedName: itemName,
+                                  unit: item.unit,
+                                  displayedUnit: itemUnit,
                                 ),
-                                child: Center(
-                                  child: Icon(
-                                    AppVisuals.itemIcon(
-                                      item.name,
-                                      displayedName: itemName,
-                                      unit: item.unit,
-                                      displayedUnit: itemUnit,
-                                    ),
-                                    size: 28,
-                                    color: onSurface.withAlpha(153),
-                                  ),
-                                ),
+                                iconColor: onSurface.withAlpha(153),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -174,13 +175,56 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    Text(
-                                      '${item.stockQuantity} $itemUnit',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: onSurface.withAlpha(153),
-                                      ),
+                                    Row(
+                                      children: [
+                                        if (isLowStock) ...[
+                                          Icon(
+                                            Icons.warning_amber_rounded,
+                                            size: 16,
+                                            color: theme.colorScheme.error,
+                                          ),
+                                          const SizedBox(width: 4),
+                                        ],
+                                        Flexible(
+                                          child: Text(
+                                            isLowStock
+                                                ? '${context.tr('Low stock')}: ${item.stockQuantity} $itemUnit'
+                                                : '${item.stockQuantity} $itemUnit',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: isLowStock
+                                                  ? theme.colorScheme.error
+                                                  : onSurface.withAlpha(153),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
+                                    if (isLowStock) ...[
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.error
+                                              .withAlpha(25),
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                        ),
+                                        child: Text(
+                                          context.tr('Restock soon'),
+                                          style: TextStyle(
+                                            color: theme.colorScheme.error,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -219,6 +263,59 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               Center(child: Text(context.tr('Error: ${error.toString()}'))),
         );
       },
+    );
+  }
+}
+
+class _EmptyInventoryState extends StatelessWidget {
+  final VoidCallback onAddPressed;
+
+  const _EmptyInventoryState({
+    required this.onAddPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 72,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.tr('No inventory items found.'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: onSurface,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.tr('Add your first product to start taking orders.'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: onSurface.withAlpha(165),
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: onAddPressed,
+              icon: const Icon(Icons.add),
+              label: Text(context.tr('Add Product')),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
