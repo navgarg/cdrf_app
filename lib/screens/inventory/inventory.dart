@@ -5,6 +5,7 @@ import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/components/item_visual.dart';
 import '../app_shell_layout.dart';
 import 'add_inventory_item_form.dart';
+import 'bulk_voice_inventory_form.dart';
 import 'inventory_item_detail_screen.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'package:nariudyam/services/translation_service.dart';
@@ -84,6 +85,44 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     );
   }
 
+  void _showBulkVoiceInventoryDialog(List items) {
+    showGeneralDialog(
+      context: context,
+      barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
+      barrierDismissible: true,
+      barrierLabel: context.tr('Add Stock by Voice'),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: BulkVoiceInventoryForm(
+                currentItems: items.cast(),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+              .animate(animation),
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(inventoryFabPressedProvider, (_, isPressed) {
@@ -108,6 +147,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             return ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: FilledButton.icon(
+                    onPressed: () => _showBulkVoiceInventoryDialog(items),
+                    icon: const Icon(Icons.mic),
+                    label: Text(context.tr('Add Stock by Voice')),
+                  ),
+                ),
                 ...items.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
