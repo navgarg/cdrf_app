@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/components/form_section.dart';
+import 'package:nariudyam/components/photo_picker_field.dart';
 import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/providers/services_providers.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
@@ -137,68 +139,95 @@ class _AddServiceItemFormState extends ConsumerState<AddServiceItemForm> {
                 ],
               ),
               const SizedBox(height: 24),
-              VoiceTextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                    labelText: appLocalizations.tr('Enter Service Name')),
-                onMicTap: () => _listenIntoField(_nameController),
-                isListening: _activeListeningController == _nameController,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? appLocalizations.tr('Please Enter Valid Service Name')
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                    labelText:
-                        appLocalizations.tr('Enter Service Description')),
-                maxLines: 2,
-                onMicTap: () => _listenIntoField(_descriptionController),
-                isListening:
-                    _activeListeningController == _descriptionController,
-              ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _priceController,
-                decoration: InputDecoration(
-                    labelText: appLocalizations.tr('Enter Price')),
-                keyboardType: TextInputType.number,
-                onMicTap: () =>
-                    _listenIntoField(_priceController, numeric: true),
-                isListening: _activeListeningController == _priceController,
-                validator: (v) => v == null || v.isEmpty
-                    ? appLocalizations.tr('Please Enter Price')
-                    : double.tryParse(v) == null
-                        ? appLocalizations.tr('Invalid Price, Please Try Again')
+              FormSection(
+                icon: Icons.badge_outlined,
+                title: 'Basic Details',
+                children: [
+                  VoiceTextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                        labelText: appLocalizations.tr('Enter Service Name')),
+                    onMicTap: () => _listenIntoField(_nameController),
+                    isListening: _activeListeningController == _nameController,
+                    validator: (v) => v == null || v.trim().isEmpty
+                        ? appLocalizations.tr('Please Enter Valid Service Name')
                         : null,
+                  ),
+                  const SizedBox(height: 16),
+                  VoiceTextFormField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(
+                        labelText:
+                            appLocalizations.tr('Enter Service Description')),
+                    maxLines: 2,
+                    onMicTap: () => _listenIntoField(_descriptionController),
+                    isListening:
+                        _activeListeningController == _descriptionController,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _durationController,
-                decoration: InputDecoration(
-                    labelText:
-                        appLocalizations.tr('Enter Duration in Minutes')),
-                keyboardType: TextInputType.number,
-                onMicTap: () =>
-                    _listenIntoField(_durationController, numeric: true),
-                isListening: _activeListeningController == _durationController,
-                validator: (v) => v == null || v.isEmpty
-                    ? appLocalizations.tr('Please Enter Duration in Minutes')
-                    : int.tryParse(v) == null
+              const SizedBox(height: 24),
+              FormSection(
+                icon: Icons.payments_outlined,
+                title: 'Price and Time',
+                children: [
+                  VoiceTextFormField(
+                    controller: _priceController,
+                    decoration: InputDecoration(
+                        labelText: appLocalizations.tr('Enter Price')),
+                    keyboardType: TextInputType.number,
+                    onMicTap: () =>
+                        _listenIntoField(_priceController, numeric: true),
+                    isListening: _activeListeningController == _priceController,
+                    validator: (v) => v == null || v.isEmpty
+                        ? appLocalizations.tr('Please Enter Price')
+                        : double.tryParse(v) == null
+                            ? appLocalizations
+                                .tr('Invalid Price, Please Try Again')
+                            : null,
+                  ),
+                  const SizedBox(height: 16),
+                  VoiceTextFormField(
+                    controller: _durationController,
+                    decoration: InputDecoration(
+                        labelText:
+                            appLocalizations.tr('Enter Duration in Minutes')),
+                    keyboardType: TextInputType.number,
+                    onMicTap: () =>
+                        _listenIntoField(_durationController, numeric: true),
+                    isListening:
+                        _activeListeningController == _durationController,
+                    validator: (v) => v == null || v.isEmpty
                         ? appLocalizations
-                            .tr('Invalid Duration, Please Try Again')
-                        : null,
+                            .tr('Please Enter Duration in Minutes')
+                        : int.tryParse(v) == null
+                            ? appLocalizations
+                                .tr('Invalid Duration, Please Try Again')
+                            : null,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(
-                  labelText: appLocalizations.tr('Photo URL (optional)'),
-                ),
-                keyboardType: TextInputType.url,
-                onMicTap: () => _listenIntoField(_imageUrlController),
-                isListening: _activeListeningController == _imageUrlController,
+              const SizedBox(height: 24),
+              FormSection(
+                icon: Icons.photo_camera_outlined,
+                title: 'Photo',
+                children: [
+                  PhotoPickerField(
+                    controller: _imageUrlController,
+                    folder: 'services',
+                  ),
+                  const SizedBox(height: 12),
+                  VoiceTextFormField(
+                    controller: _imageUrlController,
+                    decoration: InputDecoration(
+                      labelText: appLocalizations.tr('Photo URL (optional)'),
+                    ),
+                    keyboardType: TextInputType.url,
+                    onMicTap: () => _listenIntoField(_imageUrlController),
+                    isListening:
+                        _activeListeningController == _imageUrlController,
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               ElevatedButton(
