@@ -7,6 +7,7 @@ import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/components/rating_bottom_sheet.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/components/qr_payment_bottom_sheet.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/models/product_item.dart';
@@ -22,7 +23,7 @@ class CartBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
     final user = ref.watch(userProvider);
-    final isService = user?.businessDomain == 'Beauty Parlor';
+    final isService = BusinessDomainUtils.isServiceDomain(user?.businessDomain);
 
     final products = ref.watch(inventoryItemsProvider).asData?.value ?? [];
     final services = ref.watch(serviceItemsProvider).asData?.value ?? [];
