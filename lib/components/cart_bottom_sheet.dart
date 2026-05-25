@@ -8,6 +8,7 @@ import 'package:nariudyam/components/rating_bottom_sheet.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/components/qr_payment_bottom_sheet.dart';
 import 'package:nariudyam/models/business_domain.dart';
+import 'package:nariudyam/components/success_bottom_sheet.dart';
 import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/models/product_item.dart';
@@ -450,15 +451,18 @@ class CartBottomSheet extends ConsumerWidget {
     // 5. Clear cart
     ref.read(cartProvider.notifier).clearCart();
 
-    // 6. Show success (use messenger if available)
-    try {
-      ref.read(messengerProvider).showSuccess('Order completed successfully!');
-    } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Order completed successfully!')));
-    }
+    await showSuccessBottomSheet(
+      context: context,
+      title: context.tr('Order saved'),
+      message: context.tr('Your sale has been recorded successfully.'),
+      actionLabel: context.tr('Done'),
+      onDone: () {
+        Navigator.of(context).pop();
+      },
+    );
 
     // 7. Now close the original cart sheet (if still open)
+    if (!context.mounted) return;
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }

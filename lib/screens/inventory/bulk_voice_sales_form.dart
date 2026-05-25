@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
+import 'package:nariudyam/components/success_bottom_sheet.dart';
 import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/models/service_item.dart';
@@ -324,6 +325,14 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
     setState(() => _isSaving = false);
 
     if (success) {
+      await showSuccessBottomSheet(
+        context: context,
+        title: context.tr('Sales saved'),
+        message: context.tr('Today\'s sales have been recorded.'),
+        actionLabel: context.tr('Done'),
+        onDone: () => Navigator.of(context).pop(),
+      );
+      if (!mounted) return;
       Navigator.of(context).pop();
     }
   }
@@ -332,7 +341,6 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
     required Map<String, int> totalsByItem,
     required PaymentMethod paymentMethod,
   }) async {
-    final successMessage = context.tr('Sales logged successfully!');
     final failurePrefix = context.tr('Failed to log sales');
     try {
       final inventoryService = ref.read(inventoryServiceProvider);
@@ -373,7 +381,6 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
         );
       }
 
-      ref.read(messengerProvider).showSuccess(successMessage);
       return true;
     } catch (e) {
       ref.read(messengerProvider).showError(
