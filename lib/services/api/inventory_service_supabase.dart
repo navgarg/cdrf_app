@@ -20,43 +20,85 @@ class InventoryServiceSupabase implements IInventoryService {
   }
 
   @override
-  Stream<List<ProductItem>> streamInventoryProductItems() {
+  Stream<List<ProductItem>> streamInventoryProductItems() async* {
     final user = _ref.read(userProvider);
-    if (user == null) return Stream.value(<ProductItem>[]);
+    if (user == null) {
+      yield <ProductItem>[];
+      return;
+    }
+    final uid = user.uid;
 
-    return _supabase
-        .from('inventory_items')
-        .stream(primaryKey: ['id']).map((rows) {
-      final items = rows
-          .where((row) => row['user_id'] == user.uid)
-          .map((row) => ProductItem.fromMap(row, row['id'].toString()))
-          .toList(growable: false);
+    yield await _fetchInventoryProductItems(uid);
 
-      final sorted = items.toList(growable: true)
-        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-      return sorted;
-    });
+    try {
+      await for (final rows
+          in _supabase.from('inventory_items').stream(primaryKey: ['id'])) {
+        yield _mapInventoryRows(rows, uid);
+      }
+    } catch (e) {
+      debugPrint('streamInventoryProductItems realtime failed: $e');
+    }
   }
 
   @override
-  Stream<ProductItem> streamProductItem(String itemId) {
+  Stream<ProductItem> streamProductItem(String itemId) async* {
     final user = _ref.read(userProvider);
     if (user == null) {
-      return Stream.error(Exception('User not logged in!'));
+      throw Exception('User not logged in!');
     }
+    final uid = user.uid;
 
-    return _supabase
-        .from('inventory_items')
-        .stream(primaryKey: ['id']).map((rows) {
-      final row = rows.firstWhere(
-        (r) => r['user_id'] == user.uid && r['id'].toString() == itemId,
-        orElse: () => <String, dynamic>{},
-      );
-      if (row.isEmpty) {
-        throw Exception('Item not found');
+    yield await _fetchProductItem(uid, itemId);
+
+    try {
+      await for (final rows
+          in _supabase.from('inventory_items').stream(primaryKey: ['id'])) {
+        final row = rows.firstWhere(
+          (r) => r['user_id'] == uid && r['id'].toString() == itemId,
+          orElse: () => <String, dynamic>{},
+        );
+        if (row.isNotEmpty) {
+          yield ProductItem.fromMap(row, row['id'].toString());
+        }
       }
-      return ProductItem.fromMap(row, row['id'].toString());
-    });
+    } catch (e) {
+      debugPrint('streamProductItem realtime failed: $e');
+    }
+  }
+
+  Future<List<ProductItem>> _fetchInventoryProductItems(String uid) async {
+    final rows = await _supabase
+        .from('inventory_items')
+        .select()
+        .eq('user_id', uid)
+        .order('name', ascending: true);
+    return _mapInventoryRows(rows, uid);
+  }
+
+  Future<ProductItem> _fetchProductItem(String uid, String itemId) async {
+    final rows = await _supabase
+        .from('inventory_items')
+        .select()
+        .eq('user_id', uid)
+        .eq('id', itemId)
+        .limit(1);
+    if (rows.isEmpty) {
+      throw Exception('Item not found');
+    }
+    final row = rows.first;
+    return ProductItem.fromMap(row, row['id'].toString());
+  }
+
+  List<ProductItem> _mapInventoryRows(
+    List<Map<String, dynamic>> rows,
+    String uid,
+  ) {
+    final items = rows
+        .where((row) => row['user_id'] == uid)
+        .map((row) => ProductItem.fromMap(row, row['id'].toString()))
+        .toList(growable: true);
+    items.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return items;
   }
 
   @override
