@@ -3,15 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/models/product_item.dart';
+import 'package:nariudyam/models/service_item.dart';
+import 'package:nariudyam/models/transaction.dart';
+import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/locale_provider.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/services/voice/voice_input_service.dart';
 
 import '../../l10n/dynamic_localizations.dart';
 
 class BulkVoiceSalesForm extends ConsumerStatefulWidget {
-  final List<ProductItem> items;
+  final List<BulkVoiceSalesItem> items;
 
   const BulkVoiceSalesForm({
     super.key,
@@ -143,11 +146,11 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
     );
   }
 
-  ProductItem? _findBestItemMatch(String spokenName) {
+  BulkVoiceSalesItem? _findBestItemMatch(String spokenName) {
     final normalizedSpoken = _normalizeItemName(spokenName);
     if (normalizedSpoken.isEmpty) return null;
 
-    ProductItem? bestItem;
+    BulkVoiceSalesItem? bestItem;
     var bestScore = 0;
 
     for (final item in widget.items) {
@@ -283,8 +286,7 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
     for (final entry in _entries) {
       if (entry.selectedItemId == null) {
         ref.read(messengerProvider).showError(
-              context
-                  .tr('Please match every spoken item to an inventory item.'),
+              context.tr('Please match every spoken item to an order item.'),
             );
         return;
       }
@@ -313,25 +315,71 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
       totalsByItem[itemId] = (totalsByItem[itemId] ?? 0) + entry.quantity;
     }
 
-    final requests = <InventorySaleRequest>[];
-    for (final item in widget.items) {
-      final totalQuantity = totalsByItem[item.id];
-      if (totalQuantity == null) continue;
-      requests.add(
-        InventorySaleRequest(item: item, quantity: totalQuantity),
-      );
-    }
-
     setState(() => _isSaving = true);
-    final success = await ref.read(inventoryServiceProvider).recordBulkSales(
-          sales: requests,
-          paymentMethod: paymentMethod,
-        );
+    final success = await _recordBulkSales(
+      totalsByItem: totalsByItem,
+      paymentMethod: paymentMethod,
+    );
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (success) {
       Navigator.of(context).pop();
+    }
+  }
+
+  Future<bool> _recordBulkSales({
+    required Map<String, int> totalsByItem,
+    required PaymentMethod paymentMethod,
+  }) async {
+    final successMessage = context.tr('Sales logged successfully!');
+    final failurePrefix = context.tr('Failed to log sales');
+    try {
+      final inventoryService = ref.read(inventoryServiceProvider);
+      final transactionService = ref.read(transactionServiceProvider);
+
+      for (final item in widget.items) {
+        final totalQuantity = totalsByItem[item.id];
+        if (totalQuantity == null) continue;
+        if (totalQuantity <= 0) {
+          throw Exception('Quantity must be greater than zero.');
+        }
+        if (item.stockQuantity != null && totalQuantity > item.stockQuantity!) {
+          throw Exception(
+            'Not enough stock for ${item.name}. Available: ${item.stockQuantity}',
+          );
+        }
+      }
+
+      for (final item in widget.items) {
+        final totalQuantity = totalsByItem[item.id];
+        if (totalQuantity == null) continue;
+
+        if (item.isProduct && item.stockQuantity != null) {
+          await inventoryService.updateProductItem(
+            item.id,
+            stockQuantity: item.stockQuantity! - totalQuantity,
+          );
+        }
+
+        await transactionService.addTransaction(
+          productId: item.id,
+          itemName: item.name,
+          quantity: totalQuantity,
+          price: item.price,
+          cost: item.cost,
+          transactionType: TransactionType.sale,
+          paymentMethod: paymentMethod,
+        );
+      }
+
+      ref.read(messengerProvider).showSuccess(successMessage);
+      return true;
+    } catch (e) {
+      ref.read(messengerProvider).showError(
+            '$failurePrefix: ${e.toString()}',
+          );
+      return false;
     }
   }
 
@@ -366,7 +414,7 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
             const SizedBox(height: 8),
             Text(
               context.tr(
-                'Speak multiple sales in one go, for example: Rice 2, Oil 1, Soap 3. Price is picked from inventory automatically.',
+                'Speak multiple sales in one go, for example: Rice 2, Haircut 1, Facial 3. Price is picked automatically.',
               ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -375,7 +423,7 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
               controller: _transcriptController,
               decoration: InputDecoration(
                 labelText: context.tr('Daily sales transcript'),
-                hintText: context.tr('Example: Milk 2, Bread 1, Shampoo 3'),
+                hintText: context.tr('Example: Milk 2, Haircut 1, Facial 3'),
                 alignLabelWithHint: true,
               ),
               maxLines: 5,
@@ -439,13 +487,13 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
                       DropdownButtonFormField<String>(
                         value: sale.selectedItemId,
                         decoration: InputDecoration(
-                          labelText: context.tr('Inventory Item'),
+                          labelText: context.tr('Order Item'),
                         ),
                         items: widget.items
                             .map(
                               (item) => DropdownMenuItem<String>(
                                 value: item.id,
-                                child: Text(item.name),
+                                child: Text(context.tr(item.name)),
                               ),
                             )
                             .toList(),
@@ -473,7 +521,9 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
                             child: Text(
                               matchedItem == null
                                   ? context.tr('No matching item found yet')
-                                  : '${context.tr('Stock available')}: ${matchedItem.stockQuantity}',
+                                  : matchedItem.isProduct
+                                      ? '${context.tr('Stock available')}: ${matchedItem.stockQuantity}'
+                                      : context.tr('Service sale'),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
@@ -507,6 +557,45 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class BulkVoiceSalesItem {
+  final String id;
+  final String name;
+  final double price;
+  final double cost;
+  final int? stockQuantity;
+  final bool isProduct;
+
+  const BulkVoiceSalesItem({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.cost,
+    required this.isProduct,
+    this.stockQuantity,
+  });
+
+  factory BulkVoiceSalesItem.fromProduct(ProductItem item) {
+    return BulkVoiceSalesItem(
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      cost: item.cost,
+      stockQuantity: item.stockQuantity,
+      isProduct: true,
+    );
+  }
+
+  factory BulkVoiceSalesItem.fromService(ServiceItem item) {
+    return BulkVoiceSalesItem(
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      cost: 0,
+      isProduct: false,
     );
   }
 }
