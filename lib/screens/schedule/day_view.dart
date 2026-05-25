@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:nariudyam/components/app_empty_state.dart';
 import 'package:nariudyam/models/appointment.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/services/general/messenger.dart';
@@ -31,8 +32,11 @@ class DayView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (selectedDay == null) {
-      return Center(
-          child: Text(context.tr("Select a day to see appointments.")));
+      return AppEmptyState(
+        icon: Icons.event_available_outlined,
+        title: context.tr('Select a day'),
+        message: context.tr('Choose a day to see appointments.'),
+      );
     }
 
     final theme = Theme.of(context);
@@ -90,8 +94,13 @@ class DayView extends ConsumerWidget {
               ),
             Expanded(
               child: dayAppointments.isEmpty
-                  ? Center(
-                      child: Text(context.tr("No appointments for this day.")))
+                  ? AppEmptyState(
+                      icon: Icons.event_busy_outlined,
+                      title: context.tr('No appointments for this day.'),
+                      message: context.tr(
+                        'Tap the add button to schedule one.',
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: dayAppointments.length,
                       itemBuilder: (context, index) {

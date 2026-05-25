@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/components/app_empty_state.dart';
 import 'package:nariudyam/providers/fav_customer_providers.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import '../../l10n/dynamic_localizations.dart';
@@ -151,12 +152,15 @@ class _FavouriteCustomersScreenState
                   Center(child: Text(context.tr('Error: $err'))),
               data: (customerList) {
                 if (customerList.isEmpty) {
-                  return Center(
-                    child: Text(
-                      context.tr(
-                          'You have no favourite customers yet.\nTap the + button to add one!'),
-                      textAlign: TextAlign.center,
+                  return AppEmptyState(
+                    icon: Icons.favorite_border,
+                    title: context.tr('No favourite customers yet.'),
+                    message: context.tr(
+                      'Add customers you want to track closely.',
                     ),
+                    actionLabel: context.tr('Add Customer'),
+                    actionIcon: Icons.person_add_alt_1,
+                    onAction: () => _showAddCustomerDialog(userId),
                   );
                 }
 

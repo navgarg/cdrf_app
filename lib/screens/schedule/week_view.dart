@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:nariudyam/components/app_empty_state.dart';
 import 'package:nariudyam/models/appointment.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/providers/fav_customer_providers.dart';
@@ -80,8 +81,13 @@ class WeekView extends ConsumerWidget {
             ),
             Expanded(
               child: weekAppointments.isEmpty
-                  ? Center(
-                      child: Text(context.tr("No appointments this week.")))
+                  ? AppEmptyState(
+                      icon: Icons.date_range_outlined,
+                      title: context.tr('No appointments this week.'),
+                      message: context.tr(
+                        'Tap the add button to schedule one.',
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: weekAppointments.length,
                       itemBuilder: (context, index) {
