@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import 'package:nariudyam/screens/schedule/schedule.dart';
 import 'package:nariudyam/screens/customer_order.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import '../components/cart_bottom_sheet.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import '../components/customer_order_service_fab.dart';
@@ -274,7 +275,7 @@ class AppShellLayout extends ConsumerWidget {
 
   Widget? _buildFab(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
-    final isService = user?.businessDomain == 'Beauty Parlor';
+    final isService = BusinessDomainUtils.isServiceDomain(user?.businessDomain);
     switch (currentPath ?? '') {
       case String path when path.startsWith('/profile/favourite_customers'):
         return FloatingActionButton(

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/service_item.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 
@@ -23,8 +24,7 @@ class ServicesService {
 
   bool _isServiceBusiness() {
     final user = _ref.read(userProvider);
-    final raw = user?.businessDomain ?? '';
-    return raw.trim().toLowerCase() == 'beauty parlor';
+    return BusinessDomainUtils.isServiceDomain(user?.businessDomain);
   }
 
   // Canonical services collection (new name standardized back to 'services').
