@@ -56,7 +56,12 @@ class DashboardService {
       if (transaction.transactionType != TransactionType.sale) continue;
       final date = DateTime(transaction.timestamp.year,
           transaction.timestamp.month, transaction.timestamp.day);
-      final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+      final rawStartOfWeek = date.subtract(Duration(days: date.weekday - 1));
+      final startOfWeek = DateTime(
+        rawStartOfWeek.year,
+        rawStartOfWeek.month,
+        rawStartOfWeek.day,
+      );
       weeklySales.update(startOfWeek,
           (value) => value + (transaction.price * transaction.quantity),
           ifAbsent: () => (transaction.price * transaction.quantity));
@@ -71,9 +76,10 @@ class DashboardService {
 
     final List<DailySummary> data = [];
     for (int i = -2; i <= 2; i++) {
-      final date = focusedDate
+      final rawDate = focusedDate
           .subtract(Duration(days: focusedDate.weekday - 1))
           .add(Duration(days: 7 * i));
+      final date = DateTime(rawDate.year, rawDate.month, rawDate.day);
       data.add(DailySummary(
           date: date,
           sales: weeklySales[date] ?? 0.0,
