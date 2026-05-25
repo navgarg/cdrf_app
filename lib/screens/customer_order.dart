@@ -7,9 +7,11 @@ import 'package:nariudyam/components/item_visual.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/services_providers.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
+import 'package:nariudyam/providers/locale_provider.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'package:nariudyam/screens/add_service_item_form.dart';
 import 'package:nariudyam/screens/inventory/bulk_voice_sales_form.dart';
+import 'package:nariudyam/services/voice/voice_output_service.dart';
 import 'package:nariudyam/utils/app_visuals.dart';
 import 'package:go_router/go_router.dart';
 
@@ -236,6 +238,7 @@ class CustomerOrderScreen extends ConsumerWidget {
                         ),
                         _AddToCartButton(
                           itemId: itemId,
+                          itemName: itemName,
                           isService: isService,
                           productItem:
                               !isService && item is ProductItem ? item : null,
@@ -329,14 +332,23 @@ class _EmptyOrderState extends StatelessWidget {
 
 class _AddToCartButton extends ConsumerWidget {
   final String itemId;
+  final String itemName;
   final bool isService; // true when business domain is service based
   final ProductItem? productItem;
 
   const _AddToCartButton({
     required this.itemId,
+    required this.itemName,
     required this.isService,
     this.productItem,
   });
+
+  Future<void> _speak(BuildContext context, WidgetRef ref, String text) async {
+    await VoiceOutputService.instance.speak(
+      text: text,
+      languageCode: ref.read(localeProvider).languageCode,
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -355,22 +367,34 @@ class _AddToCartButton extends ConsumerWidget {
       return SizedBox(
         width: 104,
         height: 48,
-        child: ElevatedButton.icon(
+        child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: theme.colorScheme.primary,
             foregroundColor: onPrimary,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             elevation: 0,
           ),
-          onPressed: () => notifier.addToCart(itemId, quantityDelta: step),
-          icon: const Icon(Icons.add_shopping_cart, size: 18),
-          label: Text(
-            context.tr('Add'),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          onPressed: () {
+            notifier.addToCart(itemId, quantityDelta: step);
+            _speak(context, ref, '$itemName added');
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.add_shopping_cart, size: 17),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  context.tr('Add'),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -385,32 +409,50 @@ class _AddToCartButton extends ConsumerWidget {
       return qty.toStringAsFixed(0);
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: () => notifier.removeFromCart(itemId, quantityDelta: step),
-            child: const Icon(Icons.remove, color: onPrimary, size: 18),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              displayQty(),
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 16, color: onPrimary),
+    return SizedBox(
+      width: 104,
+      height: 48,
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.expand(),
+                onPressed: () {
+                  notifier.removeFromCart(itemId, quantityDelta: step);
+                  _speak(context, ref, '$itemName removed');
+                },
+                icon: const Icon(Icons.remove, color: onPrimary, size: 18),
+              ),
             ),
-          ),
-          GestureDetector(
-            onTap: () => notifier.addToCart(itemId, quantityDelta: step),
-            child: const Icon(Icons.add, color: onPrimary, size: 18),
-          ),
-        ],
+            Text(
+              displayQty(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: onPrimary,
+              ),
+            ),
+            Expanded(
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.expand(),
+                onPressed: () {
+                  notifier.addToCart(itemId, quantityDelta: step);
+                  _speak(context, ref, '$itemName added');
+                },
+                icon: const Icon(Icons.add, color: onPrimary, size: 18),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

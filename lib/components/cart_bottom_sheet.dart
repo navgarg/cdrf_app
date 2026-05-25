@@ -10,10 +10,12 @@ import 'package:nariudyam/components/qr_payment_bottom_sheet.dart';
 import 'package:nariudyam/components/item_visual.dart';
 import 'package:nariudyam/components/success_bottom_sheet.dart';
 import 'package:nariudyam/models/business_domain.dart';
+import 'package:nariudyam/providers/locale_provider.dart';
 import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/services/general/messenger.dart';
+import 'package:nariudyam/services/voice/voice_output_service.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
 import 'package:nariudyam/utils/app_visuals.dart';
 
@@ -105,12 +107,37 @@ class CartBottomSheet extends ConsumerWidget {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  context.tr('My Cart:'),
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: onSurface),
+                child: Row(
+                  children: [
+                    Icon(Icons.shopping_cart, color: onSurface),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.tr('My Cart:'),
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: onSurface),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: context.tr('Read cart'),
+                      onPressed: cartItems.isEmpty
+                          ? null
+                          : () => _speakCartSummary(
+                                context,
+                                ref,
+                                cartItems,
+                                total,
+                                isService,
+                              ),
+                      icon: Icon(
+                        Icons.volume_up,
+                        color: cartItems.isEmpty
+                            ? onSurface.withAlpha(90)
+                            : theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Expanded(
@@ -461,11 +488,39 @@ class CartBottomSheet extends ConsumerWidget {
         Navigator.of(context).pop();
       },
     );
+    await VoiceOutputService.instance.speak(
+      text: 'Order saved successfully',
+      languageCode: ref.read(localeProvider).languageCode,
+    );
 
     // 7. Now close the original cart sheet (if still open)
     if (!context.mounted) return;
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
+  }
+
+  Future<void> _speakCartSummary(
+    BuildContext context,
+    WidgetRef ref,
+    List<Map<String, dynamic>> cartItems,
+    double total,
+    bool isService,
+  ) async {
+    final itemSummaries = cartItems.map((cartItem) {
+      final item = cartItem['item'];
+      final quantity = cartItem['quantity'] as double;
+      final qtyText = quantity % 1 == 0
+          ? quantity.toStringAsFixed(0)
+          : quantity.toStringAsFixed(1);
+      final unit = !isService && item.unit != null ? ' ${item.unit}' : '';
+      return '${item.name}, $qtyText$unit';
+    }).join('. ');
+
+    await VoiceOutputService.instance.speak(
+      text:
+          'Cart has ${cartItems.length} items. $itemSummaries. Total rupees ${total.toStringAsFixed(0)}.',
+      languageCode: ref.read(localeProvider).languageCode,
+    );
   }
 }
