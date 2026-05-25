@@ -7,13 +7,15 @@ import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/components/rating_bottom_sheet.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/components/qr_payment_bottom_sheet.dart';
-import 'package:nariudyam/models/business_domain.dart';
+import 'package:nariudyam/components/item_visual.dart';
 import 'package:nariudyam/components/success_bottom_sheet.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/providers/transaction_providers.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'package:nariudyam/utils/app_visuals.dart';
 
 import 'package:uuid/uuid.dart';
 
@@ -156,24 +158,23 @@ class CartBottomSheet extends ConsumerWidget {
                                     horizontal: 16.0, vertical: 12.0),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      width: 50,
-                                      height: 50,
-                                      decoration: BoxDecoration(
-                                        color: onPrimary
-                                            .withAlpha(51), // 0.2 opacity
-                                        borderRadius: BorderRadius.circular(15),
+                                    ItemVisual(
+                                      imageUrl: item.imageUrl,
+                                      fallbackIcon: AppVisuals.itemIcon(
+                                        item.name,
+                                        displayedName: context.tr(item.name),
+                                        unit: !isService && item.unit != null
+                                            ? item.unit.toString()
+                                            : null,
+                                        displayedUnit:
+                                            !isService && item.unit != null
+                                                ? context.tr(
+                                                    item.unit.toString(),
+                                                  )
+                                                : null,
+                                        isService: isService,
                                       ),
-                                      child: Center(
-                                        child: Icon(
-                                          !isService
-                                              ? Icons.inventory_2
-                                              : Icons.content_cut,
-                                          size: 28,
-                                          color: onSurface
-                                              .withAlpha(153), // 0.6 opacity
-                                        ),
-                                      ),
+                                      iconColor: onSurface.withAlpha(153),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(

@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/models/service_item.dart';
+import 'package:nariudyam/components/item_visual.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/services_providers.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/l10n/dynamic_localizations.dart';
+import 'package:nariudyam/screens/add_service_item_form.dart';
 import 'package:nariudyam/screens/inventory/bulk_voice_sales_form.dart';
 import 'package:nariudyam/utils/app_visuals.dart';
+import 'package:go_router/go_router.dart';
 
 // firebase (previous implementation)
 // import 'package:nariudyam/services/api/inventory_service.dart';
@@ -87,13 +90,48 @@ class CustomerOrderScreen extends ConsumerWidget {
     );
   }
 
+  void _showAddServiceItemDialog(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
+      barrierDismissible: true,
+      barrierLabel: context.tr('Add Service Item'),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            child: const Material(
+              color: Colors.transparent,
+              child: AddServiceItemForm(),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+              .animate(animation),
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
     final isService = BusinessDomainUtils.isServiceDomain(user?.businessDomain);
 
     final itemsAsyncValue = isService
-        // Beauty Parlor => show services on order page
         ? ref.watch(serviceItemsProvider)
         : ref.watch(inventoryItemsProvider);
 
@@ -104,10 +142,11 @@ class CustomerOrderScreen extends ConsumerWidget {
     return itemsAsyncValue.when(
       data: (items) {
         if (items.isEmpty) {
-          return Center(
-              child: Text(isService
-                  ? context.tr('No services found.')
-                  : context.tr('No products found.')));
+          return _EmptyOrderState(
+            isService: isService,
+            onAddServicePressed: () => _showAddServiceItemDialog(context),
+            onOpenInventoryPressed: () => context.go('/inventory'),
+          );
         }
         final onSurface = theme.colorScheme.onSurface;
         return ListView(
@@ -163,28 +202,18 @@ class CustomerOrderScreen extends ConsumerWidget {
                         horizontal: 16.0, vertical: 12.0),
                     child: Row(
                       children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(102),
-                            borderRadius: BorderRadius.circular(15),
+                        ItemVisual(
+                          imageUrl: item.imageUrl,
+                          fallbackIcon: AppVisuals.itemIcon(
+                            item.name,
+                            displayedName: itemName,
+                            unit: !isService && item is ProductItem
+                                ? item.unit
+                                : null,
+                            displayedUnit: itemUnit,
+                            isService: isService,
                           ),
-                          child: Center(
-                            child: Icon(
-                              AppVisuals.itemIcon(
-                                item.name,
-                                displayedName: itemName,
-                                unit: !isService && item is ProductItem
-                                    ? item.unit
-                                    : null,
-                                displayedUnit: itemUnit,
-                                isService: isService,
-                              ),
-                              size: 28,
-                              color: onSurface.withAlpha(153),
-                            ),
-                          ),
+                          iconColor: onSurface.withAlpha(153),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -223,6 +252,77 @@ class CustomerOrderScreen extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
           child: Text(context.tr('Error loading data: ${error.toString()}'))),
+    );
+  }
+}
+
+class _EmptyOrderState extends StatelessWidget {
+  final bool isService;
+  final VoidCallback onAddServicePressed;
+  final VoidCallback onOpenInventoryPressed;
+
+  const _EmptyOrderState({
+    required this.isService,
+    required this.onAddServicePressed,
+    required this.onOpenInventoryPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final title = isService
+        ? context.tr('No services found.')
+        : context.tr('No products found.');
+    final body = isService
+        ? context.tr('Add a service so customers can place orders.')
+        : context
+            .tr('Add products in Inventory so customers can place orders.');
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isService
+                  ? Icons.design_services_outlined
+                  : Icons.shopping_bag_outlined,
+              size: 72,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface.withAlpha(165),
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (isService)
+              FilledButton.icon(
+                onPressed: onAddServicePressed,
+                icon: const Icon(Icons.add),
+                label: Text(context.tr('Add Service')),
+              )
+            else
+              FilledButton.icon(
+                onPressed: onOpenInventoryPressed,
+                icon: const Icon(Icons.inventory_2_outlined),
+                label: Text(context.tr('Open Inventory')),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
