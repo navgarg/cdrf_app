@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/components/app_error_state.dart';
 import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/models/service_item.dart';
 import 'package:nariudyam/components/item_visual.dart';
+import 'package:nariudyam/components/loading_cards.dart';
+import 'package:nariudyam/components/voice_search_field.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/services_providers.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
@@ -50,8 +53,22 @@ class CartNotifier extends StateNotifier<Map<String, double>> {
   void clearCart() => state = {};
 }
 
-class CustomerOrderScreen extends ConsumerWidget {
+class CustomerOrderScreen extends ConsumerStatefulWidget {
   const CustomerOrderScreen({super.key});
+
+  @override
+  ConsumerState<CustomerOrderScreen> createState() =>
+      _CustomerOrderScreenState();
+}
+
+class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _showBulkVoiceSalesDialog(
     BuildContext context,
@@ -129,7 +146,7 @@ class CustomerOrderScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final isService = BusinessDomainUtils.isServiceDomain(user?.businessDomain);
 
@@ -151,9 +168,24 @@ class CustomerOrderScreen extends ConsumerWidget {
           );
         }
         final onSurface = theme.colorScheme.onSurface;
+        final query = _searchController.text.trim().toLowerCase();
+        final filteredItems = query.isEmpty
+            ? items
+            : items.where((item) {
+                final dynamic orderItem = item;
+                final itemName = context.tr(orderItem.name).toLowerCase();
+                return itemName.contains(query) ||
+                    orderItem.name.toString().toLowerCase().contains(query);
+              }).toList(growable: false);
         return ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
+            VoiceSearchField(
+              controller: _searchController,
+              hintText: context.tr('Search order items'),
+              onChanged: () => setState(() {}),
+            ),
+            const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: FilledButton.icon(
@@ -172,89 +204,139 @@ class CustomerOrderScreen extends ConsumerWidget {
                 label: Text(context.tr('Log Today\'s Sales by Voice')),
               ),
             ),
-            ...items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final dynamic item = entry.value;
-              final String itemName = context.tr(item.name);
-              final double itemPrice = item.price;
-              var itemUnit = '';
-              final String itemId = item.id;
+            if (filteredItems.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 48),
+                child: _NoOrderSearchResultsState(
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() {});
+                  },
+                ),
+              )
+            else
+              ...filteredItems.asMap().entries.map((entry) {
+                final index = entry.key;
+                final dynamic item = entry.value;
+                final String itemName = context.tr(item.name);
+                final double itemPrice = item.price;
+                var itemUnit = '';
+                final String itemId = item.id;
 
-              if (!isService && item is ProductItem) {
-                itemUnit = context.tr(item.unit);
-              }
+                if (!isService && item is ProductItem) {
+                  itemUnit = context.tr(item.unit);
+                }
 
-              return Padding(
-                padding:
-                    EdgeInsets.only(bottom: index == items.length - 1 ? 0 : 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: itemBlockColor,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(13),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 12.0),
-                    child: Row(
-                      children: [
-                        ItemVisual(
-                          imageUrl: item.imageUrl,
-                          fallbackIcon: AppVisuals.itemIcon(
-                            item.name,
-                            displayedName: itemName,
-                            unit: !isService && item is ProductItem
-                                ? item.unit
-                                : null,
-                            displayedUnit: itemUnit,
-                            isService: isService,
-                          ),
-                          iconColor: onSurface.withAlpha(153),
+                return Padding(
+                  padding: EdgeInsets.only(
+                      bottom: index == filteredItems.length - 1 ? 0 : 12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: itemBlockColor,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(13),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(itemName,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: onSurface)),
-                              const SizedBox(height: 2),
-                              Text(
-                                  '₹${itemPrice.toStringAsFixed(2)}${!isService ? ' per $itemUnit' : ''}',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: onSurface.withAlpha(153))),
-                            ],
-                          ),
-                        ),
-                        _AddToCartButton(
-                          itemId: itemId,
-                          itemName: itemName,
-                          isService: isService,
-                          productItem:
-                              !isService && item is ProductItem ? item : null,
-                        )
                       ],
                     ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      child: Row(
+                        children: [
+                          ItemVisual(
+                            imageUrl: item.imageUrl,
+                            fallbackIcon: AppVisuals.itemIcon(
+                              item.name,
+                              displayedName: itemName,
+                              unit: !isService && item is ProductItem
+                                  ? item.unit
+                                  : null,
+                              displayedUnit: itemUnit,
+                              isService: isService,
+                            ),
+                            iconColor: onSurface.withAlpha(153),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(itemName,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: onSurface)),
+                                const SizedBox(height: 2),
+                                Text(
+                                    '₹${itemPrice.toStringAsFixed(2)}${!isService ? ' per $itemUnit' : ''}',
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        color: onSurface.withAlpha(153))),
+                              ],
+                            ),
+                          ),
+                          _AddToCartButton(
+                            itemId: itemId,
+                            itemName: itemName,
+                            isService: isService,
+                            productItem:
+                                !isService && item is ProductItem ? item : null,
+                          )
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-          child: Text(context.tr('Error loading data: ${error.toString()}'))),
+      loading: () => const LoadingCards(),
+      error: (error, stack) => AppErrorState(
+        title: context.tr('Could not load order items'),
+        message: context.tr('Please check your connection and try again.'),
+        onRetry: () {
+          if (isService) {
+            ref.invalidate(serviceItemsProvider);
+          } else {
+            ref.invalidate(inventoryItemsProvider);
+          }
+        },
+      ),
+    );
+  }
+}
+
+class _NoOrderSearchResultsState extends StatelessWidget {
+  final VoidCallback onClear;
+
+  const _NoOrderSearchResultsState({required this.onClear});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Icon(Icons.search_off, size: 56, color: theme.colorScheme.primary),
+        const SizedBox(height: 12),
+        Text(
+          context.tr('No matching order items found.'),
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton.icon(
+          onPressed: onClear,
+          icon: const Icon(Icons.close),
+          label: Text(context.tr('Clear search')),
+        ),
+      ],
     );
   }
 }
