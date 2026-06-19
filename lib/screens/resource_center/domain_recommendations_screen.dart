@@ -4,9 +4,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/dynamic_localizations.dart';
 import '../../services/api/auth_service.dart';
 import '../../services/domain_recommendation_service.dart';
+import '../../services/voice/voice_output_service.dart';
+import '../../providers/locale_provider.dart';
 
 class DomainRecommendationsScreen extends ConsumerWidget {
   const DomainRecommendationsScreen({super.key});
+
+  Future<void> _speakRecommendationsSummary(
+    BuildContext context,
+    WidgetRef ref,
+    String domain,
+  ) async {
+    final recommendationService = const DomainRecommendationService();
+    final recommendations = recommendationService.getRecommendations(domain);
+
+    final summary = recommendations.isNotEmpty
+        ? 'Business recommendations for your $domain. '
+            '${recommendations.length} recommendations: '
+            '${recommendations.map((r) => '${r.title}: ${r.description}').join('. ')}.'
+        : 'No recommendations available.';
+
+    final spokenText = await VoiceOutputService.instance.speak(
+      text: summary,
+      languageCode: ref.read(localeProvider).languageCode,
+    );
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(spokenText)),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,18 +58,38 @@ class DomainRecommendationsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  context.tr('Business Recommendations'),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  context.tr(
-                    'Suggestions for ${domain ?? 'your business domain'}',
-                  ),
-                  style: theme.textTheme.bodyMedium,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr('Business Recommendations'),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            context.tr(
+                              'Suggestions for ${domain ?? 'your business domain'}',
+                            ),
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: context.tr('Listen to recommendations'),
+                      onPressed: () => _speakRecommendationsSummary(
+                        context,
+                        ref,
+                        domain ?? '',
+                      ),
+                      icon: const Icon(Icons.volume_up_outlined),
+                    ),
+                  ],
                 ),
               ],
             ),

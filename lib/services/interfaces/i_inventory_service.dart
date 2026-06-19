@@ -1,4 +1,5 @@
 ﻿import '../../models/product_item.dart';
+import '../../components/payment_selection_bottom_sheet.dart';
 
 abstract class IInventoryService {
   Stream<List<ProductItem>> streamInventoryProductItems();
@@ -18,5 +19,20 @@ abstract class IInventoryService {
   Future<bool> updateProductItem(
     String id, {
     int? stockQuantity,
+  });
+
+  Future<bool> recordBulkSales({
+    required List<InventorySaleRequest> sales,
+    required PaymentMethod paymentMethod,
+  });
+}
+
+class InventorySaleRequest {
+  final ProductItem item;
+  final int quantity;
+
+  const InventorySaleRequest({
+    required this.item,
+    required this.quantity,
   });
 }

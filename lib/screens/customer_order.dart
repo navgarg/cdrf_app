@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/product_item.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/services_providers.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
@@ -47,7 +48,8 @@ class CustomerOrderScreen extends ConsumerWidget {
 
   void _showBulkVoiceSalesDialog(
     BuildContext context,
-    List<ProductItem> items,
+    List<dynamic> items,
+    bool isService,
   ) {
     showGeneralDialog(
       context: context,
@@ -69,7 +71,7 @@ class CustomerOrderScreen extends ConsumerWidget {
             ),
             child: Material(
               color: Colors.transparent,
-              child: BulkVoiceSalesForm(items: items),
+              child: BulkVoiceSalesForm(items: items, isService: isService),
             ),
           ),
         );
@@ -87,7 +89,7 @@ class CustomerOrderScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
-    final isService = user?.businessDomain == 'Beauty Parlor';
+    final isService = isBeautyParlorDomain(user?.businessDomain);
 
     final itemsAsyncValue = isService
         // Beauty Parlor => show services on order page
@@ -110,18 +112,18 @@ class CustomerOrderScreen extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            if (!isService)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: FilledButton.icon(
-                  onPressed: () => _showBulkVoiceSalesDialog(
-                    context,
-                    items.cast<ProductItem>(),
-                  ),
-                  icon: const Icon(Icons.mic),
-                  label: Text(context.tr('Log Today\'s Sales by Voice')),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: FilledButton.icon(
+                onPressed: () => _showBulkVoiceSalesDialog(
+                  context,
+                  items,
+                  isService,
                 ),
+                icon: const Icon(Icons.mic),
+                label: Text(context.tr('Log Today\'s Sales by Voice')),
               ),
+            ),
             ...items.asMap().entries.map((entry) {
               final index = entry.key;
               final dynamic item = entry.value;

@@ -42,3 +42,7 @@ extension BusinessDomainExtension on BusinessDomain {
     }
   }
 }
+
+bool isBeautyParlorDomain(String? value) {
+  return value?.trim().toLowerCase() == 'beauty parlor';
+}

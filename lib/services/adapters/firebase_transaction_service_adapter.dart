@@ -30,6 +30,7 @@ class FirebaseTransactionServiceAdapter implements ITransactionService {
     required TransactionType transactionType,
     required PaymentMethod paymentMethod,
     String? customerId,
+    double? rating,
   }) {
     return _service.addTransaction(
       transactionId: transactionId,
@@ -41,6 +42,18 @@ class FirebaseTransactionServiceAdapter implements ITransactionService {
       transactionType: transactionType,
       paymentMethod: paymentMethod,
       customerId: customerId,
+      rating: rating,
+    );
+  }
+
+  @override
+  Future<void> updateTransactionRating({
+    required String transactionId,
+    required double rating,
+  }) {
+    return _service.updateTransactionRating(
+      transactionId: transactionId,
+      rating: rating,
     );
   }
 }

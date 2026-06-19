@@ -17,6 +17,7 @@ class Transaction {
   final String businessId;
   final PaymentMethod paymentMethod;
   final String? customerId;
+  final double? rating;
 
   Transaction({
     required this.id,
@@ -31,6 +32,7 @@ class Transaction {
     required this.businessId,
     required this.paymentMethod,
     this.customerId,
+    this.rating,
   });
 
   factory Transaction.fromMap(Map<String, dynamic> data, String id) {
@@ -90,11 +92,14 @@ class Transaction {
           PaymentMethod.cash,
       customerId:
           (data['customerId'] as String?) ?? (data['customer_id'] as String?),
+      rating: (data['rating'] as num?)?.toDouble(),
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {      'transaction_id': transactionId,      'productId': productId,
+    return {
+      'transaction_id': transactionId,
+      'productId': productId,
       'itemName': itemName,
       'quantity': quantity,
       'price': price,
@@ -104,6 +109,7 @@ class Transaction {
       'businessId': businessId,
       'paymentMethod': paymentMethod.toString().split('.').last,
       'customerId': customerId,
+      'rating': rating,
     };
   }
 }

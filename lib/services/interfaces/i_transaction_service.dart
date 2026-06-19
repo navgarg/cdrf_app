@@ -16,5 +16,11 @@ abstract class ITransactionService {
     required TransactionType transactionType,
     required PaymentMethod paymentMethod,
     String? customerId,
+    double? rating,
+  });
+
+  Future<void> updateTransactionRating({
+    required String transactionId,
+    required double rating,
   });
 }

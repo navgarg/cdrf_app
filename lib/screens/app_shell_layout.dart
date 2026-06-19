@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/screens/profile/fav_customers_screen.dart';
 import 'package:nariudyam/screens/schedule/schedule.dart';
 import '../components/cart_bottom_sheet.dart';
@@ -58,9 +59,8 @@ class AppShellLayout extends ConsumerWidget {
     final String pageTitle =
         routeTitles[currentPath ?? ''] ?? context.tr('Nari Udyam');
     final bool isTopLevelRoute = routeTitles.keys.contains(currentPath);
-    final bool showBackButton =
-        GoRouter.of(context).canPop() && !isTopLevelRoute;
     final isAdmin = ref.watch(isAdminProvider);
+    final String fallbackRoute = isAdmin ? '/admin' : '/dashboard';
 
     void showCartSheet() {
       showModalBottomSheet(
@@ -95,16 +95,22 @@ class AppShellLayout extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    if (showBackButton)
+                    if (currentPath == '/dashboard')
+                      const SizedBox(width: 48)
+                    else
                       IconButton(
                         icon: const Icon(Icons.arrow_back_ios_new,
                             color: Colors.white),
-                        onPressed: () => context.pop(),
+                        onPressed: () {
+                          if (GoRouter.of(context).canPop()) {
+                            context.pop();
+                          } else if (currentPath != fallbackRoute) {
+                            context.go(fallbackRoute);
+                          }
+                        },
                         padding: EdgeInsets.zero,
                         iconSize: 22,
-                      )
-                    else
-                      const SizedBox(width: 48),
+                      ),
                     Expanded(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -230,7 +236,7 @@ class AppShellLayout extends ConsumerWidget {
 
   Widget? _buildFab(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
-    final isService = user?.businessDomain == 'Beauty Parlor';
+    final isService = isBeautyParlorDomain(user?.businessDomain);
     switch (currentPath ?? '') {
       case String path when path.startsWith('/profile/favourite_customers'):
         return FloatingActionButton(

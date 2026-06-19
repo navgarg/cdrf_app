@@ -239,20 +239,20 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           SizedBox(
-            height: 180,
+            height: 220,
             child: PieChart(
               PieChartData(
                 sections: data.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
+                  final percentage = totalRevenue > 0 ? ((item.revenue / totalRevenue) * 100) : 0;
                   return PieChartSectionData(
                     value: item.revenue,
-                    title:
-                        '${(totalRevenue > 0 ? ((item.revenue / totalRevenue) * 100) : 0).toStringAsFixed(0)}%',
+                    title: percentage >= 5 ? '${percentage.toStringAsFixed(0)}%' : '',
                     color: colors[index % colors.length],
                     radius: 70,
                     titleStyle: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -368,20 +368,20 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           SizedBox(
-            height: 180,
+            height: 220,
             child: PieChart(
               PieChartData(
                 sections: data.map((item) {
                   final totalRevenue =
                       data.fold<double>(0, (sum, d) => sum + d.revenue);
+                  final percentage = totalRevenue > 0 ? ((item.revenue / totalRevenue) * 100) : 0;
                   return PieChartSectionData(
                     value: item.revenue,
-                    title:
-                        '${(totalRevenue > 0 ? ((item.revenue / totalRevenue) * 100) : 0).toStringAsFixed(0)}%',
+                    title: percentage >= 5 ? '${percentage.toStringAsFixed(0)}%' : '',
                     color: colors[item.method] ?? Colors.grey,
                     radius: 70,
                     titleStyle: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -435,20 +435,20 @@ class AdvancedAnalyticsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           SizedBox(
-            height: 180,
+            height: 220,
             child: PieChart(
               PieChartData(
                 sections: data.map((item) {
                   final totalTransactions =
                       data.fold<int>(0, (sum, d) => sum + d.transactionCount);
+                  final percentage = totalTransactions > 0 ? ((item.transactionCount / totalTransactions) * 100) : 0;
                   return PieChartSectionData(
                     value: item.transactionCount.toDouble(),
-                    title:
-                        '${(totalTransactions > 0 ? ((item.transactionCount / totalTransactions) * 100) : 0).toStringAsFixed(0)}%',
+                    title: percentage >= 5 ? '${percentage.toStringAsFixed(0)}%' : '',
                     color: colors[item.method] ?? Colors.grey,
                     radius: 70,
                     titleStyle: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),

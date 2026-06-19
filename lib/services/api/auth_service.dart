@@ -32,7 +32,14 @@ class AuthService {
 
   AuthService(this._ref);
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges async* {
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      yield currentUser;
+    }
+
+    yield* _auth.authStateChanges();
+  }
 
   // Future<void> _refreshUserProvider() async {
   //   final user = currentUser;

@@ -102,6 +102,17 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
                   },
                 ),
               ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Skip feedback'),
+                ),
+              ),
             )
           ],
         ),

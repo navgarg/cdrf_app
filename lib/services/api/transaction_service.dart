@@ -89,6 +89,7 @@ class TransactionService {
     required TransactionType transactionType,
     required PaymentMethod paymentMethod,
     String? customerId,
+    double? rating,
   }) async {
     try {
       final user = _ref.read(userProvider);
@@ -107,6 +108,7 @@ class TransactionService {
         businessId: user.uid,
         paymentMethod: paymentMethod,
         customerId: customerId,
+        rating: rating,
       );
       await _getCollection().add(newTransaction);
       _ref
@@ -116,6 +118,31 @@ class TransactionService {
       _ref
           .read(messengerProvider)
           .showError('Failed to add transaction: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> updateTransactionRating({
+    required String transactionId,
+    required double rating,
+  }) async {
+    try {
+      final snapshot = await _getCollection()
+          .where('transaction_id', isEqualTo: transactionId)
+          .get();
+
+      if (snapshot.docs.isEmpty) return;
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.update(doc.reference, {'rating': rating});
+      }
+      await batch.commit();
+    } catch (e) {
+      _ref
+          .read(messengerProvider)
+          .showError('Failed to save feedback: ${e.toString()}');
+      rethrow;
     }
   }
 }

@@ -76,6 +76,7 @@ class TransactionServiceSupabase implements ITransactionService {
     required TransactionType transactionType,
     required PaymentMethod paymentMethod,
     String? customerId,
+    double? rating,
   }) async {
     try {
       final uid = _requireUserId();
@@ -93,6 +94,7 @@ class TransactionServiceSupabase implements ITransactionService {
         'payment_method': paymentMethod.toString().split('.').last,
         'timestamp': DateTime.now().toUtc().toIso8601String(),
         'customer_id': customerId,
+        'rating': rating,
       };
 
       try {
@@ -101,7 +103,8 @@ class TransactionServiceSupabase implements ITransactionService {
         final combined =
             '${e.message} ${e.details ?? ''} ${e.hint ?? ''}'.toLowerCase();
 
-        final missingTransactionIdColumn = combined.contains('transaction_id') &&
+        final missingTransactionIdColumn = combined
+                .contains('transaction_id') &&
             (combined.contains('column') || combined.contains('schema cache'));
 
         if (missingTransactionIdColumn) {
@@ -123,6 +126,24 @@ class TransactionServiceSupabase implements ITransactionService {
           .showError('Failed to add transaction: ${e.toString()}');
 
       // Surface the failure to callers as well.
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateTransactionRating({
+    required String transactionId,
+    required double rating,
+  }) async {
+    try {
+      await _supabase
+          .from('transactions')
+          .update({'rating': rating})
+          .eq('transaction_id', transactionId);
+    } catch (e) {
+      _ref
+          .read(messengerProvider)
+          .showError('Failed to save feedback: ${e.toString()}');
       rethrow;
     }
   }

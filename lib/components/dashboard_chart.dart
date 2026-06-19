@@ -45,7 +45,7 @@ class DashboardChart extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 60,
-                        interval: 1.0,
+                        interval: dashboardView == DashboardView.daily ? 2.0 : 1.0,
                         getTitlesWidget: (value, meta) => _getBottomTitles(
                           value,
                           meta,
@@ -122,19 +122,20 @@ class DashboardChart extends StatelessWidget {
         intIndex < data.length) {
       final index = intIndex;
 
+      if (dashboardView == DashboardView.daily && index.isOdd) {
+        return SideTitleWidget(
+          meta: meta,
+          child: const SizedBox.shrink(),
+        );
+      }
+
       String text;
       switch (dashboardView) {
         case DashboardView.daily:
           final hour = data[index].date.hour;
           String startHour12 = (hour % 12 == 0 ? 12 : hour % 12).toString();
           String startAmPm = hour < 12 ? 'AM' : 'PM';
-
-          int endHour24 = hour + 4;
-          String endHour12 =
-              (endHour24 % 12 == 0 ? 12 : endHour24 % 12).toString();
-          String endAmPm = endHour24 < 12 ? 'AM' : 'PM';
-
-          text = '$startHour12$startAmPm-$endHour12$endAmPm';
+          text = '$startHour12$startAmPm';
           break;
         case DashboardView.weekly:
           text = '${data[index].date.day}';

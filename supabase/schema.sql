@@ -266,6 +266,7 @@ create table if not exists public.transactions (
   cost numeric not null default 0,
   transaction_type text not null,
   payment_method text,
+  rating numeric,
   timestamp timestamptz not null default now(),
   customer_id text,
   created_at timestamptz not null default now()
@@ -275,6 +276,10 @@ create index if not exists idx_transactions_user_id on public.transactions (user
 create index if not exists idx_transactions_user_transaction_id on public.transactions (user_id, transaction_id);
 create index if not exists idx_transactions_timestamp on public.transactions (timestamp desc);
 create index if not exists idx_transactions_customer_id on public.transactions (customer_id);
+
+-- Existing databases: add the rating column without recreating tables.
+alter table if exists public.transactions
+add column if not exists rating numeric;
 
 -- RESOURCE CENTER (global)
 create table if not exists public.resource_center (

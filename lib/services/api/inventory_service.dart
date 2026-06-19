@@ -5,6 +5,7 @@ import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
+import 'package:nariudyam/services/interfaces/i_inventory_service.dart';
 import 'package:flutter/foundation.dart';
 
 final inventoryServiceProvider = Provider((ref) => InventoryService(ref));
@@ -14,16 +15,6 @@ final productItemProvider =
   final inventoryService = ref.watch(inventoryServiceProvider);
   return inventoryService.streamProductItem(itemId);
 });
-
-class InventorySaleRequest {
-  final ProductItem item;
-  final int quantity;
-
-  const InventorySaleRequest({
-    required this.item,
-    required this.quantity,
-  });
-}
 
 class InventoryService {
   final Ref _ref;

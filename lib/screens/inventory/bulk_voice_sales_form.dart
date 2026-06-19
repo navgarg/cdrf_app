@@ -3,19 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/components/payment_selection_bottom_sheet.dart';
 import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/models/product_item.dart';
+import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/providers/locale_provider.dart';
-import 'package:nariudyam/services/api/inventory_service.dart';
+import 'package:nariudyam/providers/inventory_providers.dart' as inv_providers;
+import 'package:nariudyam/providers/transaction_providers.dart';
+import 'package:nariudyam/services/interfaces/i_inventory_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 import 'package:nariudyam/services/voice/voice_input_service.dart';
+import 'package:nariudyam/services/voice/voice_output_service.dart';
 
 import '../../l10n/dynamic_localizations.dart';
 
 class BulkVoiceSalesForm extends ConsumerStatefulWidget {
-  final List<ProductItem> items;
+  final List<dynamic> items;
+  final bool isService;
 
   const BulkVoiceSalesForm({
     super.key,
     required this.items,
+    required this.isService,
   });
 
   @override
@@ -143,11 +149,11 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
     );
   }
 
-  ProductItem? _findBestItemMatch(String spokenName) {
+  dynamic _findBestItemMatch(String spokenName) {
     final normalizedSpoken = _normalizeItemName(spokenName);
     if (normalizedSpoken.isEmpty) return null;
 
-    ProductItem? bestItem;
+    dynamic bestItem;
     var bestScore = 0;
 
     for (final item in widget.items) {
@@ -313,8 +319,35 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
       totalsByItem[itemId] = (totalsByItem[itemId] ?? 0) + entry.quantity;
     }
 
+    setState(() => _isSaving = true);
+    final success = widget.isService
+        ? await _saveServiceSales(totalsByItem, paymentMethod)
+        : await _saveProductSales(totalsByItem, paymentMethod);
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (success) {
+      final spokenSummary = _buildSalesSummary(totalsByItem, paymentMethod);
+      final spokenText = await VoiceOutputService.instance.speak(
+        text: spokenSummary,
+        languageCode: ref.read(localeProvider).languageCode,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(spokenText)),
+      );
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<bool> _saveProductSales(
+    Map<String, int> totalsByItem,
+    PaymentMethod paymentMethod,
+  ) {
     final requests = <InventorySaleRequest>[];
     for (final item in widget.items) {
+      if (item is! ProductItem) continue;
       final totalQuantity = totalsByItem[item.id];
       if (totalQuantity == null) continue;
       requests.add(
@@ -322,17 +355,63 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
       );
     }
 
-    setState(() => _isSaving = true);
-    final success = await ref.read(inventoryServiceProvider).recordBulkSales(
+    return ref.read(inv_providers.inventoryServiceProvider).recordBulkSales(
           sales: requests,
           paymentMethod: paymentMethod,
         );
-    if (!mounted) return;
-    setState(() => _isSaving = false);
+  }
 
-    if (success) {
-      Navigator.of(context).pop();
+  Future<bool> _saveServiceSales(
+    Map<String, int> totalsByItem,
+    PaymentMethod paymentMethod,
+  ) async {
+    final transactionService = ref.read(transactionServiceProvider);
+    final sharedTransactionId =
+        DateTime.now().microsecondsSinceEpoch.toString();
+
+    try {
+      for (final item in widget.items) {
+        final itemId = item.id.toString();
+        final totalQuantity = totalsByItem[itemId];
+        if (totalQuantity == null) continue;
+
+        await transactionService.addTransaction(
+          transactionId: sharedTransactionId,
+          productId: itemId,
+          itemName: item.name.toString(),
+          quantity: totalQuantity,
+          price: (item.price as num).toDouble(),
+          cost: 0.0,
+          transactionType: TransactionType.sale,
+          paymentMethod: paymentMethod,
+        );
+      }
+      return true;
+    } catch (_) {
+      return false;
     }
+  }
+
+  String _buildSalesSummary(
+    Map<String, int> totalsByItem,
+    PaymentMethod paymentMethod,
+  ) {
+    final totalQuantity =
+        totalsByItem.values.fold<int>(0, (sum, quantity) => sum + quantity);
+    final itemSummary = widget.items
+        .where((item) => totalsByItem[item.id.toString()] != null)
+        .map((item) => '${item.name} ${totalsByItem[item.id.toString()]}')
+        .join(', ');
+
+    final paymentLabel = switch (paymentMethod) {
+      PaymentMethod.qr => 'QR payment',
+      PaymentMethod.cash => 'cash payment',
+    };
+
+    return 'Today\'s sales have been logged successfully. '
+        'Total items recorded: $totalQuantity across ${totalsByItem.length} items. '
+        'Items: $itemSummary. '
+        'Payment method: $paymentLabel.';
   }
 
   @override

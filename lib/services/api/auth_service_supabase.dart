@@ -60,8 +60,15 @@ class AuthServiceSupabase implements IAuthService {
   AuthServiceSupabase(this._ref);
 
   @override
-  Stream<User?> get authStateChanges {
-    return _supabase.auth.onAuthStateChange.map((data) => data.session?.user);
+  Stream<User?> get authStateChanges async* {
+    final currentUser = _supabase.auth.currentUser;
+    if (currentUser != null) {
+      yield currentUser;
+    }
+
+    await for (final data in _supabase.auth.onAuthStateChange) {
+      yield data.session?.user;
+    }
   }
 
   @override

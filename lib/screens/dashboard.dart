@@ -118,24 +118,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               List<DailySummary> data = [];
               switch (_dashboardView) {
                 case DashboardView.daily:
-                  data = dashboardService.getDailyData(transactions, _focusedDate);
+                  data =
+                      dashboardService.getDailyData(transactions, _focusedDate);
                   break;
                 case DashboardView.weekly:
-                  data = dashboardService.getWeeklyData(transactions, _focusedDate);
+                  data = dashboardService.getWeeklyData(
+                      transactions, _focusedDate);
                   break;
                 case DashboardView.monthly:
-                  data = dashboardService.getMonthlyData(transactions, _focusedDate);
+                  data = dashboardService.getMonthlyData(
+                      transactions, _focusedDate);
                   break;
               }
               return _buildDashboard(context, userModel, data);
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text(context.tr('Error: $err'))),
+            error: (err, stack) =>
+                Center(child: Text(context.tr('Error: $err'))),
           );
   }
 
-  Widget _buildDashboard(BuildContext context, UserModel user,
-      List<DailySummary> data) {
+  Widget _buildDashboard(
+      BuildContext context, UserModel user, List<DailySummary> data) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -149,92 +153,88 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: Text(context.tr('No data available for this period.')),
             ),
           ] else ...[
-            Builder(
-              builder: (context) {
-                final totalSales =
-                    data.fold<double>(0.0, (sum, item) => sum + item.sales);
-                final bestSales = data.isNotEmpty
-                    ? data.map((e) => e.sales).reduce((a, b) => a > b ? a : b)
-                    : 0.0;
+            Builder(builder: (context) {
+              final totalSales =
+                  data.fold<double>(0.0, (sum, item) => sum + item.sales);
+              final bestSales = data.isNotEmpty
+                  ? data.map((e) => e.sales).reduce((a, b) => a > b ? a : b)
+                  : 0.0;
 
-                return Column(
-                  children: [
-                    _buildDateNavigator(data),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                context.tr('Graph Summary'),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              IconButton(
-                                tooltip: context.tr('Listen to graph summary'),
-                                onPressed: () => _speakDashboardSummary(data),
-                                icon: const Icon(Icons.volume_up_outlined),
-                              ),
-                            ],
-                          ),
-                          DashboardChart(
-                            data: data,
-                            dashboardView: _dashboardView,
-                          ),
-                        ],
-                      ),
+              return Column(
+                children: [
+                  _buildDateNavigator(data),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              context.tr('Graph Summary'),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            IconButton(
+                              tooltip: context.tr('Listen to graph summary'),
+                              onPressed: () => _speakDashboardSummary(data),
+                              icon: const Icon(Icons.volume_up_outlined),
+                            ),
+                          ],
+                        ),
+                        DashboardChart(
+                          data: data,
+                          dashboardView: _dashboardView,
+                        ),
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildSummaryRow(context.tr('Best'),
-                              bestSales.toStringAsFixed(2)),
-                          const Divider(),
-                          _buildSummaryRow(context.tr('Total'),
-                              totalSales.toStringAsFixed(2)),
-                        ],
-                      ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    const SizedBox(height: 24),
-                    // Advanced Analytics tile (navigates to separate page)
-                    GenericListTile(
-                      leading: Icon(Icons.insights,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 28),
-                      titleWidget: Text(
-                        context.tr('Advanced Analytics'),
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey.shade600),
-                      onTap: () => context.push('/advanced_analytics'),
+                    child: Column(
+                      children: [
+                        _buildSummaryRow(
+                            context.tr('Best'), bestSales.toStringAsFixed(2)),
+                        const Divider(),
+                        _buildSummaryRow(
+                            context.tr('Total'), totalSales.toStringAsFixed(2)),
+                      ],
                     ),
-                    // Resource Centre tile (navigates to separate page)
-                    GenericListTile(
-                      leading: Icon(Icons.folder,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 28),
-                      titleWidget: Text(
-                        context.tr('Resource Centre'),
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey.shade600),
-                      onTap: () => context.go('/resource_centre'),
+                  ),
+                  const SizedBox(height: 24),
+                  // Advanced Analytics tile (navigates to separate page)
+                  GenericListTile(
+                    leading: Icon(Icons.insights,
+                        color: Theme.of(context).colorScheme.primary, size: 28),
+                    titleWidget: Text(
+                      context.tr('Advanced Analytics'),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                  ],
-                );
-              }
-            )
+                    trailing: Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey.shade600),
+                    onTap: () => context.push('/advanced_analytics'),
+                  ),
+                  // Resource Centre tile (navigates to separate page)
+                  GenericListTile(
+                    leading: Icon(Icons.folder,
+                        color: Theme.of(context).colorScheme.primary, size: 28),
+                    titleWidget: Text(
+                      context.tr('Resource Centre'),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    trailing: Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey.shade600),
+                    onTap: () => context.go('/resource_centre'),
+                  ),
+                ],
+              );
+            })
           ]
         ]),
       ),
@@ -252,7 +252,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
             onPressed: () {
               switch (_dashboardView) {
                 case DashboardView.daily:

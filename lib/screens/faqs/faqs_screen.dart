@@ -1,7 +1,10 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../components/generic_list_tile.dart';
+import '../../providers/locale_provider.dart';
 import '../../l10n/dynamic_localizations.dart';
+import '../../services/voice/voice_output_service.dart';
 
 class FaqsScreen extends ConsumerStatefulWidget {
   const FaqsScreen({super.key});
@@ -74,6 +77,18 @@ class _FaqsScreenState extends ConsumerState<FaqsScreen> {
     });
   }
 
+  Future<void> _speakFaq(Map<String, String> faq) async {
+    final spokenText = await VoiceOutputService.instance.speak(
+      text: '${faq['question']}. ${faq['answer']}',
+      languageCode: ref.read(localeProvider).languageCode,
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(spokenText)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -85,13 +100,31 @@ class _FaqsScreenState extends ConsumerState<FaqsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                context.tr('Frequently Asked Questions'),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
-                ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/dashboard');
+                      }
+                    },
+                    icon: const Icon(Icons.arrow_back_ios_new),
+                    padding: EdgeInsets.zero,
+                    alignment: Alignment.centerLeft,
+                  ),
+                  Expanded(
+                    child: Text(
+                      context.tr('Frequently Asked Questions'),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               Text(
@@ -152,14 +185,30 @@ class _FaqsScreenState extends ConsumerState<FaqsScreen> {
                               ],
                             ],
                           ),
-                          trailing: AnimatedRotation(
-                            turns: isExpanded ? 0.5 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: Icon(
-                              Icons.keyboard_arrow_down,
-                              size: 24,
-                              color: theme.colorScheme.primary,
-                            ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: context.tr('Listen to this question'),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => _speakFaq(faq),
+                                icon: Icon(
+                                  Icons.volume_up_outlined,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              AnimatedRotation(
+                                turns: isExpanded ? 0.5 : 0.0,
+                                duration: const Duration(milliseconds: 200),
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 24,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
                           ),
                           onTap: () => _toggleExpansion(index),
                         ),

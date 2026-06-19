@@ -1,6 +1,7 @@
 ﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/product_item.dart';
+import '../../components/payment_selection_bottom_sheet.dart';
 import '../api/inventory_service.dart' as firebase;
 import '../interfaces/i_inventory_service.dart';
 
@@ -42,5 +43,12 @@ class FirebaseInventoryServiceAdapter implements IInventoryService {
   @override
   Future<bool> updateProductItem(String id, {int? stockQuantity}) {
     return _service.updateProductItem(id, stockQuantity: stockQuantity);
+  }
+  @override
+  Future<bool> recordBulkSales({
+    required List<InventorySaleRequest> sales,
+    required PaymentMethod paymentMethod,
+  }) {
+    return _service.recordBulkSales(sales: sales, paymentMethod: paymentMethod);
   }
 }

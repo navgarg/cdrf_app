@@ -19,6 +19,7 @@ class TranslationService {
 
   final GoogleTranslator _translator = GoogleTranslator();
   final Map<String, Map<String, String>> _cache = {};
+  final Map<String, Completer<String>> _inFlight = {};
   static const String _cacheKey = 'translation_cache';
   bool _isInitialized = false;
 
@@ -64,7 +65,14 @@ class TranslationService {
       return _cache[targetLanguage]![text]!;
     }
 
+    final requestKey = '$targetLanguage::$text';
+    final existingRequest = _inFlight[requestKey];
+    if (existingRequest != null) {
+      return existingRequest.future;
+    }
+
     final completer = Completer<String>();
+    _inFlight[requestKey] = completer;
     _queue.add(_TranslationRequest(text, targetLanguage, completer));
 
     if (!_isProcessingQueue) {
@@ -80,15 +88,18 @@ class TranslationService {
 
     while (_queue.isNotEmpty) {
       final request = _queue.removeAt(0);
+      final requestKey = '${request.targetLanguage}::${request.text}';
 
       if (_cache[request.targetLanguage]?.containsKey(request.text) ?? false) {
-        request.completer
-            .complete(_cache[request.targetLanguage]![request.text]);
+        final cachedText = _cache[request.targetLanguage]![request.text]!;
+        if (!request.completer.isCompleted) {
+          request.completer.complete(cachedText);
+        }
+        _inFlight.remove(requestKey);
         continue;
       }
 
       try {
-        // Translate using Google Translate
         final translation = await _translator.translate(
           request.text,
           from: 'en',
@@ -100,16 +111,19 @@ class TranslationService {
 
         _saveCacheToStorage();
 
-        request.completer.complete(translation.text);
+        if (!request.completer.isCompleted) {
+          request.completer.complete(translation.text);
+        }
+        _inFlight.remove(requestKey);
 
         _updateController.add(null);
-
-        await Future.delayed(const Duration(milliseconds: 100));
       } catch (e) {
         print(
             'Translation error for "${request.text}" to ${request.targetLanguage}: $e');
-        request.completer.complete(request.text);
-        await Future.delayed(const Duration(seconds: 1));
+        if (!request.completer.isCompleted) {
+          request.completer.complete(request.text);
+        }
+        _inFlight.remove(requestKey);
       }
     }
 
@@ -142,6 +156,7 @@ class TranslationService {
 
   Future<void> clearCache() async {
     _cache.clear();
+    _inFlight.clear();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_cacheKey);

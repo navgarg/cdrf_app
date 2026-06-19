@@ -49,7 +49,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/auth',
+    initialLocation: '/launch',
     debugLogDiagnostics: true,
     refreshListenable: notifier,
     redirect: (context, state) {
@@ -58,6 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAdmin = ref.read(isAdminProvider);
 
       final isLoading = authState.isLoading || authState.isReloading;
+      final isLaunchRoute = state.matchedLocation == '/launch';
 
       // Catch Supabase deep links that GoRouter tries to parse incorrectly
       if (state.uri.scheme == 'io.supabase.flutter' ||
@@ -65,7 +66,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/auth';
       }
 
-      if (isLoading || authState.hasError) return null;
+      if (isLoading) {
+        return isLaunchRoute ? null : '/launch';
+      }
+
+      if (authState.hasError) {
+        return isLaunchRoute ? '/auth' : null;
+      }
 
       final isAuthenticated = authState.valueOrNull != null;
 
@@ -76,14 +83,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/auth';
       }
 
+      if (!isAuthenticated && isLaunchRoute) {
+        return '/auth';
+      }
+
       // if (isAuthenticated && isAuthRoute) {
       //   return '/dashboard';
       // }
 
       if (isAuthenticated) {
-        if (user == null) return null; // Waiting for user data to load
+        // Keep user on loading gate until profile is hydrated.
+        if (user == null) {
+          return isLaunchRoute ? null : '/launch';
+        }
 
-        if (isAuthRoute) {
+        if (isAuthRoute || isLaunchRoute) {
           // Check if user is admin
           if (isAdmin) {
             return '/admin';
@@ -119,6 +133,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/launch',
+        builder: (context, state) => const _LaunchScreen(),
+      ),
+
       // Authentication Shell Route (Onboarding)
       ShellRoute(
         builder: (context, state, child) {
@@ -262,6 +281,80 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _LaunchScreen extends StatelessWidget {
+  const _LaunchScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primaryContainer,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(235),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.storefront_rounded,
+                    size: 44,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Nari Udyam',
+                  style: TextStyle(
+                    fontFamily: 'Rochester',
+                    fontSize: 40,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Preparing your workspace...',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.white.withAlpha(230),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.6,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 CustomTransitionPage<void> _buildPageWithSlideTransition({
   required String path,

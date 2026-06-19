@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/screens/customer_order.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/services_providers.dart';
@@ -22,7 +23,7 @@ class CartBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
     final user = ref.watch(userProvider);
-    final isService = user?.businessDomain == 'Beauty Parlor';
+    final isService = isBeautyParlorDomain(user?.businessDomain);
 
     final products = ref.watch(inventoryItemsProvider).asData?.value ?? [];
     final services = ref.watch(serviceItemsProvider).asData?.value ?? [];
@@ -344,25 +345,9 @@ class CartBottomSheet extends ConsumerWidget {
       List<Map<String, dynamic>> cartItems,
       double total,
       bool isService) async {
-    double? rating;
     PaymentMethod? paymentMethod;
 
-    // 1. Rating bottom sheet
-    rating = await showModalBottomSheet<double>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (c) => RatingBottomSheet(
-        onSubmit: (r) => Navigator.of(c).pop(r),
-      ),
-    );
-    if (rating == null) return; // user dismissed
-    if (!context.mounted) return;
-    // debug
-    // ignore: avoid_print
-    print('[OrderFlow] Got rating: $rating');
-
-    // 2. Payment selection bottom sheet
+    // 1. Payment selection bottom sheet
     paymentMethod = await showModalBottomSheet<PaymentMethod>(
       context: context,
       isScrollControlled: true,
@@ -403,7 +388,8 @@ class CartBottomSheet extends ConsumerWidget {
       final item = entry['item'];
       final double qtyDouble = entry['quantity'] as double;
       final int quantity = qtyDouble.round(); // Transaction model uses int
-      final double price = item.price; // Multiply by qty later in UI if needed, but DB ideally stores unit price, wait user said "shows 20rs even if i buy 5 qty"
+      final double price = item
+          .price; // Multiply by qty later in UI if needed, but DB ideally stores unit price, wait user said "shows 20rs even if i buy 5 qty"
       // Let's store unit price but wait... wait! Does the prompt mean we should store total price, OR calculate properly on dashboard?
       // "revenue is not being calculated properly qty is not being multiplied white calculating revenue only base price is being added " -> means I need to multiply it in dashboard service.
       final double cost = (item is ProductItem)
@@ -453,7 +439,38 @@ class CartBottomSheet extends ConsumerWidget {
           const SnackBar(content: Text('Order completed successfully!')));
     }
 
-    // 7. Now close the original cart sheet (if still open)
+    // 7. Ask for optional feedback at the very end.
+    if (!context.mounted) return;
+    final rating = await showModalBottomSheet<double?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (c) => RatingBottomSheet(
+        onSubmit: (r) => Navigator.of(c).pop(r),
+      ),
+    );
+
+    if (rating != null) {
+      try {
+        await transactionService.updateTransactionRating(
+          transactionId: sharedTransactionId,
+          rating: rating,
+        );
+      } catch (e) {
+        if (context.mounted) {
+          try {
+            ref.read(messengerProvider).showError(
+                'Feedback could not be saved. You can continue using the app.');
+          } catch (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Feedback could not be saved.')),
+            );
+          }
+        }
+      }
+    }
+
+    // 8. Now close the original cart sheet (if still open)
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }

@@ -1,6 +1,7 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/Users/navyagarg/development/flutter
-FLUTTER_APPLICATION_PATH=/Users/navyagarg/StudioProjects/CDRF_App
+FLUTTER_ROOT=D:\Development\Flutter\flutter
+FLUTTER_APPLICATION_PATH=C:\Developement\cdrf_app
+FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=C:\Developement\cdrf_app\macos\Flutter\ephemeral\Packages\.packages\FlutterFramework
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_BUILD_DIR=build
 FLUTTER_BUILD_NAME=1.0.0
