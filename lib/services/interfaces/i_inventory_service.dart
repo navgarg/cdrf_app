@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 ﻿import '../../models/product_item.dart';
 import '../../components/payment_selection_bottom_sheet.dart';
+=======
+import '../../models/product_item.dart';
+>>>>>>> 9c6164cc63a6329554adf21f7447b8fdb296a3e1
 
 abstract class IInventoryService {
   Stream<List<ProductItem>> streamInventoryProductItems();
@@ -14,6 +18,7 @@ abstract class IInventoryService {
     required int stockQuantity,
     required int reorderThreshold,
     required String unit,
+    String? imageUrl,
   });
 
   Future<bool> updateProductItem(

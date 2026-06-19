@@ -1,4 +1,4 @@
-﻿import '../../models/service_item.dart';
+import '../../models/service_item.dart';
 
 abstract class IServicesService {
   Stream<List<ServiceItem>> streamServiceItems();
@@ -8,5 +8,6 @@ abstract class IServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   });
 }

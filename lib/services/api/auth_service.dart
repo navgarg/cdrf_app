@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -214,12 +214,13 @@ class AuthService {
       // Surface common Google Play Services errors with better context.
       final code = e.code.isNotEmpty ? e.code : 'platform_error';
       final details = e.details?.toString() ?? '';
-      _ref.read(messengerProvider).showError(
-          'Google Sign-In failed ($code). ${e.message ?? ''} ${details}'
-              .trim());
+      final message = e.message ?? '';
+      _ref
+          .read(messengerProvider)
+          .showError('Google Sign-In failed ($code). $message $details'.trim());
       if (kDebugMode) {
         debugPrint(
-            '[AuthService] PlatformException during Google Sign-In: code=$code, message=${e.message}, details=$details');
+            '[AuthService] PlatformException during Google Sign-In: code=$code, message=$message, details=$details');
       }
       return false;
     } catch (e) {

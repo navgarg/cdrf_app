@@ -1,5 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/components/form_section.dart';
+import 'package:nariudyam/components/photo_picker_field.dart';
 import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/services/general/messenger.dart';
@@ -30,6 +32,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
   final _stockQuantityController = TextEditingController();
   final _reorderThresholdController = TextEditingController();
   final _unitController = TextEditingController();
+  final _imageUrlController = TextEditingController();
   TextEditingController? _activeListeningController;
   bool _isLoading = false;
 
@@ -43,6 +46,7 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
     _stockQuantityController.dispose();
     _reorderThresholdController.dispose();
     _unitController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -148,6 +152,9 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
             reorderThreshold:
                 int.tryParse(_reorderThresholdController.text) ?? 0,
             unit: _unitController.text,
+            imageUrl: _imageUrlController.text.trim().isEmpty
+                ? null
+                : _imageUrlController.text.trim(),
           );
 
       setState(() => _isLoading = false);
@@ -192,96 +199,137 @@ class _AddInventoryItemFormState extends ConsumerState<AddInventoryItemForm> {
                 ],
               ),
               const SizedBox(height: 24),
-              VoiceTextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: context.tr('Item Name'),
-                ),
-                onMicTap: () => _listenIntoField(_nameController),
-                isListening: _activeListeningController == _nameController,
-                validator: (value) =>
-                    value!.isEmpty ? context.tr('Please enter a name') : null,
+              FormSection(
+                icon: Icons.badge_outlined,
+                title: 'Basic Details',
+                children: [
+                  VoiceTextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: context.tr('Item Name'),
+                    ),
+                    onMicTap: () => _listenIntoField(_nameController),
+                    isListening: _activeListeningController == _nameController,
+                    validator: (value) => value!.isEmpty
+                        ? context.tr('Please enter a name')
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  VoiceTextFormField(
+                    controller: _descriptionController,
+                    decoration:
+                        InputDecoration(labelText: context.tr('Description')),
+                    maxLines: 2,
+                    onMicTap: () => _listenIntoField(_descriptionController),
+                    isListening:
+                        _activeListeningController == _descriptionController,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _descriptionController,
-                decoration:
-                    InputDecoration(labelText: context.tr('Description')),
-                maxLines: 2,
-                onMicTap: () => _listenIntoField(_descriptionController),
-                isListening:
-                    _activeListeningController == _descriptionController,
+              const SizedBox(height: 24),
+              FormSection(
+                icon: Icons.payments_outlined,
+                title: 'Pricing',
+                children: [
+                  VoiceTextFormField(
+                    controller: _priceController,
+                    decoration: InputDecoration(labelText: context.tr('Price')),
+                    keyboardType: TextInputType.number,
+                    onMicTap: () =>
+                        _listenIntoField(_priceController, numeric: true),
+                    isListening: _activeListeningController == _priceController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return context.tr('Please enter a price');
+                      }
+                      if (double.tryParse(value) == null) {
+                        return context.tr('Please enter a valid number');
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  VoiceTextFormField(
+                    controller: _costController,
+                    decoration: InputDecoration(labelText: context.tr('Cost')),
+                    keyboardType: TextInputType.number,
+                    onMicTap: () =>
+                        _listenIntoField(_costController, numeric: true),
+                    isListening: _activeListeningController == _costController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return context.tr('Please enter a cost');
+                      }
+                      if (double.tryParse(value) == null) {
+                        return context.tr('Please enter a valid number');
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _priceController,
-                decoration: InputDecoration(labelText: context.tr('Price')),
-                keyboardType: TextInputType.number,
-                onMicTap: () =>
-                    _listenIntoField(_priceController, numeric: true),
-                isListening: _activeListeningController == _priceController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return context.tr('Please enter a price');
-                  }
-                  if (double.tryParse(value) == null) {
-                    return context.tr('Please enter a valid number');
-                  }
-                  return null;
-                },
+              const SizedBox(height: 24),
+              FormSection(
+                icon: Icons.inventory_2_outlined,
+                title: 'Stock',
+                children: [
+                  VoiceTextFormField(
+                    controller: _stockQuantityController,
+                    decoration: InputDecoration(
+                        labelText: context.tr('Stock Quantity')),
+                    keyboardType: TextInputType.number,
+                    onMicTap: () => _listenIntoField(_stockQuantityController,
+                        numeric: true),
+                    isListening:
+                        _activeListeningController == _stockQuantityController,
+                    validator: (value) => value!.isEmpty
+                        ? context.tr('Please enter stock quantity')
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  VoiceTextFormField(
+                    controller: _reorderThresholdController,
+                    decoration: InputDecoration(
+                        labelText: context.tr('Reorder Threshold')),
+                    keyboardType: TextInputType.number,
+                    onMicTap: () => _listenIntoField(
+                      _reorderThresholdController,
+                      numeric: true,
+                    ),
+                    isListening: _activeListeningController ==
+                        _reorderThresholdController,
+                  ),
+                  const SizedBox(height: 16),
+                  VoiceTextFormField(
+                    controller: _unitController,
+                    decoration: InputDecoration(
+                        labelText: context.tr('Unit (e.g., pcs, kg)')),
+                    onMicTap: () => _listenIntoField(_unitController),
+                    isListening: _activeListeningController == _unitController,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _costController,
-                decoration: InputDecoration(labelText: context.tr('Cost')),
-                keyboardType: TextInputType.number,
-                onMicTap: () =>
-                    _listenIntoField(_costController, numeric: true),
-                isListening: _activeListeningController == _costController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return context.tr('Please enter a cost');
-                  }
-                  if (double.tryParse(value) == null) {
-                    return context.tr('Please enter a valid number');
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _stockQuantityController,
-                decoration:
-                    InputDecoration(labelText: context.tr('Stock Quantity')),
-                keyboardType: TextInputType.number,
-                onMicTap: () =>
-                    _listenIntoField(_stockQuantityController, numeric: true),
-                isListening:
-                    _activeListeningController == _stockQuantityController,
-                validator: (value) => value!.isEmpty
-                    ? context.tr('Please enter stock quantity')
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _reorderThresholdController,
-                decoration:
-                    InputDecoration(labelText: context.tr('Reorder Threshold')),
-                keyboardType: TextInputType.number,
-                onMicTap: () => _listenIntoField(
-                  _reorderThresholdController,
-                  numeric: true,
-                ),
-                isListening:
-                    _activeListeningController == _reorderThresholdController,
-              ),
-              const SizedBox(height: 16),
-              VoiceTextFormField(
-                controller: _unitController,
-                decoration: InputDecoration(
-                    labelText: context.tr('Unit (e.g., pcs, kg)')),
-                onMicTap: () => _listenIntoField(_unitController),
-                isListening: _activeListeningController == _unitController,
+              const SizedBox(height: 24),
+              FormSection(
+                icon: Icons.photo_camera_outlined,
+                title: 'Photo',
+                children: [
+                  PhotoPickerField(
+                    controller: _imageUrlController,
+                    folder: 'inventory',
+                  ),
+                  const SizedBox(height: 12),
+                  VoiceTextFormField(
+                    controller: _imageUrlController,
+                    decoration: InputDecoration(
+                      labelText: context.tr('Photo URL (optional)'),
+                    ),
+                    keyboardType: TextInputType.url,
+                    onMicTap: () => _listenIntoField(_imageUrlController),
+                    isListening:
+                        _activeListeningController == _imageUrlController,
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               ElevatedButton(

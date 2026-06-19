@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 // TODO: Add import for your localization solution, e.g.:
 // import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // or your custom i18n package
 
-class OnboardingLayout extends StatelessWidget {
+class OnboardingLayout extends StatefulWidget {
   final Widget child;
 
   const OnboardingLayout({
@@ -12,25 +13,68 @@ class OnboardingLayout extends StatelessWidget {
   });
 
   @override
+  State<OnboardingLayout> createState() => _OnboardingLayoutState();
+}
+
+class _OnboardingLayoutState extends State<OnboardingLayout> {
+  late final VideoPlayerController _videoController;
+  bool _isVideoReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _videoController = VideoPlayerController.asset(
+      'assets/videos/onboarding_background.mp4',
+    )
+      ..setLooping(true)
+      ..setVolume(0);
+
+    _videoController.initialize().then((_) {
+      if (!mounted) return;
+      setState(() => _isVideoReady = true);
+      _videoController.play();
+    }).catchError((Object error) {
+      debugPrint('Onboarding video could not be initialized: $error');
+    });
+  }
+
+  @override
+  void dispose() {
+    _videoController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
 
     return Scaffold(
       body: Stack(
         children: [
-          // Replace with video/whatever
           Container(
             width: double.infinity,
             height: size.height * 0.50,
-            color: Colors.black45, // If image, keep it darkened like this
-            child: Opacity(
-              opacity: 0.3,
-              child: Container(
-                color: Colors.black, // Replace this part with the image?
-              ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (_isVideoReady)
+                  Positioned.fill(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: _videoController.value.size.width,
+                        height: _videoController.value.size.height,
+                        child: VideoPlayer(_videoController),
+                      ),
+                    ),
+                  ),
+                Container(color: Colors.black.withAlpha(70)),
+              ],
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -45,7 +89,7 @@ class OnboardingLayout extends StatelessWidget {
                           'Nari Udyam', // TODO: Replace with AppLocalizations.of(context)!.appName
                           style: TextStyle(
                             fontFamily: 'Rochester',
-                            fontSize: 46,
+                            fontSize: 50,
                             color: Colors.white,
                             fontWeight: FontWeight.w400,
                           ),
@@ -55,9 +99,8 @@ class OnboardingLayout extends StatelessWidget {
                           'Vyapar chalati, Naari ka saathi', // TODO: Replace with AppLocalizations.of(context)!.appTagline
                           style: TextStyle(
                             fontFamily: 'PatrickHand',
-                            fontSize: 18,
+                            fontSize: 20,
                             color: Colors.white,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -70,7 +113,7 @@ class OnboardingLayout extends StatelessWidget {
                     alignment: Alignment.bottomCenter,
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.fromLTRB(12, 18, 12, 12),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
                         borderRadius: const BorderRadius.only(
@@ -78,7 +121,7 @@ class OnboardingLayout extends StatelessWidget {
                           topRight: Radius.circular(30),
                         ),
                       ),
-                      child: child,
+                      child: widget.child,
                     ),
                   ),
                 ),

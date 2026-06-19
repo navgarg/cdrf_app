@@ -1,4 +1,4 @@
-﻿class SupabaseConfig {
+class SupabaseConfig {
   static const String supabaseUrl = 'https://sulqucjnwgwhgwynvqhv.supabase.co';
 
   static const String supabaseAnonKey =

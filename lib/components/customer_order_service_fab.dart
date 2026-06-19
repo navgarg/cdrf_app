@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import '../screens/add_service_item_form.dart';
@@ -10,7 +11,7 @@ class CustomerOrderServiceFab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
-    final isService = isBeautyParlorDomain(user?.businessDomain);
+    final isService = BusinessDomainUtils.isServiceDomain(user?.businessDomain);
     if (!isService) return const SizedBox.shrink();
     return FloatingActionButton(
       onPressed: () {

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -29,6 +29,7 @@ class BarcodeUtils {
 
     try {
       final response = await http.get(url);
+      if (!context.mounted) return null;
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['items'] != null && data['items'].isNotEmpty) {

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:nariudyam/models/appointment.dart';
@@ -26,13 +26,18 @@ class MonthView extends ConsumerWidget {
 
     final Map<DateTime, int> eventCountPerDay = {};
     for (final appointment in allAppointments) {
-      final day = DateTime.utc(appointment.dateTime.year, appointment.dateTime.month, appointment.dateTime.day);
+      final day = DateTime.utc(appointment.dateTime.year,
+          appointment.dateTime.month, appointment.dateTime.day);
       eventCountPerDay[day] = (eventCountPerDay[day] ?? 0) + 1;
     }
 
     final eventCounts = eventCountPerDay.values;
-    final minEvents = eventCounts.isNotEmpty ? eventCounts.reduce((a, b) => a < b ? a : b) : 1;
-    final maxEvents = eventCounts.isNotEmpty ? eventCounts.reduce((a, b) => a > b ? a : b) : 1;
+    final minEvents = eventCounts.isNotEmpty
+        ? eventCounts.reduce((a, b) => a < b ? a : b)
+        : 1;
+    final maxEvents = eventCounts.isNotEmpty
+        ? eventCounts.reduce((a, b) => a > b ? a : b)
+        : 1;
     final eventRange = (maxEvents - minEvents).toDouble();
 
     Widget buildDensityBubble(DateTime day, {required int eventCount}) {
@@ -70,25 +75,30 @@ class MonthView extends ConsumerWidget {
           headerStyle: HeaderStyle(
             formatButtonVisible: false,
             titleCentered: true,
-            titleTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            leftChevronIcon: Icon(Icons.arrow_back_ios, size: 18, color: theme.colorScheme.primary),
-            rightChevronIcon: Icon(Icons.arrow_forward_ios, size: 18, color: theme.colorScheme.primary),
+            titleTextStyle:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            leftChevronIcon: Icon(Icons.arrow_back_ios,
+                size: 18, color: theme.colorScheme.primary),
+            rightChevronIcon: Icon(Icons.arrow_forward_ios,
+                size: 18, color: theme.colorScheme.primary),
           ),
-
           calendarStyle: CalendarStyle(
             markersMaxCount: 0,
             defaultTextStyle: TextStyle(color: theme.colorScheme.onSurface),
-            weekendTextStyle: TextStyle(color: theme.colorScheme.onSurface.withAlpha(150)), // Slightly dimmer
+            weekendTextStyle: TextStyle(
+                color: theme.colorScheme.onSurface
+                    .withAlpha(150)), // Slightly dimmer
           ),
-
           calendarBuilders: CalendarBuilders(
             selectedBuilder: (context, day, focusedDay) {
               final utcDay = DateTime.utc(day.year, day.month, day.day);
               final count = eventCountPerDay[utcDay] ?? 0;
               return Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withAlpha((0.15 * 255).round()),
-                  border: Border.all(color: theme.colorScheme.primary, width: 1.5),
+                  color:
+                      theme.colorScheme.primary.withAlpha((0.15 * 255).round()),
+                  border:
+                      Border.all(color: theme.colorScheme.primary, width: 1.5),
                   borderRadius: BorderRadius.circular(6.0),
                 ),
                 child: Stack(
@@ -104,8 +114,7 @@ class MonthView extends ConsumerWidget {
                   ],
                 ),
               );
-             },
-
+            },
             defaultBuilder: (context, day, focusedDay) {
               final utcDay = DateTime.utc(day.year, day.month, day.day);
               final count = eventCountPerDay[utcDay] ?? 0;
@@ -139,7 +148,11 @@ class MonthView extends ConsumerWidget {
                   Center(
                     child: Text(
                       '${day.day}',
-                      style: TextStyle(color: count > 0 ? Colors.white : theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: count > 0
+                              ? Colors.white
+                              : theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

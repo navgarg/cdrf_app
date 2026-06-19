@@ -1,8 +1,9 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../models/service_item.dart';
+import '../../models/business_domain.dart';
 import '../../providers/shared_providers.dart';
 import '../../services/general/messenger.dart';
 import '../interfaces/i_services_service.dart';
@@ -21,29 +22,51 @@ class ServicesServiceSupabase implements IServicesService {
 
   bool _isServiceBusiness() {
     final user = _ref.read(userProvider);
-    final raw = user?.businessDomain ?? '';
-    return raw.trim().toLowerCase() == 'beauty parlor';
+    return BusinessDomainUtils.isServiceDomain(user?.businessDomain);
   }
 
   @override
-  Stream<List<ServiceItem>> streamServiceItems() {
+  Stream<List<ServiceItem>> streamServiceItems() async* {
     if (!_isServiceBusiness()) {
-      return Stream.value(<ServiceItem>[]);
+      yield <ServiceItem>[];
+      return;
     }
 
     final user = _ref.read(userProvider);
-    if (user == null) return Stream.value(<ServiceItem>[]);
+    if (user == null) {
+      yield <ServiceItem>[];
+      return;
+    }
+    final uid = user.uid;
 
-    return _supabase
+    yield await _fetchServiceItems(uid);
+
+    try {
+      await for (final rows in _supabase
+          .from('services')
+          .stream(primaryKey: ['id'])
+          .eq('user_id', uid)
+          .order('name', ascending: true)) {
+        yield _mapServiceRows(rows);
+      }
+    } catch (e) {
+      debugPrint('streamServiceItems realtime failed: $e');
+    }
+  }
+
+  Future<List<ServiceItem>> _fetchServiceItems(String uid) async {
+    final rows = await _supabase
         .from('services')
-        .stream(primaryKey: ['id'])
-        .eq('user_id', user.uid)
-        .order('name', ascending: true)
-        .map((rows) {
-          return rows
-              .map((row) => ServiceItem.fromMap(row, row['id'].toString()))
-              .toList(growable: false);
-        });
+        .select()
+        .eq('user_id', uid)
+        .order('name', ascending: true);
+    return _mapServiceRows(rows);
+  }
+
+  List<ServiceItem> _mapServiceRows(List<Map<String, dynamic>> rows) {
+    return rows
+        .map((row) => ServiceItem.fromMap(row, row['id'].toString()))
+        .toList(growable: false);
   }
 
   @override
@@ -52,6 +75,7 @@ class ServicesServiceSupabase implements IServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   }) async {
     try {
       final uid = _requireUserId();
@@ -66,6 +90,8 @@ class ServicesServiceSupabase implements IServicesService {
         'description': description,
         'price': price,
         'duration': duration,
+        if (imageUrl != null && imageUrl.trim().isNotEmpty)
+          'image_url': imageUrl.trim(),
       });
 
       _ref.read(messengerProvider).showSuccess('Service added successfully!');

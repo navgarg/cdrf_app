@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/service_item.dart';
 import '../api/services_service.dart' as firebase;
@@ -20,12 +20,14 @@ class FirebaseServicesServiceAdapter implements IServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   }) {
     return _service.addServiceItem(
       name: name,
       description: description,
       price: price,
       duration: duration,
+      imageUrl: imageUrl,
     );
   }
 }

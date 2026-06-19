@@ -1,4 +1,4 @@
-﻿enum BusinessDomain {
+enum BusinessDomain {
   beautyParlor,
   tailorShop,
   tiffinServices,
@@ -26,16 +26,22 @@ extension BusinessDomainExtension on BusinessDomain {
   }
 
   static BusinessDomain fromString(String? value) {
-    switch (value) {
-      case 'Beauty Parlor':
+    switch (BusinessDomainUtils.normalized(value)) {
+      case 'beautyparlor':
+      case 'beautyparlour':
+      case 'salon':
         return BusinessDomain.beautyParlor;
-      case 'Tailor Shop':
+      case 'tailorshop':
+      case 'tailor':
         return BusinessDomain.tailorShop;
-      case 'Tiffin Services':
+      case 'tiffinservices':
+      case 'tiffin':
         return BusinessDomain.tiffinServices;
-      case 'Grocery Seller':
+      case 'groceryseller':
+      case 'grocery':
         return BusinessDomain.grocerySeller;
-      case 'Convenience Store':
+      case 'conveniencestore':
+      case 'convenience':
         return BusinessDomain.convenienceStore;
       default:
         return BusinessDomain.other;
@@ -43,6 +49,17 @@ extension BusinessDomainExtension on BusinessDomain {
   }
 }
 
-bool isBeautyParlorDomain(String? value) {
-  return value?.trim().toLowerCase() == 'beauty parlor';
+class BusinessDomainUtils {
+  const BusinessDomainUtils._();
+
+  static String normalized(String? value) {
+    return (value ?? '').toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+  }
+
+  static bool isServiceDomain(String? value) {
+    final domain = normalized(value);
+    return domain == 'beautyparlor' ||
+        domain == 'beautyparlour' ||
+        domain == 'salon';
+  }
 }

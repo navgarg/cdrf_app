@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/product_item.dart';
 import '../../components/payment_selection_bottom_sheet.dart';
@@ -28,6 +28,7 @@ class FirebaseInventoryServiceAdapter implements IInventoryService {
     required int stockQuantity,
     required int reorderThreshold,
     required String unit,
+    String? imageUrl,
   }) {
     return _service.addProductItem(
       name: name,
@@ -37,6 +38,7 @@ class FirebaseInventoryServiceAdapter implements IInventoryService {
       stockQuantity: stockQuantity,
       reorderThreshold: reorderThreshold,
       unit: unit,
+      imageUrl: imageUrl,
     );
   }
 

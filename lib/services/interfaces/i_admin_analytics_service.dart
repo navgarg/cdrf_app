@@ -1,4 +1,4 @@
-﻿class AdminAnalyticsData {
+class AdminAnalyticsData {
   final int totalUsers;
   final int activeUsers;
   final int totalTransactions;

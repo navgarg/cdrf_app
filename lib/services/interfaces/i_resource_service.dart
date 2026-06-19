@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import '../../models/resource_entry.dart';
 

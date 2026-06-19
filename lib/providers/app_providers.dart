@@ -1,5 +1,5 @@
-﻿/// Central export file for all app providers
-/// Import this file to get access to all providers in the app
+// Central export file for all app providers.
+// Import this file to get access to all providers in the app.
 
 // Shared providers (used by both Firebase and Supabase)
 export 'shared_providers.dart';

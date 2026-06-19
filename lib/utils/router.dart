@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/screens/onboarding/business_domain.dart';
@@ -107,9 +107,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (!user.onboardingCompleted) {
             return '/onboarding/multi_step';
           }
-          // If onboarding is done, send to dashboard
+          // Ask users to confirm/select their business domain on every login.
           else {
-            return '/dashboard';
+            return '/onboarding/business_domain';
           }
         }
 

@@ -1,4 +1,4 @@
-﻿import '../../models/user.dart';
+import '../../models/user.dart';
 
 /// Abstract interface for authentication services
 /// Both Firebase and Supabase implementations must follow this contract

@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart'; // Import for kDebugMode
@@ -80,7 +80,7 @@ class ExcelService {
       await Directory(downloadsDir).create(recursive: true);
     }
 
-    final filePath = '${downloadsDir}/$fileName';
+    final filePath = '$downloadsDir/$fileName';
     final file = File(filePath);
     await file.writeAsBytes(excelBytes);
 

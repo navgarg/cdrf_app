@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/product_item.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
@@ -26,10 +27,7 @@ class InventoryService {
 
   bool _isServiceBusiness() {
     final user = _ref.read(userProvider);
-    final raw = user?.businessDomain ?? '';
-    final normalized = raw.trim().toLowerCase();
-    // Only current supported service domain string. Add more variants if needed.
-    return normalized == 'beauty parlor';
+    return BusinessDomainUtils.isServiceDomain(user?.businessDomain);
   }
 
   // Product items now ALWAYS stored under 'inventory' (unified) for all business types.
@@ -111,6 +109,7 @@ class InventoryService {
     required int stockQuantity,
     required int reorderThreshold,
     required String unit,
+    String? imageUrl,
   }) async {
     try {
       final newItem = ProductItem(
@@ -122,6 +121,7 @@ class InventoryService {
         stockQuantity: stockQuantity,
         reorderThreshold: reorderThreshold,
         unit: unit,
+        imageUrl: imageUrl?.trim().isEmpty == true ? null : imageUrl?.trim(),
       );
       await _getInventoryProductItemsCollection().add(newItem);
       _ref.read(messengerProvider).showSuccess('Product added successfully!');

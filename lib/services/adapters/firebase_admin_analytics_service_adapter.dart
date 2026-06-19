@@ -1,4 +1,4 @@
-﻿import '../admin/admin_analytics_service.dart' as firebase;
+import '../admin/admin_analytics_service.dart' as firebase;
 import '../interfaces/i_admin_analytics_service.dart';
 
 class FirebaseAdminAnalyticsServiceAdapter implements IAdminAnalyticsService {

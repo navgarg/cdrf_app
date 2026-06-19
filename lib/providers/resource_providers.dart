@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/backend_config.dart';
 import '../services/interfaces/i_resource_service.dart';
 import '../services/resource/resource_service_supabase.dart';

@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProductItem {
   final String id;
@@ -12,6 +12,7 @@ class ProductItem {
   final DateTime? lastPurchasedDate;
   final DateTime? lastSoldDate;
   final String? location;
+  final String? imageUrl;
 
   ProductItem({
     required this.id,
@@ -25,6 +26,7 @@ class ProductItem {
     this.lastPurchasedDate,
     this.lastSoldDate,
     this.location,
+    this.imageUrl,
   });
 
   factory ProductItem.fromMap(Map<String, dynamic> data, String id) {
@@ -74,6 +76,7 @@ class ProductItem {
       lastSoldDate:
           parseDateTimeNullable(data['lastSoldDate'] ?? data['last_sold_date']),
       location: data['location'],
+      imageUrl: data['imageUrl'] ?? data['image_url'],
     );
   }
 
@@ -89,6 +92,7 @@ class ProductItem {
       'lastPurchasedDate': lastPurchasedDate,
       'lastSoldDate': lastSoldDate,
       'location': location,
+      'imageUrl': imageUrl,
     };
   }
 }

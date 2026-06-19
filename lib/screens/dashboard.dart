@@ -1,8 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:nariudyam/components/app_empty_state.dart';
+import 'package:nariudyam/components/app_error_state.dart';
 import 'package:nariudyam/components/dashboard_chart.dart';
+import 'package:nariudyam/components/loading_cards.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
 import 'package:nariudyam/providers/transaction_providers.dart';
@@ -119,25 +122,35 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               switch (_dashboardView) {
                 case DashboardView.daily:
                   data =
+                     
                       dashboardService.getDailyData(transactions, _focusedDate);
                   break;
                 case DashboardView.weekly:
                   data = dashboardService.getWeeklyData(
+                      
                       transactions, _focusedDate);
                   break;
                 case DashboardView.monthly:
                   data = dashboardService.getMonthlyData(
+                      
                       transactions, _focusedDate);
                   break;
               }
               return _buildDashboard(context, userModel, data);
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const LoadingCards(count: 4, itemHeight: 110),
             error: (err, stack) =>
-                Center(child: Text(context.tr('Error: $err'))),
+                AppErrorState(
+              title: context.tr('Could not load dashboard'),
+              message:
+                  context.tr('Please check your connection and try again.'),
+              onRetry: () => ref.invalidate(allTransactionsStreamProvider),
+            ),
           );
   }
 
+  Widget _buildDashboard(
+      BuildContext context, UserModel user, List<DailySummary> data) {
   Widget _buildDashboard(
       BuildContext context, UserModel user, List<DailySummary> data) {
     return SingleChildScrollView(
@@ -149,8 +162,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           if (data.isEmpty) ...[
             _buildDateNavigator([]),
             const SizedBox(height: 16),
-            Center(
-              child: Text(context.tr('No data available for this period.')),
+            AppEmptyState(
+              icon: Icons.bar_chart_outlined,
+              title: context.tr('No sales yet'),
+              message: context.tr(
+                'Sales you record will appear in this dashboard.',
+              ),
             ),
           ] else ...[
             Builder(builder: (context) {
@@ -159,26 +176,71 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               final bestSales = data.isNotEmpty
                   ? data.map((e) => e.sales).reduce((a, b) => a > b ? a : b)
                   : 0.0;
+              final bestEntry =
+                  data.reduce((a, b) => a.sales >= b.sales ? a : b);
+              final totalProfit =
+                  data.fold<double>(0.0, (sum, item) => sum + item.profit);
+              final theme = Theme.of(context);
+              final primary = theme.colorScheme.primary;
+              final warmAccent = Color.lerp(primary, Colors.deepOrange, 0.38)!;
 
               return Column(
                 children: [
                   _buildDateNavigator(data),
                   const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+                    decoration: BoxDecoration(
+                      color: Color.lerp(
+                        theme.colorScheme.surface,
+                        warmAccent,
+                        0.08,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: warmAccent.withAlpha(58)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: warmAccent.withAlpha(20),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              context.tr('Graph Summary'),
-                              style: Theme.of(context).textTheme.titleMedium,
+                            Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: warmAccent.withAlpha(35),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    Icons.insert_chart_outlined_rounded,
+                                    color: warmAccent,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  context.tr('Graph Summary'),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
                             ),
                             IconButton(
                               tooltip: context.tr('Listen to graph summary'),
                               onPressed: () => _speakDashboardSummary(data),
-                              icon: const Icon(Icons.volume_up_outlined),
+                              icon: Icon(
+                                Icons.volume_up_outlined,
+                                color: warmAccent,
+                              ),
                             ),
                           ],
                         ),
@@ -186,24 +248,56 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           data: data,
                           dashboardView: _dashboardView,
                         ),
+                        const SizedBox(height: 8),
+                        _buildGraphTakeaway(bestEntry),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSummaryRow(
-                            context.tr('Best'), bestSales.toStringAsFixed(2)),
-                        const Divider(),
-                        _buildSummaryRow(
-                            context.tr('Total'), totalSales.toStringAsFixed(2)),
-                      ],
-                    ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetricCard(
+                          icon: Icons.trending_up,
+                          title: context.tr('Best'),
+                          value: bestSales.toStringAsFixed(2),
+                          color: warmAccent,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMetricCard(
+                          icon: Icons.payments_outlined,
+                          title: context.tr('Total'),
+                          value: totalSales.toStringAsFixed(2),
+                          color: primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildMetricCard(
+                    icon: Icons.savings_outlined,
+                    title: context.tr('Profit'),
+                    value: totalProfit.toStringAsFixed(2),
+                    color: Colors.teal.shade600,
+                    fullWidth: true,
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _buildLegendDot(warmAccent, context.tr('Sales')),
+                      const SizedBox(width: 14),
+                      _buildLegendDot(
+                        Colors.teal.shade600,
+                        context.tr('Profit'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Divider(
+                    color: theme.colorScheme.primary.withAlpha(35),
+                    height: 1,
                   ),
                   const SizedBox(height: 24),
                   // Advanced Analytics tile (navigates to separate page)
@@ -297,7 +391,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   String _getNavigatorHeaderText(List<DailySummary>? data) {
     if (data == null || data.isEmpty) {
-      return '';
+      return switch (_dashboardView) {
+        DashboardView.daily => DateFormat('MMM dd, yyyy').format(_focusedDate),
+        DashboardView.weekly => context.tr('This week'),
+        DashboardView.monthly => DateFormat('MMM yyyy').format(_focusedDate),
+      };
     }
 
     final firstDate = data.first.date;
@@ -326,28 +424,121 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
-  Widget _buildSummaryRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+  Widget _buildMetricCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+    bool fullWidth = false,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      width: fullWidth ? double.infinity : null,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Color.lerp(theme.colorScheme.surface, color, 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withAlpha(70)),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: color.withAlpha(38),
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: Icon(icon, color: color, size: 22),
           ),
-          Text(
-            '₹ $value',
-            style: const TextStyle(
-              fontSize: 16,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface.withAlpha(170),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '₹ $value',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildLegendDot(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGraphTakeaway(DailySummary bestEntry) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Color.lerp(
+          theme.colorScheme.surface,
+          Colors.teal,
+          0.10,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.teal.withAlpha(55)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.lightbulb_outline, color: Colors.teal.shade600),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '${context.tr('Best sales period')}: ${_formatSummaryPoint(bestEntry.date)}.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatSummaryPoint(DateTime date) {
+    return switch (_dashboardView) {
+      DashboardView.daily => DateFormat('ha').format(date),
+      DashboardView.weekly => DateFormat('MMM d').format(date),
+      DashboardView.monthly => DateFormat('MMM d').format(date),
+    };
   }
 
   Widget _buildToggleButtons() {

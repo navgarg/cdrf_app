@@ -29,7 +29,8 @@ final overallMetricsProvider = Provider<Map<String, double>>((ref) {
   for (final transaction in sales) {
     totalRevenue += (transaction.price * transaction.quantity);
     totalCost += (transaction.cost * transaction.quantity);
-    totalProfit += ((transaction.price - transaction.cost) * transaction.quantity);
+    totalProfit +=
+        ((transaction.price - transaction.cost) * transaction.quantity);
   }
 
   // Count "transactions" as orders/checkouts when transaction_id exists.
@@ -68,13 +69,13 @@ final paymentModeDataProvider = Provider<List<PaymentModeData>>((ref) {
   for (final transaction in sales) {
     final method = transaction.paymentMethod;
 
-    revenueByMethod[method] =
-        (revenueByMethod[method] ?? 0) + (transaction.price * transaction.quantity);
+    revenueByMethod[method] = (revenueByMethod[method] ?? 0) +
+        (transaction.price * transaction.quantity);
 
-    final orderKey =
-        (transaction.transactionId != null && transaction.transactionId!.trim().isNotEmpty)
-            ? transaction.transactionId!
-            : transaction.id;
+    final orderKey = (transaction.transactionId != null &&
+            transaction.transactionId!.trim().isNotEmpty)
+        ? transaction.transactionId!
+        : transaction.id;
     (orderKeysByMethod[method] ??= <String>{}).add(orderKey);
   }
 
@@ -90,7 +91,8 @@ final paymentModeDataProvider = Provider<List<PaymentModeData>>((ref) {
   return result..sort((a, b) => b.revenue.compareTo(a.revenue));
 });
 
-final inventoryReorderDataProvider = Provider<List<InventoryReorderData>>((ref) {
+final inventoryReorderDataProvider =
+    Provider<List<InventoryReorderData>>((ref) {
   final itemsAsync = ref.watch(inventoryItemsProvider);
   if (!itemsAsync.hasValue) return [];
 
@@ -108,8 +110,7 @@ final inventoryReorderDataProvider = Provider<List<InventoryReorderData>>((ref) 
     }
   }
 
-  return reorderData
-    ..sort((a, b) => a.currentStock.compareTo(b.currentStock));
+  return reorderData..sort((a, b) => a.currentStock.compareTo(b.currentStock));
 });
 
 final productRevenueDataProvider = Provider<List<ProductRevenueData>>((ref) {
@@ -121,7 +122,8 @@ final productRevenueDataProvider = Provider<List<ProductRevenueData>>((ref) {
       .toList();
 
   final user = ref.watch(userProvider);
-  final isService = user?.businessDomain?.trim().toLowerCase() == 'beauty parlor';
+  final isService =
+      user?.businessDomain?.trim().toLowerCase() == 'beauty parlor';
 
   Set<String> itemNames = {};
 
@@ -146,7 +148,8 @@ final productRevenueDataProvider = Provider<List<ProductRevenueData>>((ref) {
       productMap[name] = ProductRevenueData(
         productName: name,
         revenue: existing.revenue + (transaction.price * transaction.quantity),
-        profit: existing.profit + ((transaction.price - transaction.cost) * transaction.quantity),
+        profit: existing.profit +
+            ((transaction.price - transaction.cost) * transaction.quantity),
         salesCount: existing.salesCount + transaction.quantity.toInt(),
       );
     } else {
@@ -339,13 +342,13 @@ class AnalyticsService {
       for (final transaction in sales) {
         final method = transaction.paymentMethod;
 
-        revenueByMethod[method] =
-            (revenueByMethod[method] ?? 0) + (transaction.price * transaction.quantity);
+        revenueByMethod[method] = (revenueByMethod[method] ?? 0) +
+            (transaction.price * transaction.quantity);
 
-        final orderKey =
-            (transaction.transactionId != null && transaction.transactionId!.trim().isNotEmpty)
-                ? transaction.transactionId!
-                : transaction.id;
+        final orderKey = (transaction.transactionId != null &&
+                transaction.transactionId!.trim().isNotEmpty)
+            ? transaction.transactionId!
+            : transaction.id;
         (orderKeysByMethod[method] ??= <String>{}).add(orderKey);
       }
 
@@ -408,10 +411,10 @@ class AnalyticsService {
         totalProfit +=
             (transaction.price - transaction.cost) * transaction.quantity;
 
-        final orderKey =
-            (transaction.transactionId != null && transaction.transactionId!.trim().isNotEmpty)
-                ? transaction.transactionId!
-                : transaction.id;
+        final orderKey = (transaction.transactionId != null &&
+                transaction.transactionId!.trim().isNotEmpty)
+            ? transaction.transactionId!
+            : transaction.id;
         orderKeys.add(orderKey);
       }
 

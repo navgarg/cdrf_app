@@ -1,4 +1,4 @@
-﻿import 'package:fl_chart/fl_chart.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api/dashboard_service.dart';
@@ -16,6 +16,9 @@ class DashboardChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final salesColor = Color.lerp(primary, Colors.deepOrange, 0.35)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
@@ -24,7 +27,21 @@ class DashboardChart extends StatelessWidget {
             ? const Center(child: Text('No data available.'))
             : LineChart(
                 LineChartData(
-                  gridData: const FlGridData(show: true),
+                  backgroundColor: Colors.transparent,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: true,
+                    horizontalInterval: _gridInterval(data),
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: theme.colorScheme.primary.withAlpha(28),
+                      strokeWidth: 1,
+                    ),
+                    getDrawingVerticalLine: (value) => FlLine(
+                      color: theme.colorScheme.onSurface.withAlpha(22),
+                      strokeWidth: 1,
+                      dashArray: [6, 6],
+                    ),
+                  ),
                   titlesData: FlTitlesData(
                     show: true,
                     leftTitles: AxisTitles(
@@ -34,22 +51,39 @@ class DashboardChart extends StatelessWidget {
                         getTitlesWidget: (value, meta) {
                           return SideTitleWidget(
                             meta: meta,
-                            child: Text(value.toInt().toString()),
+                            child: Text(
+                              value.toInt().toString(),
+                              style: TextStyle(
+                                color:
+                                    theme.colorScheme.onSurface.withAlpha(170),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
                           );
                         },
                       ),
-                      axisNameWidget: const Text('Sales (₹)'),
+                      axisNameWidget: Text(
+                        'Sales (₹)',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface.withAlpha(190),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       axisNameSize: 20,
                     ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 60,
-                        interval: dashboardView == DashboardView.daily ? 2.0 : 1.0,
+                        reservedSize:
+                            dashboardView == DashboardView.daily ? 78 : 62,
+                        interval:
+                            dashboardView == DashboardView.daily ? 2.0 : 1.0,
                         getTitlesWidget: (value, meta) => _getBottomTitles(
                           value,
                           meta,
                           data,
+                          context,
                         ),
                       ),
                       axisNameSize: 20,
@@ -85,11 +119,15 @@ class DashboardChart extends StatelessWidget {
                         (LineChartBarData barData, List<int> spotIndexes) {
                       return spotIndexes.map((spotIndex) {
                         return TouchedSpotIndicatorData(
-                          const FlLine(color: Colors.blue, strokeWidth: 2),
+                          FlLine(color: salesColor, strokeWidth: 2),
                           FlDotData(
                             getDotPainter: (spot, percent, barData, index) =>
                                 FlDotCirclePainter(
-                                    radius: 6, color: Colors.blue),
+                              radius: 6,
+                              color: salesColor,
+                              strokeWidth: 2,
+                              strokeColor: Colors.white,
+                            ),
                           ),
                         );
                       }).toList();
@@ -102,9 +140,34 @@ class DashboardChart extends StatelessWidget {
                       }).toList(),
                       isCurved: true,
                       barWidth: 5,
-                      color: Theme.of(context).colorScheme.primary,
-                      belowBarData: BarAreaData(show: false),
-                      dotData: const FlDotData(show: false),
+                      color: salesColor,
+                      gradient: LinearGradient(
+                        colors: [
+                          salesColor,
+                          theme.colorScheme.primary,
+                        ],
+                      ),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            salesColor.withAlpha(58),
+                            salesColor.withAlpha(4),
+                          ],
+                        ),
+                      ),
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, percent, barData, index) =>
+                            FlDotCirclePainter(
+                          radius: 3.5,
+                          color: salesColor,
+                          strokeWidth: 2,
+                          strokeColor: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -114,7 +177,11 @@ class DashboardChart extends StatelessWidget {
   }
 
   Widget _getBottomTitles(
-      double value, TitleMeta meta, List<DailySummary> data) {
+    double value,
+    TitleMeta meta,
+    List<DailySummary> data,
+    BuildContext context,
+  ) {
     final intIndex = value.toInt();
     // Check if the value is an integer and within the bounds of the data list
     if (value == intIndex.toDouble() &&
@@ -135,7 +202,13 @@ class DashboardChart extends StatelessWidget {
           final hour = data[index].date.hour;
           String startHour12 = (hour % 12 == 0 ? 12 : hour % 12).toString();
           String startAmPm = hour < 12 ? 'AM' : 'PM';
-          text = '$startHour12$startAmPm';
+
+          int endHour24 = hour + 4;
+          String endHour12 =
+              (endHour24 % 12 == 0 ? 12 : endHour24 % 12).toString();
+          String endAmPm = endHour24 < 12 ? 'AM' : 'PM';
+
+          text = '$startHour12$startAmPm\n$endHour12$endAmPm';
           break;
         case DashboardView.weekly:
           text = '${data[index].date.day}';
@@ -152,12 +225,36 @@ class DashboardChart extends StatelessWidget {
 
       return SideTitleWidget(
         meta: meta,
-        child: Text(text),
+        space: 10,
+        child: SizedBox(
+          width: dashboardView == DashboardView.daily ? 46 : 58,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: dashboardView == DashboardView.daily ? 2 : 1,
+            overflow: TextOverflow.visible,
+            style: TextStyle(
+              fontSize: dashboardView == DashboardView.daily ? 12 : 13,
+              fontWeight: FontWeight.w600,
+              height: 1.05,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+            ),
+          ),
+        ),
       );
     }
     return SideTitleWidget(
       meta: meta,
       child: const Text(''),
     );
+  }
+
+  double _gridInterval(List<DailySummary> data) {
+    final maxSales = data.fold<double>(
+      0,
+      (max, item) => item.sales > max ? item.sales : max,
+    );
+    if (maxSales <= 0) return 1;
+    return (maxSales / 4).clamp(1, double.infinity);
   }
 }

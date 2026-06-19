@@ -1,4 +1,4 @@
-﻿// firebase (previous implementation)
+// firebase (previous implementation)
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 
@@ -14,6 +14,7 @@ import '../../providers/auth_providers.dart';
 import '../../providers/resource_providers.dart';
 import '../../services/admin/admin_provider.dart';
 import '../../services/general/messenger.dart';
+import '../../components/app_empty_state.dart';
 import '../../components/generic_list_tile.dart';
 import '../../l10n/dynamic_localizations.dart';
 
@@ -111,7 +112,13 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
 
         final entries = snapshot.data ?? const <ResourceEntry>[];
         if (entries.isEmpty) {
-          return Center(child: Text(context.tr('No resources uploaded yet')));
+          return AppEmptyState(
+            icon: Icons.folder_open_outlined,
+            title: context.tr('No resources uploaded yet'),
+            message: context.tr(
+              'Useful documents and images will appear here.',
+            ),
+          );
         }
 
         // Group by date
@@ -237,4 +244,3 @@ class _ResourceCenterScreenState extends ConsumerState<ResourceCenterScreen> {
     );
   }
 }
-

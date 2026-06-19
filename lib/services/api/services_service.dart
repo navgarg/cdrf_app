@@ -1,6 +1,7 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nariudyam/models/service_item.dart';
+import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/services/api/auth_service.dart';
 import 'package:nariudyam/services/general/messenger.dart';
 
@@ -23,8 +24,7 @@ class ServicesService {
 
   bool _isServiceBusiness() {
     final user = _ref.read(userProvider);
-    final raw = user?.businessDomain ?? '';
-    return raw.trim().toLowerCase() == 'beauty parlor';
+    return BusinessDomainUtils.isServiceDomain(user?.businessDomain);
   }
 
   // Canonical services collection (new name standardized back to 'services').
@@ -127,6 +127,7 @@ class ServicesService {
     String? description,
     required double price,
     required int duration,
+    String? imageUrl,
   }) async {
     try {
       final user = _ref.read(userProvider);
@@ -143,6 +144,7 @@ class ServicesService {
         description: description,
         price: price,
         duration: duration,
+        imageUrl: imageUrl?.trim().isEmpty == true ? null : imageUrl?.trim(),
       );
       await _getCanonicalServicesCollection().add(newService);
       // Fire a cleanup attempt (no-op if already cleaned) to ensure 'products' disappears quickly after additions.
