@@ -7,7 +7,6 @@ import 'package:nariudyam/models/service_item.dart';
 import 'package:nariudyam/components/item_visual.dart';
 import 'package:nariudyam/components/loading_cards.dart';
 import 'package:nariudyam/components/voice_search_field.dart';
-import 'package:nariudyam/models/business_domain.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/services_providers.dart';
 import 'package:nariudyam/providers/auth_providers.dart';
@@ -96,42 +95,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
             child: Material(
               color: Colors.transparent,
               child: BulkVoiceSalesForm(items: items),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
-              .animate(animation),
-          child: child,
-        );
-      },
-    );
-  }
-
-  void _showAddServiceItemDialog(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
-      barrierDismissible: true,
-      barrierLabel: context.tr('Add Service Item'),
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-            ),
-            child: const Material(
-              color: Colors.transparent,
-              child: AddServiceItemForm(),
             ),
           ),
         );

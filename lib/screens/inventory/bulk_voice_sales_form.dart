@@ -6,7 +6,6 @@ import 'package:nariudyam/components/voice_text_form_field.dart';
 import 'package:nariudyam/models/product_item.dart';
 import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/models/service_item.dart';
-import 'package:nariudyam/models/transaction.dart';
 import 'package:nariudyam/providers/inventory_providers.dart';
 import 'package:nariudyam/providers/locale_provider.dart';
 import 'package:nariudyam/providers/transaction_providers.dart';
@@ -17,7 +16,6 @@ import 'package:nariudyam/services/voice/voice_output_service.dart';
 import '../../l10n/dynamic_localizations.dart';
 
 class BulkVoiceSalesForm extends ConsumerStatefulWidget {
-  final List<dynamic> items;
   final bool isService;
   final List<BulkVoiceSalesItem> items;
 
@@ -156,7 +154,6 @@ class _BulkVoiceSalesFormState extends ConsumerState<BulkVoiceSalesForm> {
     final normalizedSpoken = _normalizeItemName(spokenName);
     if (normalizedSpoken.isEmpty) return null;
 
-    dynamic bestItem;
     BulkVoiceSalesItem? bestItem;
     var bestScore = 0;
 
